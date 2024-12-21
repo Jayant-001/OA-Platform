@@ -17,7 +17,7 @@
     "dev:clients": "pnpm --parallel --filter admin-dashboard --filter web-app dev",
     "dev:servers": "pnpm --parallel --filter server --filter worker dev",
     "build": "turbo run build",
-    "dev": "turbo run dev"
+    "dev": "concurrently \"turbo run dev\""
   },
   "devDependencies": {
     "turbo": "latest",
