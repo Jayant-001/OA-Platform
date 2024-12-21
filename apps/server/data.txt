@@ -1,0 +1,24 @@
+CREATE TABLE users (
+    id SERIAL PRIMARY KEY,
+    name VARCHAR(100) NOT NULL,
+    email VARCHAR(100) UNIQUE NOT NULL,
+    password VARCHAR(100) NOT NULL,
+    createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    college VARCHAR(100),
+    branch VARCHAR(100),
+    batch INT,
+    phone_number VARCHAR(15)
+);
+
+INSERT INTO users (name, email, password, college, branch, batch, phone_number)
+VALUES ('John Doe', 'john.doe@example.com', 'password123', 'Example College', 'Computer Science', 2023, '1234567890');
+
+SELECT * FROM users;
+
+SELECT * FROM users WHERE id = 1;
+
+UPDATE users
+SET name = 'Jane Doe', email = 'jane.doe@example.com', password = 'newpassword123', college = 'New College', branch = 'Information Technology', batch = 2024, phone_number = '0987654321'
+WHERE id = 1;
+
+DELETE FROM users WHERE id = 1;

@@ -1,0 +1,4 @@
+Terminate process with PID -> (get PID in Resource monitor's network tab)
+taskkill /F /PID 19452
+
+

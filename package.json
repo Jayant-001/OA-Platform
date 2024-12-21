@@ -1,0 +1,30 @@
+{
+  "name": "oa-project",
+  "version": "1.0.0",
+  "private": true,
+  "packageManager": "pnpm@8.15.6",
+  "scripts": {
+    "start:admin-dashboard": "pnpm --filter admin-dashboard start",
+    "start:web-app": "pnpm --filter web-app start",
+    "start:server": "pnpm --filter server start",
+    "start:worker": "pnpm --filter worker start",
+    "start:clients": "pnpm --parallel --filter admin-dashboard --filter web-app start",
+    "start:servers": "pnpm --parallel --filter server --filter worker start",
+    "dev:admin-dashboard": "pnpm --filter admin-dashboard dev",
+    "dev:web-app": "pnpm --filter web-app dev",
+    "dev:server": "pnpm --filter server dev",
+    "dev:worker": "pnpm --filter worker dev",
+    "dev:clients": "pnpm --parallel --filter admin-dashboard --filter web-app dev",
+    "dev:servers": "pnpm --parallel --filter server --filter worker dev",
+    "build": "turbo run build",
+    "dev": "turbo run dev"
+  },
+  "devDependencies": {
+    "turbo": "latest",
+    "concurrently": "^7.0.0"
+  },
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ]
+}
