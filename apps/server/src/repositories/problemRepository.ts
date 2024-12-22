@@ -1,4 +1,5 @@
 import db from "../config/database";
+import { HttpException } from "../middleware/errorHandler";
 import { Problem } from "../models/problem";
 
 export class ProblemRepository {
@@ -39,10 +40,10 @@ export class ProblemRepository {
             .map((key, index) => `${key} = $${index + 2}`)
             .join(", ");
         const values = Object.values(problem);
-        await db.none(`UPDATE problems SET ${fields} WHERE id = $1`, [
-            id,
-            ...values,
-        ]);
+        await db.none(
+            `UPDATE problems SET ${fields}, updated_at = NOW() WHERE id = $1`,
+            [id, ...values]
+        );
     }
 
     async delete(id: string): Promise<void> {
