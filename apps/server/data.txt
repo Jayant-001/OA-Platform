@@ -22,3 +22,7 @@ SET name = 'Jane Doe', email = 'jane.doe@example.com', password = 'newpassword12
 WHERE id = 1;
 
 DELETE FROM users WHERE id = 1;
+
+
+139 = memory limit exeed
+124 = time limit exceed
