@@ -3,7 +3,7 @@ import jwt from "jsonwebtoken";
 import { HttpException } from "./errorHandler";
 import { ReqUser } from "../models/reqUser";
 
-const authMiddleware = (req: Request, res: Response, next: NextFunction) => {
+const userAuthMiddleware = (req: Request, res: Response, next: NextFunction) => {
     const token =
         req.headers.authorization?.split(" ")[1] || req.cookies?.token;
 
@@ -25,4 +25,41 @@ const authMiddleware = (req: Request, res: Response, next: NextFunction) => {
     }
 };
 
-export default authMiddleware;
+const adminAuthMiddleware = (req: Request, res: Response, next: NextFunction) => {
+    const token =
+        req.headers.authorization?.split(" ")[1] || req.cookies?.token;
+
+    if (!token) {
+        throw new HttpException(401, "NOT_AUTHORIZED", "No token provided");
+    }
+
+    try {
+        const secret = process.env.JWT_SECRET || "your_jwt_secret";
+        const decoded = jwt.verify(token, secret) as ReqUser;
+        req.user = decoded;
+        console.log(req.user);
+        if (req?.user?.role !== 'admin' && req?.user?.role !== 'panel') {
+            throw new HttpException(401, "NOT_AUTHORIZED", "User is not authorized to access this route");
+        }
+
+        next();
+    }
+    catch (error) {
+        if (error instanceof HttpException) {
+            throw new HttpException(
+                401,
+                error.customCode,
+                error.message
+            );
+        } else {
+            throw new HttpException(
+                401,
+                "NOT_AUTHORIZED",
+                "Invalid or expired token"
+            );
+        }
+    }
+};
+
+
+export { userAuthMiddleware, adminAuthMiddleware };

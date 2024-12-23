@@ -1,6 +1,7 @@
 import { ProblemRepository } from "../repositories/problemRepository";
 import { Problem } from "../models/problem";
 import { HttpException } from "../middleware/errorHandler";
+import { ProblemSubmissions } from "../models/problemSubmissions";
 
 class ProblemService {
     private problemRepository = new ProblemRepository();
@@ -21,7 +22,7 @@ class ProblemService {
 
     async updateProblem(
         id: string,
-        problemData: Partial<Omit<Problem, "id" | "created_at" | "updated_at">>
+        problemData: Partial<Omit<Problem, "id" | "created_at" | "updated_at | created_by" >>
     ): Promise<void> {
         const isExists = await this.problemRepository.findById(id);
         if (isExists === null) {
@@ -45,6 +46,10 @@ class ProblemService {
             );
         }
         return this.problemRepository.delete(id);
+    }
+
+    async createSubmission(submissionData: Omit<ProblemSubmissions, "id" | "submitted_at">): Promise<ProblemSubmissions> {
+        return await this.problemRepository.createSubmission(submissionData);
     }
 }
 

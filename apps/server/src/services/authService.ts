@@ -5,7 +5,7 @@ import { User } from "../models/user";
 import { Admin } from "../models/admin";
 import { AdminRepository } from "../repositories/adminRepository";
 
-class AuthService {
+class authService {
     private userRepository = new UserRepository();
     private adminRepository = new AdminRepository();
     private jwtService = new JwtService();
@@ -65,4 +65,4 @@ class AuthService {
     }
 }
 
-export default AuthService;
+export default authService;

@@ -11,7 +11,7 @@ class ProblemController {
     }
 
     async getProblemById(req: Request, res: Response): Promise<void> {
-        const problem = await this.problemService.getProblemById(req.params.id);
+        const problem = await this.problemService.getProblemById(req.params.problemId);
         if (problem) {
             res.json(problem);
         } else {
@@ -28,13 +28,21 @@ class ProblemController {
     }
 
     async updateProblem(req: Request, res: Response): Promise<void> {
-        await this.problemService.updateProblem(req.params.id, req.body);
+        await this.problemService.updateProblem(req.params.problemId, req.body);
         res.status(204).send();
     }
 
     async deleteProblem(req: Request, res: Response): Promise<void> {
-        await this.problemService.deleteProblem(req.params.id);
+        await this.problemService.deleteProblem(req.params.problemId);
         res.status(204).send();
+    }
+
+    async createSubmission(req: Request, res: Response) {
+        const submissionData = req.body;
+        submissionData.submitted_by = req.user?.id; 
+        submissionData.problem_id = req.params.problemId;
+        const submission = await this.problemService.createSubmission(submissionData);
+        res.status(201).json(submission);
     }
 }
 
