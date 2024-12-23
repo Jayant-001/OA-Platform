@@ -1,6 +1,7 @@
 import db from "../config/database";
 import { HttpException } from "../middleware/errorHandler";
 import { Problem } from "../models/problem";
+import {  ProblemSubmissions } from '../models/problemSubmissions';
 
 export class ProblemRepository {
     async findAll(): Promise<Problem[]> {
@@ -34,7 +35,7 @@ export class ProblemRepository {
 
     async update(
         id: string,
-        problem: Partial<Omit<Problem, "id" | "created_at" | "updated_at">>
+        problem: Partial<Omit<Problem, "id" | "created_at" | "updated_at" | "created_by">>
     ): Promise<void> {
         const fields = Object.keys(problem)
             .map((key, index) => `${key} = $${index + 2}`)
@@ -49,4 +50,22 @@ export class ProblemRepository {
     async delete(id: string): Promise<void> {
         await db.none("DELETE FROM problems WHERE id = $1", [id]);
     }
+
+    async createSubmission(submission: Omit<ProblemSubmissions, "id" | "submitted_at">): Promise<ProblemSubmissions> {
+        return db.one(
+            `INSERT INTO problem_submissions (problem_id, verdict, code, language, execution_time, memory_used, submitted_by) 
+             VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *`,
+            [
+                submission.problem_id,
+                submission.verdict,
+                submission.code,
+                submission.language,
+                submission.execution_time,
+                submission.memory_used,
+                submission.submitted_by
+            ]
+        );
+    }
+
+    
 }

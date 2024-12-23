@@ -1,5 +1,6 @@
 import { UserRepository } from '../repositories/userRepository';
 import { User } from '../models/user';
+import { HttpException } from '../middleware/errorHandler'; // Add this import
 
 export class UserService {
   private userRepository = new UserRepository();
@@ -8,19 +9,27 @@ export class UserService {
     return this.userRepository.findAll();
   }
 
-  async getUserById(id: number): Promise<User | null> {
-    return this.userRepository.findById(id);
+  async getUserById(userId: string): Promise<User | null> {
+    return this.userRepository.findById(userId);
   }
 
   async createUser(user: Omit<User, 'id'>): Promise<User> {
     return this.userRepository.create(user);
   }
 
-  async updateUser(id: number, user: Partial<Omit<User, 'id'>>): Promise<void> {
-    await this.userRepository.update(id, user);
+  async updateUser(userId: string, userData: Partial<User>): Promise<void> {
+    const isExists = await this.userRepository.findById(userId);
+    if (isExists === null) {
+      throw new HttpException(404, "USER_NOT_FOUND", "User not found");
+    }
+    return this.userRepository.update(userId, userData);
   }
 
-  async deleteUser(id: number): Promise<void> {
-    await this.userRepository.delete(id);
+  async deleteUser(userId: string): Promise<void> {
+    const isExists = await this.userRepository.findById(userId);
+    if (isExists === null) {
+      throw new HttpException(404, "USER_NOT_FOUND", "User not found");
+    }
+    return this.userRepository.delete(userId);
   }
 }

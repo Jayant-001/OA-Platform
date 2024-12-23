@@ -2,7 +2,7 @@ import { Request, Response, NextFunction } from "express";
 import AuthService from "../services/authService";
 import { HttpException } from "../middleware/errorHandler";
 
-class AuthController {
+class userAuthController {
     private authService = new AuthService();
 
     async register(req: Request, res: Response): Promise<void> {
@@ -24,4 +24,4 @@ class AuthController {
     }
 }
 
-export default AuthController;
+export default userAuthController;
