@@ -10,7 +10,7 @@ class TagController {
 
     createTag = async (req: Request, res: Response, next: NextFunction) => {
         try {
-            const tag = await this.tagService.createTag(req.body.name);
+            const tag = await this.tagService.createTag(req.body);
             res.status(201).json(tag);
         } catch (error) {
             next(error);
