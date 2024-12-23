@@ -1,4 +1,67 @@
 Terminate process with PID -> (get PID in Resource monitor's network tab)
 taskkill /F /PID 14764
 
+ALTER TABLE public.contest_problem
+ADD CONSTRAINT contest_problem_unique_problem_contest UNIQUE (problem_id, contest_id);
+
+
+ALTER TABLE public.contest_problem
+ADD COLUMN updated_at timestamp without time zone DEFAULT now();
+
+
+CREATE TABLE IF NOT EXISTS public.problem_submissions
+(
+    id uuid NOT NULL DEFAULT gen_random_uuid(), -- Unique identifier for each submission
+    problem_id uuid NOT NULL, -- Problem associated with the submission
+    verdict verdict_enum NOT NULL, -- Verdict of the submission (e.g., Accepted, Wrong Answer)
+    code text COLLATE pg_catalog."default", -- Submitted solution code
+    language character varying COLLATE pg_catalog."default", -- Programming language used
+    execution_time integer, -- Time taken to execute the submission
+    memory_used integer, -- Memory used by the submission
+	submitted_by uuid NOT NULL, -- Admin who made the submission
+    score integer, -- Score awarded for the submission
+    submitted_at timestamp without time zone DEFAULT now(), -- Timestamp of when the submission was made
+    CONSTRAINT problem_submissions_pkey PRIMARY KEY (id), -- Primary key constraint
+    CONSTRAINT problem_submissions_problem_id_fkey FOREIGN KEY (problem_id)
+        REFERENCES public.problems (id) MATCH SIMPLE
+        ON UPDATE NO ACTION
+        ON DELETE NO ACTION, -- Foreign key to the problems table
+    CONSTRAINT problem_submissions_submitted_by_fkey FOREIGN KEY (submitted_by)
+        REFERENCES public.admins (id) MATCH SIMPLE
+        ON UPDATE NO ACTION
+        ON DELETE NO ACTION -- Foreign key to the admins table
+);
+
+
+
+CREATE TABLE IF NOT EXISTS public.tags
+(
+    id uuid NOT NULL DEFAULT gen_random_uuid(), -- Unique identifier for each tag
+    name character varying COLLATE pg_catalog."default" NOT NULL, -- Name of the tag
+    code character varying COLLATE pg_catalog."default" NOT NULL UNIQUE, -- Unique code for the tag
+    created_at timestamp without time zone DEFAULT now(), -- Timestamp of creation
+    updated_at timestamp without time zone DEFAULT now(), -- Timestamp of the last update
+    CONSTRAINT tags_pkey PRIMARY KEY (id) -- Primary key constraint
+);
+
+
+CREATE TABLE IF NOT EXISTS public.problem_tags
+(
+    id uuid NOT NULL DEFAULT gen_random_uuid(), -- Unique identifier for each association
+    problem_id uuid NOT NULL, -- Problem associated with the tag
+    tag_id uuid NOT NULL, -- Tag associated with the problem
+    created_at timestamp without time zone DEFAULT now(), -- Timestamp of creation
+    updated_at timestamp without time zone DEFAULT now(), -- Timestamp of the last update
+    CONSTRAINT problem_tags_pkey PRIMARY KEY (id), -- Primary key constraint
+    CONSTRAINT problem_tags_problem_id_fkey FOREIGN KEY (problem_id)
+        REFERENCES public.problems (id) MATCH SIMPLE
+        ON UPDATE NO ACTION
+        ON DELETE CASCADE, -- Foreign key to the problems table
+    CONSTRAINT problem_tags_tag_id_fkey FOREIGN KEY (tag_id)
+        REFERENCES public.tags (id) MATCH SIMPLE
+        ON UPDATE NO ACTION
+        ON DELETE CASCADE -- Foreign key to the tags table
+);
+
+
 

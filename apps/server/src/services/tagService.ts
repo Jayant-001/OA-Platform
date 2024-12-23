@@ -5,9 +5,9 @@ import { HttpException } from "../middleware/errorHandler";
 export class TagService {
     private tagRepository = new TagRepository();
 
-    async createTag(tagName: string): Promise<Tag> {
-        const tagCode = tagName.trim().replace(/\s+/g, '_').toUpperCase();
-        return this.tagRepository.create(tagName, tagCode);
+    async createTag(tagData: Omit<Tag, "id" | "created_at" | "updated_at">): Promise<Tag> {
+        const tagCode = tagData.name.trim().replace(/\s+/g, '_').toUpperCase();
+        return this.tagRepository.create(tagData.name, tagCode);
     }
 
     async getTags(): Promise<Tag[]> {
