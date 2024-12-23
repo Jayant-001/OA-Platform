@@ -18,7 +18,7 @@ import { Resizable } from "re-resizable";
 import { ChevronDown, ChevronUp } from "lucide-react";
 
 export function ProblemDescriptionPage() {
-    const { id } = useParams();
+    const { problem_id } = useParams();
     const [problem, setProblem] = useState<Problem | null>(null);
     const [language, setLanguage] = useState("javascript");
     const [code, setCode] = useState("");
@@ -28,10 +28,10 @@ export function ProblemDescriptionPage() {
 
     useEffect(() => {
         // Fetch problem data
-        if (id) {
-            setProblem(problems.find((p) => p.id === id) || null);
+        if (problem_id) {
+            setProblem(problems.find((p) => p.id === problem_id) || null);
         }
-    }, [id]);
+    }, [problem_id]);
 
     const handleRun = () => {
         // Handle running code

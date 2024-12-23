@@ -6,13 +6,16 @@ import { RegisterPage } from "@/pages/auth/RegisterPage";
 import { HomePage } from "@/pages/HomePage";
 import { ContestDetailPage } from "@/pages/ContestDetailPage";
 import { ContestProblemsPage } from "@/pages/ContestProblemsPage";
-import { AdminDashboardPage } from "@/pages/admin/DashboardPage";
+import { DashboardPage } from "@/pages/admin/DashboardPage";
 import { AddProblemPage } from "@/pages/admin/AddProblemPage";
 import { ROUTES } from "@/lib/routes";
 import "./App.css";
 import TestPage from "./pages/test/TestPage";
 import TestPage2 from "./pages/test/TestPage2";
 import { ProblemDescriptionPage } from "./pages/ProblemDescriptionPage";
+import { CreateContestPage } from "./pages/admin/CreateContestPage";
+import { ContestLeaderboardPage } from "./pages/ContestLeaderboardPage";
+import { UpdateContestPage } from "./pages/dashboard/UpdateContestPage";
 
 function App() {
     return (
@@ -56,6 +59,54 @@ function App() {
                             // </ProtectedRoute>
                         }
                     />
+
+                    <Route
+                        path={ROUTES.CONTEST.SOLVE_PROBLEMS}
+                        element={
+                            // <ProtectedRoute>
+                            <ProblemDescriptionPage />
+                            // </ProtectedRoute>
+                        }
+                    />
+
+                    {/*  ------------------------------- Dashboard routes ------------------------------------  */}
+
+                    <Route
+                        path={ROUTES.DASHBOARD.HOME}
+                        element={
+                            // <ProtectedRoute requireAdmin>
+                            <DashboardPage />
+                            // </ProtectedRoute>
+                        }
+                    />
+
+                    <Route
+                        path={ROUTES.DASHBOARD.CONTEST}
+                        element={
+                            // <ProtectedRoute requireAdmin>
+                            <ContestDetailPage />
+                            // </ProtectedRoute>
+                        }
+                    />
+
+                    <Route
+                        path={ROUTES.DASHBOARD.ADD_CONTEST}
+                        element={
+                            // <ProtectedRoute>
+                            <CreateContestPage />
+                            // </ProtectedRoute>
+                        }
+                    />
+
+                    <Route
+                        path={ROUTES.DASHBOARD.UPDATE_CONTEST}
+                        element={
+                            // <ProtectedRoute>
+                            <UpdateContestPage />
+                            // </ProtectedRoute>
+                        }
+                    />
+
                     <Route
                         path="/problems/:id"
                         element={
@@ -65,17 +116,27 @@ function App() {
                         }
                     />
 
-                    {/* Admin routes */}
                     <Route
-                        path={ROUTES.ADMIN.DASHBOARD}
+                        path="/contests/:id/leaderboard"
                         element={
-                            // <ProtectedRoute requireAdmin>
-                            <AdminDashboardPage />
+                            // <ProtectedRoute>
+                            <ContestLeaderboardPage />
                             // </ProtectedRoute>
                         }
                     />
+
+                    {/* Admin routes */}
                     <Route
-                        path={ROUTES.ADMIN.ADD_PROBLEM}
+                        path={ROUTES.DASHBOARD.ADD_PROBLEM}
+                        element={
+                            // <ProtectedRoute requireAdmin>
+                            <AddProblemPage />
+                            // {/* </ProtectedRoute> */}
+                        }
+                    />
+
+                    <Route
+                        path={ROUTES.DASHBOARD.UPDATE_PROBLEM   }
                         element={
                             // <ProtectedRoute requireAdmin>
                             <AddProblemPage />

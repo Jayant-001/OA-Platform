@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { Navbar } from "@/components/layout/Navbar";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -17,6 +17,7 @@ export function ContestProblemsPage() {
     const { id: contestId } = useParams();
     const [problems, setProblems] = useState<Problem[]>([]);
     const [loading, setLoading] = useState(true);
+    const navigate = useNavigate();
 
     useEffect(() => {
         const fetchProblems = async () => {
@@ -116,7 +117,14 @@ export function ContestProblemsPage() {
                                                 </Badge>
                                             )}
                                         </div>
-                                        <Button>Solve Problem</Button>
+                                        <Button
+                                            onClick={() =>
+                                                navigate(`${problem.id}/solve`)
+                                            }
+                                            variant="outline"
+                                        >
+                                            Solve Problem
+                                        </Button>
                                     </div>
                                 </CardContent>
                             </Card>

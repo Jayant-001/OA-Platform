@@ -5,10 +5,11 @@ import { Button } from "@/components/ui/button";
 import { ContestCard } from "@/components/shared/ContestCard";
 import { contests } from "@/data";
 import { ProblemsList } from "@/components/problems/ProblemsList";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { ROUTES } from "@/lib/routes";
 
-export function AdminDashboardPage() {
+export function DashboardPage() {
+    const navigate = useNavigate();
     const [searchQuery, setSearchQuery] = useState("");
 
     return (
@@ -32,7 +33,9 @@ export function AdminDashboardPage() {
                                 onChange={(e) => setSearchQuery(e.target.value)}
                                 className="max-w-sm"
                             />
-                            <Button>Create Contest</Button>
+                            <Button onClick={() => navigate("contests/add")}>
+                                Create Contest
+                            </Button>
                         </div>
 
                         <Tabs defaultValue="live">
@@ -64,7 +67,7 @@ export function AdminDashboardPage() {
                 <TabsContent value="problems">
                     <div className="space-y-4">
                         <div className="flex justify-end">
-                            <Link to={ROUTES.ADMIN.ADD_PROBLEM}>
+                            <Link to={ROUTES.DASHBOARD.ADD_PROBLEM}>
                                 <Button>Create Problem</Button>
                             </Link>
                         </div>

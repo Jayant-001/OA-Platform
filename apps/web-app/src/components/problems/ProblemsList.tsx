@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
     Table,
     TableBody,
@@ -16,8 +16,10 @@ import {
     SelectValue,
 } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { CheckCircle2, Circle } from "lucide-react";
-import { problems } from "@/data";
+import { Edit, Trash } from "lucide-react";
+import { Pagination } from "@/components/ui/pagination";
+import { problems as mockProblems } from "@/data";
+import { useNavigate } from "react-router-dom";
 
 interface Problem {
     id: string;
@@ -39,27 +41,21 @@ export function ProblemsList({ isAdminView = false }: ProblemsListProps) {
         tag: "all",
         status: "all",
     });
+    const [currentPage, setCurrentPage] = useState(1);
+    const [problemsPerPage] = useState(10);
+    const [paginatedProblems, setPaginatedProblems] = useState<Problem[]>([]);
+    const navigate = useNavigate();
 
-    //   // Mock data - replace with API call
-    //   const problems: Problem[] = [
-    //     {
-    //       id: "1",
-    //       title: "Two Sum",
-    //       difficulty: "easy",
-    //       acceptance: 48.5,
-    //       tags: ["Array", "Hash Table"],
-    //       solved: true,
-    //     },
-    //     {
-    //       id: "2",
-    //       title: "Add Two Numbers",
-    //       difficulty: "medium",
-    //       acceptance: 39.2,
-    //       tags: ["Linked List", "Math"],
-    //       solved: false,
-    //     },
-    //     // Add more problems...
-    //   ];
+    useEffect(() => {
+        // Simulate API call for pagination
+        const fetchProblems = async () => {
+            const startIndex = (currentPage - 1) * problemsPerPage;
+            const endIndex = startIndex + problemsPerPage;
+            setPaginatedProblems(mockProblems.slice(startIndex, endIndex));
+        };
+
+        fetchProblems();
+    }, [currentPage, problemsPerPage]);
 
     const getDifficultyColor = (difficulty: Problem["difficulty"]) => {
         const colors = {
@@ -70,7 +66,7 @@ export function ProblemsList({ isAdminView = false }: ProblemsListProps) {
         return colors[difficulty];
     };
 
-    const filteredProblems = problems.filter((problem) => {
+    const filteredProblems = paginatedProblems.filter((problem) => {
         const matchesSearch = problem.title
             .toLowerCase()
             .includes(filters.search.toLowerCase());
@@ -90,7 +86,9 @@ export function ProblemsList({ isAdminView = false }: ProblemsListProps) {
     });
 
     // Get unique tags from all problems
-    const allTags = Array.from(new Set(problems.flatMap((p) => p.tags)));
+    const allTags = Array.from(new Set(mockProblems.flatMap((p) => p.tags)));
+
+    const paginate = (pageNumber: number) => setCurrentPage(pageNumber);
 
     return (
         <div className="space-y-4">
@@ -166,7 +164,7 @@ export function ProblemsList({ isAdminView = false }: ProblemsListProps) {
                 <Table>
                     <TableHeader>
                         <TableRow>
-                            <TableHead className="w-[50px]">Status</TableHead>
+                            <TableHead className="w-[50px]">S.No</TableHead>
                             <TableHead>Title</TableHead>
                             <TableHead>Difficulty</TableHead>
                             <TableHead>Acceptance</TableHead>
@@ -175,14 +173,12 @@ export function ProblemsList({ isAdminView = false }: ProblemsListProps) {
                         </TableRow>
                     </TableHeader>
                     <TableBody>
-                        {filteredProblems.map((problem) => (
+                        {filteredProblems.map((problem, index) => (
                             <TableRow key={problem.id}>
                                 <TableCell>
-                                    {problem.solved ? (
-                                        <CheckCircle2 className="text-green-500 w-5 h-5" />
-                                    ) : (
-                                        <Circle className="text-gray-300 w-5 h-5" />
-                                    )}
+                                    {(currentPage - 1) * problemsPerPage +
+                                        index +
+                                        1}
                                 </TableCell>
                                 <TableCell className="font-medium hover:text-primary cursor-pointer">
                                     {problem.title}
@@ -215,7 +211,28 @@ export function ProblemsList({ isAdminView = false }: ProblemsListProps) {
                                 </TableCell>
                                 {isAdminView && (
                                     <TableCell>
-                                        {/* Add admin actions here */}
+                                        <div className="flex gap-2">
+                                            <button
+                                                onClick={() =>
+                                                    navigate(
+                                                        `problems/${problem.id}/update`
+                                                    )
+                                                }
+                                                className="p-1 bg-gray-200 rounded"
+                                            >
+                                                <Edit className="w-4 h-4" />
+                                            </button>
+                                            <button
+                                                onClick={() =>
+                                                    alert(
+                                                        `${problem.id} delete`
+                                                    )
+                                                }
+                                                className="p-1 bg-gray-200 rounded"
+                                            >
+                                                <Trash className="w-4 h-4" />
+                                            </button>
+                                        </div>
                                     </TableCell>
                                 )}
                             </TableRow>
@@ -223,6 +240,13 @@ export function ProblemsList({ isAdminView = false }: ProblemsListProps) {
                     </TableBody>
                 </Table>
             </div>
+
+            <Pagination
+                itemsPerPage={problemsPerPage}
+                totalItems={mockProblems.length}
+                paginate={paginate}
+                currentPage={currentPage}
+            />
         </div>
     );
 }

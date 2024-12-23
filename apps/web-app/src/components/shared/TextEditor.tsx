@@ -5,9 +5,10 @@ import "quill/dist/quill.snow.css";
 interface Props {
     content: string;
     setContent: (content: string) => void;
+    height?: string;
 }
 
-const TextEditor = ({ content, setContent }: Props) => {
+const TextEditor = ({ content, setContent, height = "h-24" }: Props) => {
     const modules = {
         toolbar: [
             [{ header: [1, 2, 3, false] }],
@@ -88,6 +89,12 @@ const TextEditor = ({ content, setContent }: Props) => {
         }
     }, [quill]);
 
+    useEffect(() => {
+        if (quill && content && quill.root.innerHTML != content) {
+            quill.root.innerHTML = content; // Set the content if provided
+        }
+    }, [quill, content]);
+
     // Initialize handlers
     useEffect(() => {
         handleContentChange();
@@ -96,7 +103,7 @@ const TextEditor = ({ content, setContent }: Props) => {
 
     return (
         <div className="border rounded-lg bg-white">
-            <div ref={quillRef} className="h-36 w-full" />
+            <div ref={quillRef} className={`${height} w-full`} />
         </div>
     );
 };

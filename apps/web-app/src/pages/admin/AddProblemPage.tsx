@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { useNavigate, useParams } from "react-router-dom";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
@@ -13,6 +13,7 @@ import {
 } from "@/components/ui/select";
 import axios from "axios";
 import TextEditor from "@/components/shared/TextEditor";
+import { problems } from "@/data";
 
 export function AddProblemPage() {
     const navigate = useNavigate();
@@ -28,9 +29,32 @@ export function AddProblemPage() {
         memory_limit: "",
     });
     const [error, setError] = useState("");
+    const {problem_id} = useParams();
 
-    const [description, setDescription] = useState("");
+    const [problemStatement, setProblemStatement] = useState("");
     const [example, setExample] = useState("");
+
+    useEffect(() => {
+        if(problem_id) {
+            const problem = problems.find(problem => problem.id == problem_id) || null;
+
+            if(problem) {
+                setFormData({
+                    title: problem.title,
+                    problem_statement: problem.problem_statement,
+                    example: problem.example,
+                    constraints: problem.constraints,
+                    level: problem.level,
+                    input_format: problem.input_format,
+                    output_format: problem.output_format,
+                    time_limit: problem.time_limit,
+                    memory_limit: problem.memory_limit,
+                });
+                setProblemStatement(problem.problem_statement)
+            }
+        }
+    }, []);
+
 
     const handleChange = (
         e: React.ChangeEvent<
@@ -91,8 +115,8 @@ export function AddProblemPage() {
                                 className="resize-y"
                                 /> */}
                                 <TextEditor
-                                    content={description}
-                                    setContent={setDescription}
+                                    content={problemStatement}
+                                    setContent={setProblemStatement}
                                 />
                             </div>
                             <div className="space-y-2">

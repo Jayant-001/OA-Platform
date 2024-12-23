@@ -17,7 +17,7 @@ export function Navbar() {
                     {user ? (
                         <>
                             {user.role === "admin" && (
-                                <Link to={ROUTES.ADMIN.DASHBOARD}>
+                                <Link to={ROUTES.DASHBOARD.HOME}>
                                     <Button variant="ghost">
                                         Admin Dashboard
                                     </Button>

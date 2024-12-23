@@ -1,20 +1,26 @@
 import { useState, useEffect } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useLocation, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import type { Contest } from "@/types";
 import { contests } from "@/data";
 
 export function ContestDetailPage() {
-    const { id } = useParams();
+    const { contest_id } = useParams();
     const navigate = useNavigate();
     const [contest, setContest] = useState<Contest | null>(null);
 
+    const location = useLocation();
+    // Check if the route includes 'dashboard'
+    const isDashboard = location.pathname.includes("/dashboard/");
+
     useEffect(() => {
-        if (id) {
-            setContest(contests.find((contest) => contest.id === id) || null);
+        if (contest_id) {
+            setContest(
+                contests.find((contest) => contest.id === contest_id) || null
+            );
         }
-    }, [id]);
+    }, [contest_id]);
 
     if (!contest) return <div>Loading...</div>;
 
@@ -47,12 +53,44 @@ export function ContestDetailPage() {
                         </div>
                     </div>
 
-                    <Button
-                        onClick={() => navigate(`/contests/${id}/problems`)}
-                        className="w-full"
-                    >
-                        Join Contest
-                    </Button>
+                    <>
+                        {isDashboard ? (
+                            <div className="space-y-5">
+                                <Button
+                                    onClick={() =>
+                                        navigate(
+                                            `/contests/${contest_id}/update`
+                                        )
+                                    }
+                                    className="w-full"
+                                >
+                                    Update Contest
+                                </Button>
+                                <Button
+                                    variant={"destructive"}
+                                    onClick={() => {
+                                        // Delete contest api call
+                                    }}
+                                    className="w-full"
+                                >
+                                    Delete Contest
+                                </Button>
+                            </div>
+                        ) : (
+                            <>
+                                <Button
+                                    onClick={() =>
+                                        navigate(
+                                            `/contests/${contest_id}/problems`
+                                        )
+                                    }
+                                    className="w-full"
+                                >
+                                    Join Contest
+                                </Button>
+                            </>
+                        )}
+                    </>
                 </CardContent>
             </Card>
         </div>
