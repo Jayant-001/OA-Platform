@@ -1,5 +1,6 @@
 import { Navigate, useLocation } from "react-router-dom";
-import { useAuth } from "@/hooks/useAuth";
+import { useEffect } from "react";
+import { useUser } from "@/context/UserContext";
 
 interface ProtectedRouteProps {
     children: React.ReactNode;
@@ -10,7 +11,7 @@ export function ProtectedRoute({
     children,
     requireAdmin = false,
 }: ProtectedRouteProps) {
-    const { user } = useAuth();
+    const { user } = useUser();
     const location = useLocation();
 
     if (!user) {

@@ -6,26 +6,59 @@ import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import TextEditor from "@/components/shared/TextEditor";
+import apiService from "@/api/apiService";
+import toast from "react-hot-toast";
 
 export function CreateContestPage() {
     const navigate = useNavigate();
     const [formData, setFormData] = useState({
         title: "",
         description: "",
-        startTime: "",
+        start_time: "",
         duration: "",
         join_duration: "",
-        code: "",
+        contest_code: "",
         strict_time: false,
     });
 
-    const handleSubmit = async (e: React.FormEvent) => {
-        e.preventDefault();
-        // Handle form submission
-        console.log({ ...formData });
+    const [description, setDescription] = useState("");
+
+    const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const { name, value, type, checked } = e.target;
+        setFormData((prev) => ({
+            ...prev,
+            [name]: type === "checkbox" ? checked : value,
+        }));
     };
 
-    const [description, setDescription] = useState("");
+    const clearFormData = () => {
+        setFormData({
+            title: "",
+            description: "",
+            start_time: "",
+            duration: "",
+            join_duration: "",
+            contest_code: "",
+            strict_time: false,
+        });
+        setDescription("");
+    };
+
+    const handleSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+
+        try {
+            await apiService.post("/api/admins/contests", {
+                ...formData,
+                description,
+            });
+            toast.success("Contest created successfully.");
+            clearFormData();
+        } catch (error) {
+            console.log(error);
+            alert("Something went wrong. Please try again.");
+        }
+    };
 
     return (
         <div className="container mx-auto py-8">
@@ -42,18 +75,13 @@ export function CreateContestPage() {
                                     id="title"
                                     name="title"
                                     value={formData.title}
-                                    onChange={(e) =>
-                                        setFormData((prev) => ({
-                                            ...prev,
-                                            title: e.target.value,
-                                        }))
-                                    }
+                                    onChange={handleChange}
                                     required
                                 />
                             </div>
 
                             <div className="space-y-2">
-                                <Label htmlFor="description">Description</Label>
+                                <Label>Description</Label>
                                 <TextEditor
                                     content={description}
                                     setContent={setDescription}
@@ -62,26 +90,22 @@ export function CreateContestPage() {
 
                             <div className="grid grid-cols-2 gap-4">
                                 <div className="space-y-2">
-                                    <Label htmlFor="startTime">
+                                    <Label htmlFor="start_time">
                                         Start Time
                                     </Label>
                                     <Input
-                                        id="startTime"
-                                        name="startTime"
+                                        id="start_time"
+                                        name="start_time"
                                         type="datetime-local"
-                                        value={formData.startTime}
-                                        onChange={(e) =>
-                                            setFormData((prev) => ({
-                                                ...prev,
-                                                startTime: e.target.value,
-                                            }))
-                                        }
+                                        value={formData.start_time}
+                                        onChange={handleChange}
                                         required
                                     />
                                 </div>
                                 <div className="flex items-center space-x-2">
                                     <Checkbox
                                         id="strict_time"
+                                        name="strict_time"
                                         checked={formData.strict_time}
                                         onCheckedChange={(checked) =>
                                             setFormData((prev) => ({
@@ -106,12 +130,7 @@ export function CreateContestPage() {
                                         name="duration"
                                         type="number"
                                         value={formData.duration}
-                                        onChange={(e) =>
-                                            setFormData((prev) => ({
-                                                ...prev,
-                                                duration: e.target.value,
-                                            }))
-                                        }
+                                        onChange={handleChange}
                                         required
                                     />
                                 </div>
@@ -124,12 +143,7 @@ export function CreateContestPage() {
                                         name="join_duration"
                                         type="number"
                                         value={formData.join_duration}
-                                        onChange={(e) =>
-                                            setFormData((prev) => ({
-                                                ...prev,
-                                                join_duration: e.target.value,
-                                            }))
-                                        }
+                                        onChange={handleChange}
                                         required
                                     />
                                 </div>
@@ -142,13 +156,8 @@ export function CreateContestPage() {
                                 <Input
                                     id="contest_code"
                                     name="contest_code"
-                                    value={formData.code}
-                                    onChange={(e) =>
-                                        setFormData((prev) => ({
-                                            ...prev,
-                                            code: e.target.value,
-                                        }))
-                                    }
+                                    value={formData.contest_code}
+                                    onChange={handleChange}
                                     required
                                 />
                             </div>

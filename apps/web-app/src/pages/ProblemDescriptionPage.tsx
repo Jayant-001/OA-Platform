@@ -72,7 +72,7 @@ export function ProblemDescriptionPage() {
                             <div
                                 className="prose max-w-none"
                                 dangerouslySetInnerHTML={{
-                                    __html: problem.description,
+                                    __html: problem.problem_statement,
                                 }}
                             />
 

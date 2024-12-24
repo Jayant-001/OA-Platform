@@ -2,6 +2,8 @@ export const ROUTES = {
     HOME: "/",
     LOGIN: "/login",
     REGISTER: "/register",
+    ADMIN_LOGIN: "/admin/login",
+    ADMIN_REGISTER: "/admin/register",
     CONTEST: {
         DETAIL: "/contests/:contest_id",
         PROBLEMS: "/contests/:contest_id/problems",

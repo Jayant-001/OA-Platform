@@ -10,53 +10,137 @@ import {
     problemFilters,
 } from "../admin/columns/problemColumns";
 import { userColumns, userFilters } from "../admin/columns/userColumns";
-import { contests, problems, users } from "@/data";
+import { users } from "@/data";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import TextEditor from "@/components/shared/TextEditor";
-import { Contest } from "@/types";
+import { Contest, Problem } from "@/types";
+import toast from "react-hot-toast";
+import { useAdminApi } from "@/hooks/useApi";
 
 export function UpdateContestPage() {
     const { contest_id } = useParams();
+    const { fetchProblems, fetchContestById, updateProblemSelection, updateContestById } = useAdminApi();
 
     const navigate = useNavigate();
     const [selectedProblems, setSelectedProblems] = useState<string[]>([]);
     const [selectedUsers, setSelectedUsers] = useState<string[]>([]);
-    const [formData, setFormData] = useState<Contest>({
+    const [formData, setFormData] = useState<any>({
         id: "",
         title: "",
         description: "",
-        startTime: "",
+        start_time: "",
         duration: 0,
-        joinDuration: 0,
-        contestCode: "",
-        strictTime: false,
-        createdAt: "",
-        createdBy: "",
-        updatedAt: "",
+        contest_code: "",
+        join_duration: 0,
+        strict_time: false,
+        created_at: "",
+        created_by: "",
+        updated_at: "",
     });
+    const [description, setDescription] = useState<string>("");
+    const [problems, setProblems] = useState<Problem[] | []>([]);
+    const [problemPoints, setProblemPoints] = useState<Record<string, number>>(
+        {}
+    );
 
     useEffect(() => {
         if (contest_id) {
-            const contest =
-                contests.find((contest) => contest.id == contest_id) || null;
+            (async () => {
+                try {
+                    const contest = await fetchContestById(contest_id);
+                    if (!contest) {
+                        toast.error(
+                            `Contest not found with code: ${contest_id}`
+                        );
+                    } else {
+                        setFormData({
+                            ...contest,
+                            start_time: contest.start_time.endsWith("Z")
+                                ? contest.start_time.slice(0, -1)
+                                : contest.start_time,
+                        });
+                        setDescription(contest.description);
+                        // setSelectedProblems(contest.selectedProblems || []);
+                        // setProblemPoints(contest.problemPoints || {});
+                    }
 
-            if (!contest) {
-                alert(`Contest not found with code: ${contest_id}`);
-            } else {
-                setFormData(contest);
-                setDescription(contest.description);
-            }
+                    const problems = await fetchProblems();
+                    const updatedProblems: Problem[] = problems.map(
+                        (problem: any) => ({
+                            ...problem,
+                            difficulty: problem.level,
+                            level: undefined,
+                            acceptance: 80,
+                            tags: ["Array", "Hash Table"],
+                        })
+                    );
+                    setProblems(updatedProblems);
+                } catch (error) {
+                    console.log(error);
+                    toast.error(
+                        "Something went wrong in fetching contest data"
+                    );
+                }
+            })();
         }
     }, [contest_id]);
+
+    const handleProblemSelection = async (problemId: string) => {
+        try {
+            const points = problemPoints[problemId];
+            console.log(problemId, problemPoints)
+
+            if (!points || points < 0) {
+                toast.error("Please enter valid points for the problem.");
+                return;
+            }
+
+            setSelectedProblems((prev) =>
+                prev.includes(problemId)
+                    ? prev.filter((id) => id !== problemId)
+                    : [...prev, problemId]
+            );
+        } catch (error) {
+            console.log(error);
+            toast.error("Failed to update problem selection.");
+        }
+    };
+
+    const handleProblemPointsChange = (problemId: string, points: number) => {
+        setProblemPoints((prev) => ({
+            ...prev,
+            [problemId]: points,
+        }));
+    };
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         // Handle form submission
-        console.log({ ...formData, selectedProblems, selectedUsers });
+        const {id, title, duration, start_time, contest_code, join_duration, strict_time} = formData;
+        await updateContestById(id, {title, description, duration, start_time, contest_code, join_duration, strict_time })
     };
 
-    const [description, setDescription] = useState<string>("");
+    const [selectedTab, setSelectedTab] = useState("problems");
+    
+    const handleProblemsUpdate = async (e: React.FormEvent) => {
+        e.preventDefault();
+
+        const selectedProblemsPoints = selectedProblems.map((problemId) => ({ problemId, points: problemPoints[problemId] }))
+        for(const problem of selectedProblemsPoints) {
+            if(!problem.points || problem.points < 0) {
+                toast.error("Please enter valid points for the problem.");
+                return;
+            }
+        }
+        console.log(selectedProblemsPoints)
+    }
+
+    const handleUsersUpdate = async (e: React.FormEvent) => {
+            e.preventDefault();
+
+            console.log(selectedUsers)
+    }
 
     return (
         <div className="container mx-auto py-8">
@@ -93,18 +177,18 @@ export function UpdateContestPage() {
 
                             <div className="grid grid-cols-2 gap-4">
                                 <div className="space-y-2">
-                                    <Label htmlFor="startTime">
+                                    <Label htmlFor="start_time">
                                         Start Time
                                     </Label>
                                     <Input
-                                        id="startTime"
-                                        name="startTime"
+                                        id="start_time"
+                                        name="start_time"
                                         type="datetime-local"
-                                        value={formData.startTime}
+                                        value={formData.start_time}
                                         onChange={(e) =>
                                             setFormData((prev) => ({
                                                 ...prev,
-                                                startTime: e.target.value,
+                                                start_time: e.target.value,
                                             }))
                                         }
                                         required
@@ -112,12 +196,12 @@ export function UpdateContestPage() {
                                 </div>
                                 <div className="flex items-center space-x-2">
                                     <Checkbox
-                                        id="strictTime"
-                                        checked={formData.strictTime}
+                                        id="strict_time"
+                                        checked={formData.strict_time}
                                         onCheckedChange={(checked) =>
                                             setFormData((prev) => ({
                                                 ...prev,
-                                                strictTime: checked as boolean,
+                                                strict_time: checked as boolean,
                                             }))
                                         }
                                     />
@@ -149,18 +233,18 @@ export function UpdateContestPage() {
                                     />
                                 </div>
                                 <div className="space-y-2">
-                                    <Label htmlFor="joinDuration">
+                                    <Label htmlFor="join_duration">
                                         Join Duration (minutes)
                                     </Label>
                                     <Input
-                                        id="joinDuration"
-                                        name="joinDuration"
+                                        id="join_duration"
+                                        name="join_duration"
                                         type="number"
-                                        value={formData.joinDuration}
+                                        value={formData.join_duration}
                                         onChange={(e) =>
                                             setFormData((prev) => ({
                                                 ...prev,
-                                                joinDuration: Number(
+                                                join_duration: Number(
                                                     e.target.value
                                                 ),
                                             }))
@@ -171,17 +255,17 @@ export function UpdateContestPage() {
                             </div>
 
                             <div className="space-y-2">
-                                <Label htmlFor="contestCode">
+                                <Label htmlFor="contest_code">
                                     Contest Code
                                 </Label>
                                 <Input
-                                    id="contestCode"
-                                    name="contestCode"
-                                    value={formData.contestCode}
+                                    id="contest_code"
+                                    name="contest_code"
+                                    value={formData.contest_code}
                                     onChange={(e) =>
                                         setFormData((prev) => ({
                                             ...prev,
-                                            contestCode: e.target.value,
+                                            contest_code: e.target.value,
                                         }))
                                     }
                                     required
@@ -189,15 +273,26 @@ export function UpdateContestPage() {
                             </div>
                         </div>
 
-                        <Tabs defaultValue="problems" className="w-full">
-                            <TabsList>
-                                <TabsTrigger value="problems">
-                                    Select Problems
-                                </TabsTrigger>
-                                <TabsTrigger value="users">
-                                    Select Users
-                                </TabsTrigger>
-                            </TabsList>
+                        <Tabs
+                            defaultValue="problems"
+                            className="w-full"
+                            onValueChange={setSelectedTab}
+                        >
+                            <div className="flex justify-between">
+                                <TabsList>
+                                    <TabsTrigger value="problems">
+                                        Select Problems
+                                    </TabsTrigger>
+                                    <TabsTrigger value="users">
+                                        Select Users
+                                    </TabsTrigger>
+                                </TabsList>
+                                {selectedTab === "problems" ? (
+                                    <Button onClick={handleProblemsUpdate}>Update Problems</Button>
+                                ) : (
+                                    <Button onClick={handleUsersUpdate}>Update Users</Button>
+                                )}
+                            </div>
 
                             <TabsContent value="problems" className="space-y-4">
                                 <DataTable
@@ -206,6 +301,8 @@ export function UpdateContestPage() {
                                     selectedRows={selectedProblems}
                                     setSelectedRows={setSelectedProblems}
                                     filters={problemFilters}
+                                    problemPoints={problemPoints}
+                                    handleProblemPointsChange={handleProblemPointsChange}
                                 />
                             </TabsContent>
 

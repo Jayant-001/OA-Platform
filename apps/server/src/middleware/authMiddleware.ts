@@ -27,7 +27,7 @@ const userAuthMiddleware = (req: Request, res: Response, next: NextFunction) => 
 
 const adminAuthMiddleware = (req: Request, res: Response, next: NextFunction) => {
     const token =
-        req.headers.authorization?.split(" ")[1] || req.cookies?.token;
+        req.headers.authorization?.split(" ")[1] || req.cookies?.auth_token;
 
     if (!token) {
         throw new HttpException(401, "NOT_AUTHORIZED", "No token provided");
@@ -37,7 +37,6 @@ const adminAuthMiddleware = (req: Request, res: Response, next: NextFunction) =>
         const secret = process.env.JWT_SECRET || "your_jwt_secret";
         const decoded = jwt.verify(token, secret) as ReqUser;
         req.user = decoded;
-        console.log(req.user);
         if (req?.user?.role !== 'admin' && req?.user?.role !== 'panel') {
             throw new HttpException(401, "NOT_AUTHORIZED", "User is not authorized to access this route");
         }
