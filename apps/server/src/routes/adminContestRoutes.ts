@@ -16,6 +16,7 @@ router.delete('/:contestId', asyncHandler(contestController.deleteContest.bind(c
 router.post('/:contestId/problems/:problemId', asyncHandler(contestController.addProblemToContest.bind(contestController)));
 router.put('/:contestId/problems/:problemId', asyncHandler(contestController.updateProblemInContest.bind(contestController)));
 router.delete('/:contestId/problems/:problemId', asyncHandler(contestController.deleteProblemFromContest.bind(contestController)));
-router.post('/:contestId/users', asyncHandler(contestController.addUsersToContest.bind(contestController)));
+router.put('/:contestId/users', asyncHandler(contestController.addUsersToContest.bind(contestController)));
+router.put('/:contestId/problems', asyncHandler(contestController.addProblemsToContest.bind(contestController)));
 
 export default router;

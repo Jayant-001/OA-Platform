@@ -12,4 +12,14 @@ export interface Problem {
     created_by: string;
     created_at: Date;
     updated_at: Date;
+    tagIds: string[];
+    tags?: Tag[]; // Add tags property
+}
+
+export interface Tag {
+    id: string;
+    name: string;
+    code: string;
+    created_at: Date;
+    updated_at: Date;
 }

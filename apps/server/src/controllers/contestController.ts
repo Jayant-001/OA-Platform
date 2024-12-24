@@ -28,7 +28,7 @@ class ContestController {
 
     async createContest(req: Request, res: Response, next: NextFunction) {
         try {
-            const contest = await this.contestService.createContest({...req.body, created_by: req.user?.id});
+            const contest = await this.contestService.createContest(req.body, req.user?.id as string);
             res.status(201).json(contest);
         } catch (error) {
             next(error);
@@ -93,6 +93,27 @@ class ContestController {
             const contest_id = req.params.contestId;
             const { user_ids } = req.body;
             await this.contestService.addUsersToContest(contest_id, user_ids);
+            res.status(204).send();
+        } catch (error) {
+            next(error);
+        }
+    }
+
+    async getUpcomingContests(req: Request, res: Response, next: NextFunction) {
+        try {
+            const userId = req.user?.id as string; // Assuming user ID is available in the request object
+            const upcomingContests = await this.contestService.getUpcomingContests(userId);
+            res.status(200).json(upcomingContests);
+        } catch (error) {
+            next(error);
+        }
+    }
+
+    async addProblemsToContest(req: Request, res: Response, next: NextFunction) {
+        try {
+            const contest_id = req.params.contestId;
+            const problems = req.body.problems; // Expecting an array of { problemId, points }
+            await this.contestService.addProblemsToContest(contest_id, problems);
             res.status(204).send();
         } catch (error) {
             next(error);
