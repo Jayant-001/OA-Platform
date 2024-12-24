@@ -19,7 +19,7 @@ import { Badge } from "@/components/ui/badge";
 import { Edit, Trash } from "lucide-react";
 import { Pagination } from "@/components/ui/pagination";
 import { problems as mockProblems } from "@/data";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
 interface Problem {
     id: string;
@@ -181,7 +181,9 @@ export function ProblemsList({ isAdminView = false }: ProblemsListProps) {
                                         1}
                                 </TableCell>
                                 <TableCell className="font-medium hover:text-primary cursor-pointer">
-                                    {problem.title}
+                                    <Link to={`problems/${problem.id}`}>
+                                        {problem.title}
+                                    </Link>
                                 </TableCell>
                                 <TableCell
                                     className={getDifficultyColor(

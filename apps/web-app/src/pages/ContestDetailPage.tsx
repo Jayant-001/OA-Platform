@@ -34,9 +34,10 @@ export function ContestDetailPage() {
                     <div>
                         <h3 className="text-lg font-semibold">Rules</h3>
                         <ul className="list-disc pl-6">
-                            {contest.rules.map((rule, index) => (
+                            {/* {contest.rules.map((rule, index) => (
                                 <li key={index}>{rule}</li>
-                            ))}
+                            ))} */}
+                            {contest.description}
                         </ul>
                     </div>
 

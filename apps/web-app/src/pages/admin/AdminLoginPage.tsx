@@ -3,13 +3,13 @@ import { useAuth } from "@/hooks/useAuth";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { ROUTES } from "@/lib/routes";
 
-export function LoginPage() {
+export function AdminLoginPage() {
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
-    const { login } = useAuth();
+    const { adminLogin: login } = useAuth();
     const navigate = useNavigate();
     const [error, setError] = useState("");
 
@@ -17,7 +17,7 @@ export function LoginPage() {
         e.preventDefault();
         try {
             await login(email, password);
-            navigate(ROUTES.HOME);
+            navigate(ROUTES.DASHBOARD.HOME);
         } catch (error) {
             setError("Login failed. Please try again.");
         }
@@ -27,11 +27,13 @@ export function LoginPage() {
         <div className="min-h-screen flex items-center justify-center">
             <Card className="w-[400px]">
                 <CardHeader>
-                    <CardTitle className="text-2xl font-bold">Login</CardTitle>
+                    <CardTitle className="text-2xl font-bold">
+                        Admin Login
+                    </CardTitle>
                 </CardHeader>
                 <CardContent>
                     <form onSubmit={handleSubmit} className="space-y-4">
-                        <div className="space-y-1">
+                        <div className="space-y-2">
                             <label>Email</label>
                             <Input
                                 type="email"
@@ -39,7 +41,7 @@ export function LoginPage() {
                                 onChange={(e) => setEmail(e.target.value)}
                             />
                         </div>
-                        <div className="space-y-1">
+                        <div className="space-y-2">
                             <label>Password</label>
                             <Input
                                 type="password"
@@ -53,25 +55,6 @@ export function LoginPage() {
                         <Button type="submit" className="w-full">
                             Login
                         </Button>
-
-                        <div className="text-center text-sm">
-                            Don't have an account?{" "}
-                            <Link
-                                to={ROUTES.REGISTER}
-                                className="text-primary hover:underline"
-                            >
-                                Register
-                            </Link>
-                        </div>
-                        <div className="text-center text-sm">
-                            Go to Admin{" "}
-                            <Link
-                                to={ROUTES.ADMIN_LOGIN}
-                                className="text-primary hover:underline"
-                            >
-                                Login
-                            </Link>
-                        </div>
                     </form>
                 </CardContent>
             </Card>

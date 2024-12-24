@@ -28,7 +28,7 @@ class ContestController {
 
     async createContest(req: Request, res: Response, next: NextFunction) {
         try {
-            const contest = await this.contestService.createContest(req.body);
+            const contest = await this.contestService.createContest({...req.body, created_by: req.user?.id});
             res.status(201).json(contest);
         } catch (error) {
             next(error);
