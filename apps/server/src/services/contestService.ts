@@ -29,7 +29,7 @@ class ContestService {
             );
         }
         contestData.created_by = userId
-        return this.contestRepository.create(contestData);
+        return this.contestRepository.createContest(contestData);
     }
 
     async updateContest(

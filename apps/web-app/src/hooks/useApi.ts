@@ -18,8 +18,12 @@ export const useAdminApi = () => {
         return await apiService.put(`/api/admins/contests/${contest_id}`, {...contestData})
     }
     
-    const updateProblemSelection = async (contestId: string, problemsList: [{problemId: string, points: number}]) => {
-        return await apiService.put(`api/admins/contests/${contestId}/problems`, problemsList);
+    const updateContestProblems = async (contestId: string, problemsList: {problemId: string, points: number}[]) => {
+        return await apiService.put(`/api/admins/contests/${contestId}/problems`, {problems: problemsList});
+    }
+
+    const updateContestUsers = async (contestId: string, user_ids: string[] | []) => {
+        return await apiService.put(`/api/admins/contests/${contestId}/users`, {user_ids});
     }
 
     /*
@@ -30,5 +34,14 @@ export const useAdminApi = () => {
     };
 
 
-    return { fetchContestById, fetchContests, fetchProblems, updateProblemSelection, updateContestById };
+
+    /*
+        // ----------------------------------- User routes --------------------------------
+    */
+    const fetchUsers = async () => {
+        return await apiService.get("/api/admins/users");
+    };
+
+
+    return { fetchContestById, fetchContests, fetchProblems, updateContestProblems, updateContestById, updateContestUsers };
 };

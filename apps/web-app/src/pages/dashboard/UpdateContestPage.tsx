@@ -10,7 +10,7 @@ import {
     problemFilters,
 } from "../admin/columns/problemColumns";
 import { userColumns, userFilters } from "../admin/columns/userColumns";
-import { users } from "@/data";
+// import { users } from "@/data";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import TextEditor from "@/components/shared/TextEditor";
@@ -20,7 +20,7 @@ import { useAdminApi } from "@/hooks/useApi";
 
 export function UpdateContestPage() {
     const { contest_id } = useParams();
-    const { fetchProblems, fetchContestById, updateProblemSelection, updateContestById } = useAdminApi();
+    const { fetchProblems, fetchContestById, updateContestProblems, updateContestById, updateContestUsers } = useAdminApi();
 
     const navigate = useNavigate();
     const [selectedProblems, setSelectedProblems] = useState<string[]>([]);
@@ -43,17 +43,24 @@ export function UpdateContestPage() {
     const [problemPoints, setProblemPoints] = useState<Record<string, number>>(
         {}
     );
+    const [users, setUsers] = useState<string[] | []>([]);
 
     useEffect(() => {
         if (contest_id) {
             (async () => {
                 try {
                     const contest = await fetchContestById(contest_id);
+                    const users = await 
                     if (!contest) {
                         toast.error(
                             `Contest not found with code: ${contest_id}`
                         );
                     } else {
+                        const pointsMap = contest.problems.reduce((acc, problem) => {
+                            acc[problem.problem_id] = problem.points;
+                            return acc;
+                        }, {} as Record<string, number>);
+                        setProblemPoints(pointsMap || {});
                         setFormData({
                             ...contest,
                             start_time: contest.start_time.endsWith("Z")
@@ -61,8 +68,7 @@ export function UpdateContestPage() {
                                 : contest.start_time,
                         });
                         setDescription(contest.description);
-                        // setSelectedProblems(contest.selectedProblems || []);
-                        // setProblemPoints(contest.problemPoints || {});
+                        setSelectedProblems(contest.problems.map(problem => problem.problem_id) || []);
                     }
 
                     const problems = await fetchProblems();
@@ -134,12 +140,12 @@ export function UpdateContestPage() {
             }
         }
         console.log(selectedProblemsPoints)
+        await updateContestProblems(formData.id, selectedProblemsPoints)
     }
 
     const handleUsersUpdate = async (e: React.FormEvent) => {
-            e.preventDefault();
-
-            console.log(selectedUsers)
+        e.preventDefault();
+        await updateContestUsers(formData.id, selectedUsers)
     }
 
     return (
