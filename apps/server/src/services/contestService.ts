@@ -1,6 +1,6 @@
 import { ContestRepository } from "../repositories/contestRepository";
 import { ProblemRepository } from "../repositories/problemRepository";
-import { Contest } from "../models/contest";
+import { Contest, ContestProblem } from "../models/contest";
 import { HttpException } from "../middleware/errorHandler";
 import { getConnection } from "typeorm"; // Import getConnection for transaction management
 
@@ -159,7 +159,7 @@ class ContestService {
         }
     }
 
-    async addProblemsToContest(contest_id: string, problems: [{ problemId: string, points: number }]): Promise<void> {
+    async addProblemsToContest(contest_id: string, problems: ContestProblem[] | []): Promise<void> {
         const contestExists = await this.contestRepository.findById(contest_id);
         if (contestExists === null) {
             throw new HttpException(
