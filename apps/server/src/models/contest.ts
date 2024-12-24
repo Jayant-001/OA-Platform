@@ -10,11 +10,11 @@ export interface Contest {
     created_by: string;
     created_at: Date;
     updated_at: Date;
-    problems?: ProblemPoints[]; // Add problems property
+    problems?: ContestProblem[]; // Add problems property
     users?:string[]; // Add users property
 }
 
-interface ProblemPoints {
+export interface ContestProblem {
     problem_id: string;
     points: number;
 }

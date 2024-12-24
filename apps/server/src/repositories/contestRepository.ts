@@ -1,5 +1,5 @@
 import db from "../config/database";
-import { Contest } from "../models/contest";
+import { Contest, ContestProblem } from "../models/contest";
 import { Repository, getConnection, Connection } from "typeorm";
 
 export class ContestRepository extends Repository<Contest> {
@@ -119,13 +119,15 @@ export class ContestRepository extends Repository<Contest> {
                 [contest_id]
             );
 
-            // Add new users to the contest
-            const values = user_ids
-                .map(user_id => `('${contest_id}', '${user_id}')`)
-                .join(", ");
-            await db.query(
-                `INSERT INTO contest_users (contest_id, user_id) VALUES ${values}`
-            );
+            if (user_ids.length > 0) {
+                // Add new users to the contest
+                const values = user_ids
+                    .map(user_id => `('${contest_id}', '${user_id}')`)
+                    .join(", ");
+                await db.query(
+                    `INSERT INTO contest_users (contest_id, user_id) VALUES ${values}`
+                );
+            }
 
             // Commit the transaction
             await db.query('COMMIT');
@@ -171,7 +173,7 @@ export class ContestRepository extends Repository<Contest> {
         );
     }
 
-    async addProblemsToContest(contest_id: string, problems: [{ problemId: string, points: number }]): Promise<void> {
+    async addProblemsToContest(contest_id: string, problems: ContestProblem[] | []): Promise<void> {
 
         console.log(contest_id, problems);
         // Begin the transaction
@@ -184,13 +186,15 @@ export class ContestRepository extends Repository<Contest> {
                 [contest_id]
             );
 
-            // Add new problems to the contest
-            const values = problems
-                .map(({ problemId, points }) => `('${contest_id}', '${problemId}', ${points})`)
-                .join(", ");
-            await db.query(
-                `INSERT INTO contest_problems (contest_id, problem_id, points) VALUES ${values}`
-            );
+            if (problems.length > 0) {
+                // Add new problems to the contest
+                const values = problems
+                    .map(({ problem_id, points }) => `('${contest_id}', '${problem_id}', ${points})`)
+                    .join(", ");
+                await db.query(
+                    `INSERT INTO contest_problems (contest_id, problem_id, points) VALUES ${values}`
+                );
+            }
 
             // Commit the transaction
             await db.query('COMMIT');
