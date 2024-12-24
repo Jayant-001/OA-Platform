@@ -4,34 +4,41 @@ import { ContestCard } from "@/components/shared/ContestCard";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import type { Contest } from "@/types";
+import { contests as contestsList } from "@/data";
+import { useUser } from "@/context/UserContext";
+import apiService from "@/api/apiService";
 
 export function HomePage() {
-    const [contests, setContests] = useState<Contest[]>([]);
+    const [contests, setContests] = useState<Contest[]>(contestsList);
     const [searchQuery, setSearchQuery] = useState("");
     const [loading, setLoading] = useState(true);
+    const {token} = useUser();
 
     useEffect(() => {
         // TODO: Replace with actual API call
         const fetchContests = async () => {
             try {
+                // const {data} = await apiService.get('/api/admins/contests');
+                // console.log(data);
                 // Simulate API call
-                const data = await Promise.resolve([
-                    {
-                        id: "1",
-                        title: "Weekly Contest 1",
-                        description: "Solve algorithmic problems",
-                        startTime: new Date(Date.now() + 86400000), // Tomorrow
-                        duration: 120,
-                        problemCount: 4,
-                        status: "upcoming",
-                        rules: [
-                            "No external help",
-                            "Individual participation only",
-                        ],
-                    },
-                    // Add more mock contests as needed
-                ]);
-                setContests(data);
+                const updatedContests = contestsList.map((contest) => {
+                    const now = new Date();
+                    const startTime = new Date(contest.startTime);
+                    const endTime = new Date(startTime.getTime() + contest.duration * 60000);
+
+                    let status: "live" | "upcoming" | "past";
+                    if (now < startTime) {
+                        status = "upcoming";
+                    } else if (now >= startTime && now <= endTime) {
+                        status = "live";
+                    } else {
+                        status = "past";
+                    }
+
+                    return { ...contest, status };
+                });
+
+                setContests(updatedContests);
             } catch (error) {
                 console.error("Failed to fetch contests:", error);
             } finally {

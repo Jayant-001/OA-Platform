@@ -21,13 +21,15 @@ interface DataTableProps<T> {
   columns: any[];
   data: T[];
   selectedRows: string[];
-  setSelectedRows: (rows: string[]) => void;
+  setSelectedRows: (ids: string[]) => void;
   filters?: {
     type: 'select';
     label: string;
     options: { label: string; value: string }[];
     key: string;
   }[];
+  problemPoints?: Record<string, number>;
+  handleProblemPointsChange?: (problemId: string, points: number) => void;
 }
 
 export function DataTable<T extends { id: string }>({
@@ -36,6 +38,8 @@ export function DataTable<T extends { id: string }>({
   selectedRows,
   setSelectedRows,
   filters = [],
+  problemPoints = {},
+  handleProblemPointsChange,
 }: DataTableProps<T>) {
   const [searchQuery, setSearchQuery] = useState("");
   const [filterValues, setFilterValues] = useState<Record<string, string>>({});
@@ -50,7 +54,11 @@ export function DataTable<T extends { id: string }>({
     );
 
     const matchesFilters = Object.entries(filterValues).every(
-      ([key, value]) => value === "all" || item[key] === value
+      ([key, value]) => {
+        if (value === "all") return true;
+        if (key === "tags") return item[key].includes(value);
+        return item[key] === value;
+      }
     );
 
     return matchesSearch && matchesFilters;
@@ -65,11 +73,9 @@ export function DataTable<T extends { id: string }>({
   };
 
   const handleSelectRow = (id: string) => {
-    if (selectedRows.includes(id)) {
-      setSelectedRows(selectedRows.filter((rowId) => rowId !== id));
-    } else {
-      setSelectedRows([...selectedRows, id]);
-    }
+    setSelectedRows((prev) =>
+      prev.includes(id) ? prev.filter((rowId) => rowId !== id) : [...prev, id]
+    );
   };
 
   return (
@@ -134,7 +140,21 @@ export function DataTable<T extends { id: string }>({
                 </TableCell>
                 {columns.map((column) => (
                   <TableCell key={column.accessorKey}>
-                    {column.cell ? column.cell(row) : row[column.accessorKey]}
+                    {column.accessorKey === "points" ? (
+                      <Input
+                        type="number"
+                        value={problemPoints[row.id] || ""}
+                        onChange={(e) =>
+                          handleProblemPointsChange &&
+                          handleProblemPointsChange(row.id, Number(e.target.value))
+                        }
+                        className="w-20"
+                      />
+                    ) : column.cell ? (
+                      column.cell(row)
+                    ) : (
+                      row[column.accessorKey]
+                    )}
                   </TableCell>
                 ))}
               </TableRow>

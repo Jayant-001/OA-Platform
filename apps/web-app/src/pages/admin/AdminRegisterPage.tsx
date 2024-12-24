@@ -1,35 +1,28 @@
 import { useState } from "react";
-import { useNavigate, Link } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from "@/components/ui/select";
 import { ROUTES } from "@/lib/routes";
 
-const colleges = ["MIT", "Harvard", "Stanford", "UC Berkeley", "Caltech"];
-const branches = [
-    "Computer Science",
-    "Electrical Engineering",
-    "Mechanical Engineering",
-    "Civil Engineering",
-    "Biotechnology",
-];
-const currentYear = new Date().getFullYear();
-const batches = Array.from({ length: currentYear - 1999 }, (_, i) =>
-    (2000 + i).toString()
-);
-
-export function RegisterPage() {
+export function AdminRegisterPage() {
     const navigate = useNavigate();
-    const { userRegister: register } = useAuth();
+    const { adminRegister: register } = useAuth();
     const [formData, setFormData] = useState({
         email: "",
         password: "",
         confirmPassword: "",
         name: "",
-        college: "",
-        batch: "",
-        branch: "",
+        organization: "",
+        role: "admin",
     });
     const [error, setError] = useState("");
 
@@ -43,16 +36,8 @@ export function RegisterPage() {
         }
 
         try {
-            const data = await register(
-                formData.email,
-                formData.password,
-                formData.name,
-                formData.college,
-                formData.batch,
-                formData.branch
-            );
-            console.log(data);
-            navigate(ROUTES.LOGIN);
+            await register(formData.email, formData.password, formData.name, formData.organization, formData.role);
+            navigate(ROUTES.DASHBOARD.HOME);
         } catch (error: any) {
             setError("Registration failed. Please try again.");
         }
@@ -65,17 +50,11 @@ export function RegisterPage() {
         }));
     };
 
-    const handleSelectChange = (name: string, value: string) => {
+    const handleRoleChange = (value: string) => {
         setFormData((prev) => ({
             ...prev,
-            [name]: value,
+            role: value,
         }));
-    };
-
-    const filterOptions = (options: string[], input: string) => {
-        return options.filter((option) =>
-            option.toLowerCase().includes(input.toLowerCase())
-        );
     };
 
     return (
@@ -83,7 +62,7 @@ export function RegisterPage() {
             <Card className="w-[400px]">
                 <CardHeader>
                     <CardTitle className="text-2xl font-bold text-center">
-                        Register
+                        Admin Register
                     </CardTitle>
                 </CardHeader>
                 <CardContent>
@@ -135,61 +114,30 @@ export function RegisterPage() {
                             />
                         </div>
                         <div className="space-y-1">
-                            <label htmlFor="college">College</label>
+                            <label htmlFor="organization">Organization</label>
                             <Input
-                                id="college"
-                                name="college"
+                                id="organization"
+                                name="organization"
                                 type="text"
                                 required
-                                value={formData.college}
+                                value={formData.organization}
                                 onChange={handleChange}
-                                list="colleges"
                             />
-                            <datalist id="colleges">
-                                {filterOptions(colleges, formData.college).map(
-                                    (college) => (
-                                        <option key={college} value={college} />
-                                    )
-                                )}
-                            </datalist>
                         </div>
                         <div className="space-y-1">
-                            <label htmlFor="branch">Branch</label>
-                            <Input
-                                id="branch"
-                                name="branch"
-                                type="text"
-                                required
-                                value={formData.branch}
-                                onChange={handleChange}
-                                list="branches"
-                            />
-                            <datalist id="branches">
-                                {filterOptions(branches, formData.branch).map(
-                                    (branch) => (
-                                        <option key={branch} value={branch} />
-                                    )
-                                )}
-                            </datalist>
-                        </div>
-                        <div className="space-y-1">
-                            <label htmlFor="batch">Batch</label>
-                            <Input
-                                id="batch"
-                                name="batch"
-                                type="text"
-                                required
-                                value={formData.batch}
-                                onChange={handleChange}
-                                list="batches"
-                            />
-                            <datalist id="batches">
-                                {filterOptions(batches, formData.batch).map(
-                                    (batch) => (
-                                        <option key={batch} value={batch} />
-                                    )
-                                )}
-                            </datalist>
+                            <label htmlFor="role">Role</label>
+                            <Select
+                                value={formData.role}
+                                onValueChange={handleRoleChange}
+                            >
+                                <SelectTrigger className="w-full">
+                                    <SelectValue placeholder="Select Role" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="admin">Admin</SelectItem>
+                                    <SelectItem value="panel">Panel</SelectItem>
+                                </SelectContent>
+                            </Select>
                         </div>
 
                         {error && (
@@ -199,16 +147,6 @@ export function RegisterPage() {
                         <Button type="submit" className="w-full">
                             Register
                         </Button>
-
-                        <div className="text-center text-sm">
-                            Already have an account?{" "}
-                            <Link
-                                to={ROUTES.LOGIN}
-                                className="text-primary hover:underline"
-                            >
-                                Login
-                            </Link>
-                        </div>
                     </form>
                 </CardContent>
             </Card>

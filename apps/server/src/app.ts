@@ -9,13 +9,23 @@ import adminContestRoutes from "./routes/adminContestRoutes";
 import adminProblemRoutes from "./routes/adminProblemRoutes";
 import tagRoutes from "./routes/tagRoutes";
 import { errorHandler } from "./middleware/errorHandler";
-import { userAuthMiddleware, adminAuthMiddleware } from "./middleware/authMiddleware";
+import {
+    userAuthMiddleware,
+    adminAuthMiddleware,
+} from "./middleware/authMiddleware";
+import cookieParser from 'cookie-parser';
+import cors from "cors";
 import dotenv from "dotenv";
 dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT;
-
+const corsOptions = {
+    origin: 'http://localhost:5173',  // Allow the client to access the server
+    credentials: true,  // Allow cookies to be sent/received
+};
+app.use(cors(corsOptions));
+app.use(cookieParser());
 app.use(express.json());
 
 app.use("/auth/users", userAuthRoutes); // User auth
@@ -27,7 +37,6 @@ app.use("/api/admins/contests", adminAuthMiddleware, adminContestRoutes); // Con
 app.use("/api/admins/problems", adminAuthMiddleware, adminProblemRoutes); // Problem routes for admins
 app.use("/api/admins/tags", adminAuthMiddleware, tagRoutes); // Tag routes for admins
 app.use("/api/admins", adminAuthMiddleware, adminRoutes);
-
 
 app.get("/", (req, res) => {
     return res.send("hello world  ^_^");

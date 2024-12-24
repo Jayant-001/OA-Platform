@@ -1,8 +1,8 @@
 export interface User {
-  id: string;
-  email: string;
-  name: string;
-  role: 'user' | 'admin';
+    id: string;
+    email: string;
+    name: string;
+    role: "user" | "admin";
 }
 
 // export interface Contest {
@@ -17,23 +17,32 @@ export interface User {
 // }
 
 export interface Contest {
-  id: string; 
-  title: string; // Contest title (required field)
-  description: string; // Contest description (optional)
-  duration: number; // Duration in minutes (required field)
-  startTime: string; // Start time of the contest (ISO string or Date object)
-  contestCode: string; // Unique contest code (required field)
-  joinDuration?: number; // Duration (in minutes) to join after the contest starts (optional)
-  strictTime: boolean; // Boolean indicating whether strict time rules apply
-  createdBy: string; // The ID of the admin who created the contest (foreign key reference)
-  createdAt: string; // Timestamp when the contest was created (ISO string)
-  updatedAt: string; // Timestamp when the contest was last updated (ISO string)
+    id: string;
+    title: string; // Contest title (required field)
+    description: string; // Contest description (optional)
+    duration: number; // Duration in minutes (required field)
+    start_time: string; // Start time of the contest (ISO string or Date object)
+    contest_code: string; // Unique contest code (required field)
+    join_duration?: number; // Duration (in minutes) to join after the contest starts (optional)
+    strict_time: boolean; // Boolean indicating whether strict time rules apply
+    created_by: string; // The ID of the admin who created the contest (foreign key reference)
+    created_at: string; // Timestamp when the contest was created (ISO string)
+    updated_at: string; // Timestamp when the contest was last updated (ISO string)
 }
 
 export interface Problem {
-  id: string;
-  title: string;
-  difficulty: 'easy' | 'medium' | 'hard';
-  tags: string[];
-  description: string;
+    id: string;
+    title: string;
+    problem_statement: string;
+    example: string;
+    constraints: string;
+    difficulty: string;
+    input_format: string;
+    output_format: string;
+    time_limit: string;
+    memory_limit: string;
+    created_by: string;
+    created_at: string;
+    updated_at: string;
+    tags: string[];
 }

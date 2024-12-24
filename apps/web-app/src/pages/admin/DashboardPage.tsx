@@ -1,16 +1,52 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { ContestCard } from "@/components/shared/ContestCard";
-import { contests } from "@/data";
 import { ProblemsList } from "@/components/problems/ProblemsList";
 import { Link, useNavigate } from "react-router-dom";
 import { ROUTES } from "@/lib/routes";
+import { Contest } from "@/types";
+import apiService from "@/api/apiService";
 
 export function DashboardPage() {
     const navigate = useNavigate();
     const [searchQuery, setSearchQuery] = useState("");
+    const [contests, setContests] = useState<Contest[] | null>(null);
+
+    useEffect(() => {
+        const fetchContests = async () => {
+            try {
+                const data = await apiService.get("/api/admins/contests");
+                const contestsList = data;
+                // Simulate API call
+                const updatedContests = contestsList.map((contest) => {
+                    const now = new Date();
+                    const startTime = new Date(contest.startTime);
+                    const endTime = new Date(
+                        startTime.getTime() + contest.duration * 60000
+                    );
+
+                    let status: "live" | "upcoming" | "past";
+                    if (now < startTime) {
+                        status = "upcoming";
+                    } else if (now >= startTime && now <= endTime) {
+                        status = "live";
+                    } else {
+                        status = "past";
+                    }
+
+                    return { ...contest, status };
+                });
+
+                setContests(updatedContests);
+            } catch (error) {
+                console.error("Failed to fetch contests:", error);
+            }
+        };
+
+        fetchContests();
+    }, [])
 
     return (
         <div className="container mx-auto py-8">
@@ -52,7 +88,7 @@ export function DashboardPage() {
                                 className="grid grid-cols-3 gap-4"
                             >
                                 {/* Contest cards will go here */}
-                                {contests.map((contest) => (
+                                {contests && contests.map((contest) => (
                                     <ContestCard
                                         key={contest.id}
                                         contest={contest}
