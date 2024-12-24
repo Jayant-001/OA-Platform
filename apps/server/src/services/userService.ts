@@ -1,6 +1,6 @@
 import { UserRepository } from '../repositories/userRepository';
 import { User } from '../models/user';
-import { HttpException } from '../middleware/errorHandler'; // Add this import
+import { HttpException } from '../middleware/errorHandler';
 
 export class UserService {
   private userRepository = new UserRepository();
@@ -17,7 +17,7 @@ export class UserService {
     return this.userRepository.create(user);
   }
 
-  async updateUser(userId: string, userData: Partial<User>): Promise<void> {
+  async updateUser(userId: string, userData: Partial<Omit<User, "email" | "password">>): Promise<void> {
     const isExists = await this.userRepository.findById(userId);
     if (isExists === null) {
       throw new HttpException(404, "USER_NOT_FOUND", "User not found");

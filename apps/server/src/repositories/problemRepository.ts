@@ -1,50 +1,121 @@
 import db from "../config/database";
 import { HttpException } from "../middleware/errorHandler";
 import { Problem } from "../models/problem";
-import {  ProblemSubmissions } from '../models/problemSubmissions';
+import { ProblemSubmissions } from '../models/problemSubmissions';
 
 export class ProblemRepository {
     async findAll(): Promise<Problem[]> {
-        return db.any("SELECT * FROM problems");
+        const problems = await db.any("SELECT * FROM problems");
+        const problemsWithTags = await Promise.all(problems.map(async problem => {
+            const tags = await db.any(
+                `SELECT t.* FROM tags t
+                 JOIN problem_tags pt ON t.id = pt.tag_id
+                 WHERE pt.problem_id = $1`,
+                [problem.id]
+            );
+            return { ...problem, tags };
+        }));
+        return problemsWithTags;
     }
 
     async findById(id: string): Promise<Problem | null> {
-        return db.oneOrNone("SELECT * FROM problems WHERE id = $1", [id]);
+        const problem = await db.oneOrNone("SELECT * FROM problems WHERE id = $1", [id]);
+        if (problem) {
+            const tags = await db.any(
+                `SELECT t.* FROM tags t
+                 JOIN problem_tags pt ON t.id = pt.tag_id
+                 WHERE pt.problem_id = $1`,
+                [problem.id]
+            );
+            return { ...problem, tags };
+        }
+        return null;
     }
 
     async create(
         problem: Omit<Problem, "id" | "created_at" | "updated_at">
     ): Promise<Problem> {
-        return db.one(
-            `INSERT INTO problems (title, problem_statement, example, constraints, level, input_format, output_format, time_limit, memory_limit, created_by) 
-             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) RETURNING *`,
-            [
-                problem.title,
-                problem.problem_statement,
-                problem.example,
-                problem.constraints,
-                problem.level,
-                problem.input_format,
-                problem.output_format,
-                problem.time_limit,
-                problem.memory_limit,
-                problem.created_by,
-            ]
-        );
+        const { tags, ...problemDetails } = problem;
+
+        // Start a transaction
+        return db.tx(async t => {
+            const createdProblem = await t.one(
+                `INSERT INTO problems (title, problem_statement, example, constraints, level, input_format, output_format, time_limit, memory_limit, created_by) 
+                 VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) RETURNING *`,
+                [
+                    problemDetails.title,
+                    problemDetails.problem_statement,
+                    problemDetails.example,
+                    problemDetails.constraints,
+                    problemDetails.level,
+                    problemDetails.input_format,
+                    problemDetails.output_format,
+                    problemDetails.time_limit,
+                    problemDetails.memory_limit,
+                    problemDetails.created_by,
+                ]
+            );
+
+            if (tags && tags.length > 0) {
+                const problemTags = tags.map(tagId => ({
+                    problem_id: createdProblem.id,
+                    tag_id: tagId
+                }));
+                const insertQueries = problemTags.map(tag =>
+                    t.none(
+                        `INSERT INTO problem_tags (problem_id, tag_id) VALUES ($1, $2)`,
+                        [tag.problem_id, tag.tag_id]
+                    )
+                );
+                await t.batch(insertQueries);
+            }
+            return createdProblem;
+        });
     }
 
     async update(
         id: string,
-        problem: Partial<Omit<Problem, "id" | "created_at" | "updated_at" | "created_by">>
+        problem: Partial<Omit<Problem, "id" | "created_at" | "updated_at" | "created_by"> & { tags?: string[] }>
     ): Promise<void> {
-        const fields = Object.keys(problem)
-            .map((key, index) => `${key} = $${index + 2}`)
-            .join(", ");
-        const values = Object.values(problem);
-        await db.none(
-            `UPDATE problems SET ${fields}, updated_at = NOW() WHERE id = $1`,
-            [id, ...values]
-        );
+        const { tags, ...problemDetails } = problem;
+
+        // Start a transaction
+        await db.tx(async t => {
+            // Update problem details
+            const fields = Object.keys(problemDetails)
+                .filter(key => key !== "created_by") // Ensure created_by is omitted
+                .map((key, index) => `${key} = $${index + 2}`)
+                .join(", ");
+            const values = Object.values(problemDetails).filter((_, index) => {
+                const key = Object.keys(problemDetails)[index];
+                return key !== "created_by";
+            });
+            await t.none(
+                `UPDATE problems SET ${fields}, updated_at = NOW() WHERE id = $1`,
+                [id, ...values]
+            );
+
+            // Delete existing tags
+            await t.none(
+                `DELETE FROM problem_tags WHERE problem_id = $1`,
+                [id]
+            );
+
+            // Add new tags
+            if (tags && tags.length > 0) {
+                const problemTags = tags.map(tagId => ({
+                    problem_id: id,
+                    tag_id: tagId
+                }));
+                const insertQueries = problemTags.map(tag =>
+                    t.none(
+                        `INSERT INTO problem_tags (problem_id, tag_id) VALUES ($1, $2)`,
+                        [tag.problem_id, tag.tag_id]
+                    )
+                );
+                await t.batch(insertQueries);
+            }
+        });
     }
 
     async delete(id: string): Promise<void> {
@@ -67,5 +138,5 @@ export class ProblemRepository {
         );
     }
 
-    
+
 }

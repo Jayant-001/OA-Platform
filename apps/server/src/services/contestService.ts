@@ -2,6 +2,7 @@ import { ContestRepository } from "../repositories/contestRepository";
 import { ProblemRepository } from "../repositories/problemRepository";
 import { Contest } from "../models/contest";
 import { HttpException } from "../middleware/errorHandler";
+import { getConnection } from "typeorm"; // Import getConnection for transaction management
 
 class ContestService {
     private contestRepository = new ContestRepository();
@@ -16,7 +17,8 @@ class ContestService {
     }
 
     async createContest(
-        contestData: Omit<Contest, "id" | "created_at" | "updated_at">
+        contestData: Omit<Contest, "id" | "created_at" | "updated_at">,
+        userId: string
     ): Promise<Contest> {
         const isCodeUnique = await this.contestRepository.isContestCodeUnique(contestData.contest_code);
         if (!isCodeUnique) {
@@ -26,6 +28,7 @@ class ContestService {
                 "Contest code must be unique"
             );
         }
+        contestData.created_by = userId
         return this.contestRepository.create(contestData);
     }
 
@@ -43,7 +46,7 @@ class ContestService {
         }
 
         if (contestData.contest_code) {
-            const isCodeUnique = await this.contestRepository.isContestCodeUnique(contestData.contest_code);
+            const isCodeUnique = await this.contestRepository.isContestCodeUniquewithId(contestData.contest_code,id);
             if (!isCodeUnique) {
                 throw new HttpException(
                     400,
@@ -53,7 +56,7 @@ class ContestService {
             }
         }
 
-        return this.contestRepository.update(id, contestData);
+        return this.contestRepository.updateContest(id, contestData);
     }
 
     async deleteContest(id: string): Promise<void> {
@@ -65,7 +68,7 @@ class ContestService {
                 "Contest not found"
             );
         }
-        return this.contestRepository.delete(id);
+        return this.contestRepository.deleteContest(id);
     }
 
     async addProblemToContest(contest_id: string, problem_id: string, points: number): Promise<void> {
@@ -146,6 +149,28 @@ class ContestService {
             );
         }
         return this.contestRepository.addUsersToContest(contest_id, user_ids);
+    }
+
+    async getUpcomingContests(userId: string): Promise<Contest[]> {
+        try {
+            return await this.contestRepository.findUpcomingContestsByUserId(userId);
+        } catch (error) {
+            throw new Error('Error fetching upcoming contests');
+        }
+    }
+
+    async addProblemsToContest(contest_id: string, problems: [{ problemId: string, points: number }]): Promise<void> {
+        const contestExists = await this.contestRepository.findById(contest_id);
+        if (contestExists === null) {
+            throw new HttpException(
+                404,
+                "CONTEST_NOT_FOUND",
+                "Contest not found"
+            );
+        }
+
+        // Call the repository method to handle the transaction
+        await this.contestRepository.addProblemsToContest(contest_id, problems);
     }
 }
 

@@ -12,9 +12,9 @@ export class UserRepository {
 
     async create(user: Omit<User, "id">): Promise<User> {
         return db.one(
-            `INSERT INTO users (name, email, password) 
-             VALUES ($1, $2, $3) RETURNING *`,
-            [user.name, user.email, user.password]
+            `INSERT INTO users (name, email, password,college,batch,branch) 
+             VALUES ($1, $2, $3,$4,$5,$6) RETURNING *`,
+            [user.name, user.email, user.password,user.college,user.batch,user.branch]
         );
     }
 

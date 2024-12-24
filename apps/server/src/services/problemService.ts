@@ -22,7 +22,7 @@ class ProblemService {
 
     async updateProblem(
         id: string,
-        problemData: Partial<Omit<Problem, "id" | "created_at" | "updated_at | created_by" >>
+        problemData: Partial<Omit<Problem, "id" | "created_at" | "updated_at" | "created_by"> & { tags?: string[] }>
     ): Promise<void> {
         const isExists = await this.problemRepository.findById(id);
         if (isExists === null) {

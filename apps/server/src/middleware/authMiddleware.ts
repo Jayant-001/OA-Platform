@@ -48,7 +48,7 @@ const adminAuthMiddleware = (req: Request, res: Response, next: NextFunction) =>
         if (error instanceof HttpException) {
             throw new HttpException(
                 401,
-                error.customCode,
+                "NOT_AUTHORIZED",
                 error.message
             );
         } else {
