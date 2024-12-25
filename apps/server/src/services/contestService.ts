@@ -16,6 +16,10 @@ class ContestService {
         return this.contestRepository.findById(id);
     }
 
+    async getContestByIdWithoutDetails(id: string): Promise<Contest | null> {
+        return this.contestRepository.findByIdWithoutDetails(id);
+    }
+
     async createContest(
         contestData: Omit<Contest, "id" | "created_at" | "updated_at">,
         userId: string
@@ -171,6 +175,30 @@ class ContestService {
 
         // Call the repository method to handle the transaction
         await this.contestRepository.addProblemsToContest(contest_id, problems);
+    }
+
+    async getContestProblems(contestId: string): Promise<{ problem_id: string, title: string, points: number }[]> {
+        const contestExists = await this.contestRepository.findByIdWithoutDetails(contestId);
+        if (contestExists === null) {
+            throw new HttpException(
+                404,
+                "CONTEST_NOT_FOUND",
+                "Contest not found"
+            );
+        }
+        return this.contestRepository.findProblemsByContestId(contestId);
+    }
+
+    async getProblemById(problemId: string): Promise<any> { // Replace 'any' with the appropriate type if available
+        const problem = await this.problemRepository.findById(problemId);
+        if (!problem) {
+            throw new HttpException(
+                404,
+                "PROBLEM_NOT_FOUND",
+                "Problem not found"
+            );
+        }
+        return problem;
     }
 }
 

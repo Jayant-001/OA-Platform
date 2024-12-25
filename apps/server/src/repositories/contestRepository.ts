@@ -25,6 +25,10 @@ export class ContestRepository extends Repository<Contest> {
         return contest;
     }
 
+    async findByIdWithoutDetails(id: string): Promise<Contest | null> {
+        return db.oneOrNone("SELECT * FROM contests WHERE id = $1", [id]);
+    }
+
     async createContest(
         contest: Omit<Contest, "id" | "created_at" | "updated_at">
     ): Promise<Contest> {
@@ -163,7 +167,7 @@ export class ContestRepository extends Repository<Contest> {
         `;
         const values = [userId];
         const result = await db.query(query, values);
-        return result.rows;
+        return result;
     }
 
     async findUserContest(contest_id: string, user_id: string): Promise<{ joined_at: Date } | null> {
@@ -203,6 +207,16 @@ export class ContestRepository extends Repository<Contest> {
             await db.query('ROLLBACK');
             throw error;
         }
+    }
+
+    async findProblemsByContestId(contestId: string): Promise<{ problem_id: string, title: string, points: number }[]> {
+        const query = `
+            SELECT p.id as problem_id, p.title, cp.points
+            FROM contest_problems cp
+            JOIN problems p ON cp.problem_id = p.id
+            WHERE cp.contest_id = $1
+        `;
+        return db.any(query, [contestId]);
     }
 
 }

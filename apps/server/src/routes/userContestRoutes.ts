@@ -12,4 +12,12 @@ router.post('/:contestId/problems/:problemId/submissions', asyncHandler(contestS
 // Route to get upcoming contests for a user
 router.get('/upcoming-contests', asyncHandler(contestController.getUpcomingContests.bind(contestController)));
 
+router.get('/:contestId', asyncHandler(contestController.getUserContest.bind(contestController)));
+
+router.get('/:contestId/problems', asyncHandler(contestController.getUserContestProblems.bind(contestController)));
+
+router.get('/:contestId/problems/:problemId', asyncHandler(contestController.getUserContestProblem.bind(contestController)));
+
+
+
 export default router;

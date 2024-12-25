@@ -2,8 +2,9 @@ import db from "../config/database";
 import { HttpException } from "../middleware/errorHandler";
 import { Problem } from "../models/problem";
 import { ProblemSubmissions } from '../models/problemSubmissions';
+import { Repository } from "typeorm";
 
-export class ProblemRepository {
+export class ProblemRepository extends Repository<Problem> {
     async findAll(): Promise<Problem[]> {
         const problems = await db.any("SELECT * FROM problems");
         const problemsWithTags = await Promise.all(problems.map(async problem => {
@@ -19,20 +20,10 @@ export class ProblemRepository {
     }
 
     async findById(id: string): Promise<Problem | null> {
-        const problem = await db.oneOrNone("SELECT * FROM problems WHERE id = $1", [id]);
-        if (problem) {
-            const tags = await db.any(
-                `SELECT t.* FROM tags t
-                 JOIN problem_tags pt ON t.id = pt.tag_id
-                 WHERE pt.problem_id = $1`,
-                [problem.id]
-            );
-            return { ...problem, tags };
-        }
-        return null;
+        return db.oneOrNone("SELECT * FROM problems WHERE id = $1", [id]);
     }
 
-    async create(
+    async createProblem(
         problem: Omit<Problem, "id" | "created_at" | "updated_at">
     ): Promise<Problem> {
         const { tags, ...problemDetails } = problem;
@@ -73,7 +64,7 @@ export class ProblemRepository {
         });
     }
 
-    async update(
+    async updateProblem(
         id: string,
         problem: Partial<Omit<Problem, "id" | "created_at" | "updated_at" | "created_by"> & { tags?: string[] }>
     ): Promise<void> {
@@ -118,7 +109,7 @@ export class ProblemRepository {
         });
     }
 
-    async delete(id: string): Promise<void> {
+    async deleteProblem(id: string): Promise<void> {
         await db.none("DELETE FROM problems WHERE id = $1", [id]);
     }
 
@@ -137,6 +128,4 @@ export class ProblemRepository {
             ]
         );
     }
-
-
 }
