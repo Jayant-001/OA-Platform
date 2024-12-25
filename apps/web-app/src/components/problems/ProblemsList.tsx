@@ -18,17 +18,9 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Edit, Trash } from "lucide-react";
 import { Pagination } from "@/components/ui/pagination";
-import { problems as mockProblems } from "@/data";
 import { Link, useNavigate } from "react-router-dom";
-
-interface Problem {
-    id: string;
-    title: string;
-    difficulty: "easy" | "medium" | "hard";
-    acceptance: number;
-    tags: string[];
-    solved: boolean;
-}
+import { useAdminApi } from "@/hooks/useApi";
+import { Problem, Tag } from "@/types";
 
 interface ProblemsListProps {
     isAdminView?: boolean;
@@ -45,17 +37,35 @@ export function ProblemsList({ isAdminView = false }: ProblemsListProps) {
     const [problemsPerPage] = useState(10);
     const [paginatedProblems, setPaginatedProblems] = useState<Problem[]>([]);
     const navigate = useNavigate();
+    const { fetchProblems, fetchTags } = useAdminApi();
+    const [problems, setProblems] = useState<Problem[]>([]);
+    const [tags, setTags] = useState<string[]>([]);
+
+    useEffect(() => {
+        (async () => {
+            const problemsList = await fetchProblems();
+            const modifiedProblems = problemsList.map((problem: any) => ({
+                ...problem,
+                difficulty: problem.level,
+                acceptance: 80, // Dummy value for acceptance
+                tags: problem.tags.map((tag: any) => tag.name),
+            }));
+            setProblems(modifiedProblems);
+            const tagsList = await fetchTags();
+            setTags(tagsList.map((tag: Tag) => tag.name));
+        })();
+    }, []);
 
     useEffect(() => {
         // Simulate API call for pagination
         const fetchProblems = async () => {
             const startIndex = (currentPage - 1) * problemsPerPage;
             const endIndex = startIndex + problemsPerPage;
-            setPaginatedProblems(mockProblems.slice(startIndex, endIndex));
+            setPaginatedProblems(problems.slice(startIndex, endIndex));
         };
 
         fetchProblems();
-    }, [currentPage, problemsPerPage]);
+    }, [currentPage, problemsPerPage, problems]);
 
     const getDifficultyColor = (difficulty: Problem["difficulty"]) => {
         const colors = {
@@ -84,9 +94,6 @@ export function ProblemsList({ isAdminView = false }: ProblemsListProps) {
             matchesSearch && matchesDifficulty && matchesStatus && matchesTag
         );
     });
-
-    // Get unique tags from all problems
-    const allTags = Array.from(new Set(mockProblems.flatMap((p) => p.tags)));
 
     const paginate = (pageNumber: number) => setCurrentPage(pageNumber);
 
@@ -133,7 +140,7 @@ export function ProblemsList({ isAdminView = false }: ProblemsListProps) {
                     </SelectTrigger>
                     <SelectContent>
                         <SelectItem value="all">All Tags</SelectItem>
-                        {allTags.map((tag) => (
+                        {tags.map((tag) => (
                             <SelectItem key={tag} value={tag}>
                                 {tag}
                             </SelectItem>
@@ -245,7 +252,7 @@ export function ProblemsList({ isAdminView = false }: ProblemsListProps) {
 
             <Pagination
                 itemsPerPage={problemsPerPage}
-                totalItems={mockProblems.length}
+                totalItems={problems.length}
                 paginate={paginate}
                 currentPage={currentPage}
             />

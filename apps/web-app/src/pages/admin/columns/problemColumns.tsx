@@ -25,12 +25,6 @@ export const problemColumns = [
     ),
   },
   {
-    accessorKey: "acceptance",
-    header: "Acceptance",
-    searchable: false,
-    cell: (row: any) => `${row.acceptance.toFixed(1)}%`,
-  },
-  {
     accessorKey: "points",
     header: "Points",
     searchable: false,
@@ -60,16 +54,6 @@ export const problemFilters = [
       { label: 'Easy', value: 'easy' },
       { label: 'Medium', value: 'medium' },
       { label: 'Hard', value: 'hard' },
-    ],
-  },
-  {
-    type: 'select' as const,
-    label: 'Tag',
-    key: 'tags',
-    options: [
-      { label: 'Array', value: 'Array' },
-      { label: 'Hash Table', value: 'Hash Table' },
-      // Add more tags as needed
     ],
   },
 ];
