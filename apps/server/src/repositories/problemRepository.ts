@@ -6,7 +6,7 @@ import { Repository } from "typeorm";
 
 export class ProblemRepository extends Repository<Problem> {
     async findAll(): Promise<Problem[]> {
-        const problems = await db.any("SELECT * FROM problems");
+        const problems = await db.any("SELECT * FROM problems order by created_by");
         const problemsWithTags = await Promise.all(problems.map(async problem => {
             const tags = await db.any(
                 `SELECT t.* FROM tags t
@@ -20,7 +20,9 @@ export class ProblemRepository extends Repository<Problem> {
     }
 
     async findById(id: string): Promise<Problem | null> {
-        return db.oneOrNone("SELECT * FROM problems WHERE id = $1", [id]);
+        const problem = await db.oneOrNone("SELECT * FROM problems WHERE id = $1", [id]);
+        const tags = await db.any("SELECT * FROM problem_tags WHERE problem_id = $1", [id]);
+        return {...problem, tags};
     }
 
     async createProblem(

@@ -39,6 +39,10 @@ export const useAdminApi = () => {
         });
     };
 
+    const deleteContestById = async (contest_id: string) => {
+        return await apiService.delete(`/api/admins/contests/${contest_id}`);
+    };
+
     /*
         // ----------------------------------- Problem routes --------------------------------
     */
@@ -68,9 +72,6 @@ export const useAdminApi = () => {
         );
     };
 
-    /*
-        // ----------------------------------- User routes --------------------------------
-    */
     const fetchUsers = async () => {
         return await apiService.get("/api/admins/users");
     };
@@ -79,13 +80,38 @@ export const useAdminApi = () => {
         fetchContestById,
         fetchContests,
         fetchProblems,
+        deleteContestById,
         updateContestProblems,
         updateContestById,
         updateContestUsers,
-        fetchUsers,
         fetchProblemById,
         fetchTags,
         createProblem,
         updateProblem,
+        fetchUsers,
     };
+};
+
+export const useUsersApi = () => {
+    /*
+        // ----------------------------------- User routes --------------------------------
+    */
+
+    const fetchUpcomingContests = async () => {
+        return await apiService.get("/api/users/contests/upcoming-contests");
+    };
+
+    const fetchContestById = async (contest_id: string) => {
+        return await apiService.get(`/api/users/contests/${contest_id}`);
+    };
+
+    const getContestProblems = async (contest_id: string) => {
+        return await apiService.get(`/api/users/contests/${contest_id}/problems`);
+    }
+
+    const getContestProblemById = async (contest_id: string, problem_id: string) => {
+        return await apiService.get(`/api/users/contests/${contest_id}/problems/${problem_id}`);
+    }
+
+    return { fetchUpcomingContests, fetchContestById, getContestProblems, getContestProblemById };
 };

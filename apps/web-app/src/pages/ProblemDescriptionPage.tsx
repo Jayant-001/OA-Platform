@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useParams } from "react-router-dom";
+import { useLocation, useParams } from "react-router-dom";
 import { Split } from "@geoffcox/react-splitter";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
@@ -15,32 +15,43 @@ import { Problem } from "@/types";
 import MonacoEditor from "@monaco-editor/react";
 import { Resizable } from "re-resizable";
 import { ChevronDown, ChevronUp } from "lucide-react";
-import { useAdminApi } from "@/hooks/useApi";
+import { useAdminApi, useUsersApi } from "@/hooks/useApi";
 import toast from "react-hot-toast";
 
 export function ProblemDescriptionPage() {
-    const { problem_id } = useParams();
+    const { problem_id, contest_id } = useParams();
     const [problem, setProblem] = useState<Problem | null>(null);
     const [language, setLanguage] = useState("javascript");
     const [code, setCode] = useState("");
     const [input, setInput] = useState("");
     const [output, setOutput] = useState("");
     const [isConsoleCollapsed, setIsConsoleCollapsed] = useState(false);
-    const {fetchProblemById} = useAdminApi();
+    const { fetchProblemById } = useAdminApi();
+    const { getContestProblemById } = useUsersApi();
+    const location = useLocation();
+    const isDashboardPage = location.pathname.includes("/dashboard");
+
 
     useEffect(() => {
-        // Fetch problem data
-        if (problem_id) {
+        if(!problem_id) {
+            toast.error("Problem ID not provided");
+            return;
+        }
             (async () => {
                 try {
-                    const problem = await fetchProblemById(problem_id);
-                    setProblem(problem);
+                    let fetched_problem;
+                    if(isDashboardPage) {
+                        fetched_problem = await fetchProblemById(problem_id);
+                    } else {
+                        fetched_problem = await getContestProblemById(contest_id as string, problem_id);
+                    }
+                    setProblem(fetched_problem);
                 } catch (error) {
                     console.log(error);
                     toast.error("Failed to fetch problem data");
                 }
             })();
-        }
+        
     }, [problem_id]);
 
     const handleRun = () => {

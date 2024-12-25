@@ -2,26 +2,26 @@ import { useState, useEffect } from "react";
 import { Navbar } from "@/components/layout/Navbar";
 import { ContestCard } from "@/components/shared/ContestCard";
 import { Input } from "@/components/ui/input";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tabs, TabsContent } from "@/components/ui/tabs";
 import type { Contest } from "@/types";
-import { contests as contestsList } from "@/data";
-import { useUser } from "@/context/UserContext";
-import apiService from "@/api/apiService";
+import { useUsersApi } from "@/hooks/useApi";
 
 export function HomePage() {
-    const [contests, setContests] = useState<Contest[]>(contestsList);
+    const [contests, setContests] = useState<Contest[]>([]);
     const [searchQuery, setSearchQuery] = useState("");
     const [loading, setLoading] = useState(true);
-    const {token} = useUser();
+
+    const {fetchUpcomingContests} = useUsersApi();
 
     useEffect(() => {
         // TODO: Replace with actual API call
         const fetchContests = async () => {
             try {
-                // const {data} = await apiService.get('/api/admins/contests');
-                // console.log(data);
-                // Simulate API call
-                const updatedContests = contestsList.map((contest) => {
+                const contests = await fetchUpcomingContests();
+                setContests(contests);
+                console.log(contests);
+                
+                const updatedContests = contests.map((contest) => {
                     const now = new Date();
                     const startTime = new Date(contest.startTime);
                     const endTime = new Date(startTime.getTime() + contest.duration * 60000);
@@ -52,7 +52,6 @@ export function HomePage() {
     const filterContests = (status: "live" | "upcoming" | "past") => {
         return contests.filter(
             (contest) =>
-                contest.status === status &&
                 contest.title.toLowerCase().includes(searchQuery.toLowerCase())
         );
     };
@@ -75,13 +74,7 @@ export function HomePage() {
                 </div>
 
                 <Tabs defaultValue="live" className="space-y-6">
-                    <TabsList>
-                        <TabsTrigger value="live">Live Contests</TabsTrigger>
-                        <TabsTrigger value="upcoming">
-                            Upcoming Contests
-                        </TabsTrigger>
-                        <TabsTrigger value="past">Past Contests</TabsTrigger>
-                    </TabsList>
+                    
 
                     {loading ? (
                         <div>Loading contests...</div>

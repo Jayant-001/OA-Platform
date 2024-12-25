@@ -29,11 +29,15 @@ export function ContestCard({ contest }: ContestCardProps) {
                 </CardDescription>
             </CardHeader>
             <CardContent>
-                <div className="flex flex-col justify-between items-stretch h-[100%] border">
-                    <div className="flex-grow">
-                        <p className="mb-4">Code: {contest.contest_code} </p>
+                <div className="flex flex-col justify-between items-stretch">
+                    <div>
+                        {isDashboard && (
+                            <p className="mb-4">
+                                Code: {contest.contest_code}{" "}
+                            </p>
+                        )}
                         <p className="mb-4">
-                            Join Duration: {contest.join_duration}
+                            Join Duration: {contest.join_duration} minutes
                         </p>
                     </div>
 

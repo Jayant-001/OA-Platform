@@ -1,0 +1,166 @@
+CREATE TABLE contests (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    title VARCHAR NOT NULL,
+    description TEXT,
+    duration INTEGER NOT NULL,
+    start_time TIMESTAMP NOT NULL,
+    contest_code VARCHAR UNIQUE NOT NULL,
+    join_duration INTEGER,
+    strict_time BOOLEAN DEFAULT FALSE,
+    created_by UUID NOT NULL REFERENCES admin(id),
+    created_at TIMESTAMP DEFAULT NOW(),
+    updated_at TIMESTAMP DEFAULT NOW()
+);
+
+/*
+*
+*   Insert queries
+*   
+*/
+
+INSERT INTO contests (title, description, duration, start_time, contest_code, join_duration, strict_time, created_by)
+VALUES
+('Algorithmic Contest 1', 
+'<h1><span style="color: rgb(230, 0, 0);">About the Contest</span></h1><p>This is an exciting contest to test your algorithmic skills.</p><h3>Details</h3><ul><li>Time: 2024-12-30 10:00 UTC</li><li>Duration: 3 hours</li><li>Number of Tasks: 5</li><li>Rated: Yes</li></ul>',
+180, '2024-12-30T10:00:00.000Z', 'ALGO_CONTEST_1', 60, FALSE, 'd2cf8bcf-7e45-482d-897f-a57277f63087'),
+
+('Data Structures Challenge', 
+'<h1>Welcome to the Data Structures Challenge</h1><p>Test your knowledge and implementation of data structures in this contest.</p><h3>Contest Details</h3><ul><li>Time: 2024-12-31 14:00 UTC</li><li>Duration: 4 hours</li><li>Number of Tasks: 6</li><li>Rated: Yes</li></ul>', 
+240, '2024-12-31T14:00:00.000Z', 'DS_CHALLENGE_1', 60, TRUE, 'd2cf8bcf-7e45-482d-897f-a57277f63087'),
+
+('Machine Learning Cup',
+'<h1><span style="color: rgb(0, 128, 0);">Machine Learning Cup 2024</span></h1><p>Test your ML models and algorithms in a highly competitive environment.</p><h3>Details</h3><ul><li>Time: 2025-01-05 09:00 UTC</li><li>Duration: 6 hours</li><li>Number of Tasks: 7</li><li>Rated: No</li></ul>',
+360, '2025-01-05T09:00:00.000Z', 'ML_CUP_2024', 120, FALSE, 'd2cf8bcf-7e45-482d-897f-a57277f63087'),
+
+('Advanced Dynamic Programming Contest', 
+'<h1>Dynamic Programming Challenge</h1><p>Compete in solving complex DP problems.</p><h3>Contest Information</h3><ul><li>Time: 2025-01-10 15:00 UTC</li><li>Duration: 5 hours</li><li>Number of Tasks: 10</li><li>Rated: Yes</li></ul>', 
+300, '2025-01-10T15:00:00.000Z', 'DP_CONTEST_1', 90, TRUE, 'd2cf8bcf-7e45-482d-897f-a57277f63087'),
+
+('Intro to Algorithms', 
+'<h1>Introduction to Algorithms Contest</h1><p>Compete in a beginner-friendly algorithm contest.</p><h3>Details</h3><ul><li>Time: 2024-12-28 12:00 UTC</li><li>Duration: 2 hours</li><li>Number of Tasks: 4</li><li>Rated: No</li></ul>', 
+120, '2024-12-28T12:00:00.000Z', 'ALGO_INTRO', 30, FALSE, 'd2cf8bcf-7e45-482d-897f-a57277f63087'),
+
+('Code Sprint 2025', 
+'<h1><span style="color: rgb(0, 0, 255);">Code Sprint 2025</span></h1><p>Fast-paced coding sprint to solve algorithmic challenges.</p><h3>Contest Details</h3><ul><li>Time: 2025-01-15 16:00 UTC</li><li>Duration: 4 hours</li><li>Number of Tasks: 8</li><li>Rated: Yes</li></ul>', 
+240, '2025-01-15T16:00:00.000Z', 'CODE_SPRINT_2025', 60, TRUE, 'd2cf8bcf-7e45-482d-897f-a57277f63087'),
+
+('Graph Theory Challenge', 
+'<h1>Graph Theory Challenge</h1><p>Compete in solving graph theory-based problems.</p><h3>Details</h3><ul><li>Time: 2025-02-01 13:00 UTC</li><li>Duration: 3 hours</li><li>Number of Tasks: 6</li><li>Rated: No</li></ul>',
+180, '2025-02-01T13:00:00.000Z', 'GRAPH_THEORY_1', 45, FALSE, 'd2cf8bcf-7e45-482d-897f-a57277f63087'),
+
+('Greedy Algorithms Contest', 
+'<h1>Greedy Algorithms Contest</h1><p>Solve the most interesting greedy algorithm problems.</p><h3>Details</h3><ul><li>Time: 2025-02-10 17:00 UTC</li><li>Duration: 4 hours</li><li>Number of Tasks: 5</li><li>Rated: Yes</li></ul>',
+240, '2025-02-10T17:00:00.000Z', 'GREEDY_ALGO_1', 60, TRUE, 'd2cf8bcf-7e45-482d-897f-a57277f63087'),
+
+('Competitive Programming Series', 
+'<h1>Competitive Programming Series 2025</h1><p>This is a series of competitive programming challenges.</p><h3>Details</h3><ul><li>Time: 2025-02-15 14:00 UTC</li><li>Duration: 6 hours</li><li>Number of Tasks: 12</li><li>Rated: No</li></ul>',
+360, '2025-02-15T14:00:00.000Z', 'CP_SERIES_2025', 120, TRUE, 'd2cf8bcf-7e45-482d-897f-a57277f63087'),
+
+('Sorting Algorithms Contest', 
+'<h1>Sorting Algorithms Contest</h1><p>Compete in solving problems related to sorting algorithms.</p><h3>Contest Information</h3><ul><li>Time: 2025-02-20 11:00 UTC</li><li>Duration: 2 hours</li><li>Number of Tasks: 3</li><li>Rated: Yes</li></ul>',
+120, '2025-02-20T11:00:00.000Z', 'SORTING_ALGO_1', 45, FALSE, 'd2cf8bcf-7e45-482d-897f-a57277f63087'),
+
+('Binary Search Championship', 
+'<h1>Binary Search Championship</h1><p>Test your skills with binary search problems.</p><h3>Details</h3><ul><li>Time: 2025-03-01 10:00 UTC</li><li>Duration: 3 hours</li><li>Number of Tasks: 5</li><li>Rated: No</li></ul>',
+180, '2025-03-01T10:00:00.000Z', 'BIN_SEARCH_CHAMP', 60, FALSE, 'd2cf8bcf-7e45-482d-897f-a57277f63087'),
+
+('Dynamic Programming Mastery', 
+'<h1><span style="color: rgb(255, 165, 0);">Dynamic Programming Mastery</span></h1><p>Compete with others in solving dynamic programming challenges.</p><h3>Details</h3><ul><li>Time: 2025-03-10 13:00 UTC</li><li>Duration: 5 hours</li><li>Number of Tasks: 8</li><li>Rated: Yes</li></ul>',
+300, '2025-03-10T13:00:00.000Z', 'DP_MASTERY', 90, TRUE, 'd2cf8bcf-7e45-482d-897f-a57277f63087'),
+
+('Graph Algorithms Tournament', 
+'<h1>Graph Algorithms Tournament</h1><p>Showcase your expertise in graph algorithms.</p><h3>Details</h3><ul><li>Time: 2025-03-15 14:00 UTC</li><li>Duration: 4 hours</li><li>Number of Tasks: 7</li><li>Rated: Yes</li></ul>',
+240, '2025-03-15T14:00:00.000Z', 'GRAPH_ALGO_TOURNAMENT', 60, TRUE, 'd2cf8bcf-7e45-482d-897f-a57277f63087'),
+
+('Advanced Algorithms 2025', 
+'<h1>Advanced Algorithms 2025</h1><p>This contest will test your ability to solve advanced algorithm problems.</p><h3>Details</h3><ul><li>Time: 2025-04-01 10:00 UTC</li><li>Duration: 5 hours</li><li>Number of Tasks: 6</li><li>Rated: No</li></ul>',
+300, '2025-04-01T10:00:00.000Z', 'ADV_ALGO_2025', 120, FALSE, 'd2cf8bcf-7e45-482d-897f-a57277f63087'),
+
+('Codeforces Training Camp', 
+'<h1>Codeforces Training Camp</h1><p>Prepare for Codeforces contests with our training camp.</p><h3>Details</h3><ul><li>Time: 2025-04-10 12:00 UTC</li><li>Duration: 6 hours</li><li>Number of Tasks: 10</li><li>Rated: Yes</li></ul>',
+360, '2025-04-10T12:00:00.000Z', 'CF_TRAINING_2025', 90, TRUE, 'd2cf8bcf-7e45-482d-897f-a57277f63087'),
+
+('Competitive Programming Bootcamp', 
+'<h1>Competitive Programming Bootcamp</h1><p>Get ready for your first competitive programming contest!</p><h3>Contest Details</h3><ul><li>Time: 2025-04-20 11:00 UTC</li><li>Duration: 3 hours</li><li>Number of Tasks: 5</li><li>Rated: No</li></ul>',
+180, '2025-04-20T11:00:00.000Z', 'CP_BOOTCAMP_2025', 45, FALSE, 'd2cf8bcf-7e45-482d-897f-a57277f63087'),
+
+('Problem Solving Championship', 
+'<h1><span style="color: rgb(255, 0, 0);">Problem Solving Championship</span></h1><p>Compete in solving problem-solving challenges.</p><h3>Details</h3><ul><li>Time: 2025-04-25 13:00 UTC</li><li>Duration: 4 hours</li><li>Number of Tasks: 6</li><li>Rated: Yes</li></ul>',
+240, '2025-04-25T13:00:00.000Z', 'PROB_SOLVING_2025', 60, TRUE, 'd2cf8bcf-7e45-482d-897f-a57277f63087'),
+
+('Advanced Graph Theory', 
+'<h1>Advanced Graph Theory</h1><p>This contest will push your graph theory skills to the limit.</p><h3>Details</h3><ul><li>Time: 2025-05-01 12:00 UTC</li><li>Duration: 5 hours</li><li>Number of Tasks: 8</li><li>Rated: No</li></ul>',
+300, '2025-05-01T12:00:00.000Z', 'ADV_GRAPH_THEORY_2025', 120, TRUE, 'd2cf8bcf-7e45-482d-897f-a57277f63087');
+
+
+
+
+
+
+INSERT INTO problems (title, problem_statement, example, constraints, level, input_format, output_format, time_limit, memory_limit, created_by)
+VALUES
+('Binary Search on Sorted Array', 
+'<h1>Problem Statement</h1><p>Given a sorted array of integers, find the index of a target value using binary search. The array is sorted in ascending order, and the target can be any integer. You need to implement the binary search algorithm to find the target''s position in the array.</p><h3>Example</h3><p>For example, if the array is <code>[1, 2, 3, 4, 5, 6]</code> and the target is <code>4</code>, the output should be <code>3</code> (since array is 0-indexed).</p><h3>Constraints</h3><ul><li>The size of the array can be up to 10<sup>6</sup> elements.</li><li>The target value is an integer.</li><li>Time complexity should be O(log n).</li></ul>',
+'<h3>Example Input</h3><pre>[1, 2, 3, 4, 5, 6]\n4</pre><h3>Example Output</h3><pre>3</pre>', 
+'1 ≤ size of array ≤ 10^6, target is an integer', 
+'medium', 
+'An array of integers and a target integer', 
+'An integer (the index of the target)', 
+'1 second', 
+'128 MB', 
+'d2cf8bcf-7e45-482d-897f-a57277f63087'),
+
+('Longest Increasing Subsequence', 
+'<h1>Problem Statement</h1><p>Given an array of integers, find the length of the longest subsequence that is strictly increasing. A subsequence is a sequence derived from the array by deleting some or no elements without changing the order of the remaining elements.</p><h3>Example</h3><p>If the input array is <code>[10, 22, 9, 33, 21, 50]</code>, the output should be <code>4</code>, because the longest increasing subsequence is <code>[10, 22, 33, 50]</code>.</p><h3>Constraints</h3><ul><li>The length of the array is between 1 and 1000.</li><li>Time complexity should be O(n^2) or better.</li></ul>',
+'<h3>Example Input</h3><pre>[10, 22, 9, 33, 21, 50]</pre><h3>Example Output</h3><pre>4</pre>', 
+'1 ≤ size of array ≤ 1000, all elements are integers', 
+'hard', 
+'An array of integers', 
+'The length of the longest increasing subsequence', 
+'2 seconds', 
+'128 MB', 
+'d2cf8bcf-7e45-482d-897f-a57277f63087'),
+
+('Knapsack Problem', 
+'<h1>Problem Statement</h1><p>In this problem, you are given a set of items, each with a weight and a value. You are also given a knapsack that can hold a limited weight. Your task is to determine the maximum value of items that can be carried in the knapsack without exceeding its weight limit.</p><h3>Example</h3><p>For instance, if the items are <code>[(weight=2, value=3), (weight=4, value=5), (weight=3, value=4)]</code> and the knapsack capacity is 5, the maximum value is <code>7</code> (by choosing items 1 and 3).</p><h3>Constraints</h3><ul><li>The number of items is between 1 and 1000.</li><li>The weight of each item is between 1 and 100.</li><li>The knapsack capacity is between 1 and 1000.</li></ul>',
+'<h3>Example Input</h3><pre>Items: [(2, 3), (4, 5), (3, 4)]\nKnapsack Capacity: 5</pre><h3>Example Output</h3><pre>7</pre>', 
+'1 ≤ number of items ≤ 1000, 1 ≤ weight ≤ 100, 1 ≤ knapsack capacity ≤ 1000', 
+'medium', 
+'A list of items and the knapsack capacity', 
+'Maximum value of items that can be carried', 
+'3 seconds', 
+'256 MB', 
+'d2cf8bcf-7e45-482d-897f-a57277f63087'),
+
+('Graph Cycle Detection', 
+'<h1>Problem Statement</h1><p>Given an undirected graph, detect if there is a cycle in the graph. A cycle is a path that starts and ends at the same vertex, with no other vertices repeated. The graph is represented by an adjacency list.</p><h3>Example</h3><p>If the graph is represented as <code>[(0, 1), (1, 2), (2, 0)]</code>, the output should be <code>YES</code>, as a cycle exists between the vertices <code>0 → 1 → 2 → 0</code>.</p><h3>Constraints</h3><ul><li>The number of vertices can be up to 1000.</li><li>The number of edges can be up to 5000.</li></ul>',
+'<h3>Example Input</h3><pre>Edges: [(0, 1), (1, 2), (2, 0)]</pre><h3>Example Output</h3><pre>YES</pre>', 
+'1 ≤ number of vertices ≤ 1000, 1 ≤ number of edges ≤ 5000', 
+'hard', 
+'An adjacency list representing the graph', 
+'YES if a cycle exists, NO otherwise', 
+'2 seconds', 
+'128 MB', 
+'d2cf8bcf-7e45-482d-897f-a57277f63087'),
+
+('Fibonacci Sequence', 
+'<h1>Problem Statement</h1><p>Write a function to compute the <strong>n-th</strong> Fibonacci number. The Fibonacci sequence is defined as <code>F(0) = 0, F(1) = 1, F(n) = F(n-1) + F(n-2)</code> for <code>n ≥ 2</code>.</p><h3>Example</h3><p>If <code>n = 5</code>, the Fibonacci number is <code>5</code>, as the sequence is <code>0, 1, 1, 2, 3, 5...</code>.</p><h3>Constraints</h3><ul><li>1 ≤ n ≤ 1000</li><li>The time complexity should be O(n) or better.</li></ul>',
+'<h3>Example Input</h3><pre>5</pre><h3>Example Output</h3><pre>5</pre>', 
+'1 ≤ n ≤ 1000', 
+'easy', 
+'A number n to compute the n-th Fibonacci number', 
+'The n-th Fibonacci number', 
+'1 second', 
+'64 MB', 
+'d2cf8bcf-7e45-482d-897f-a57277f63087'),
+
+('Prime Factorization', 
+'<h1>Problem Statement</h1><p>Write a function that computes the prime factorization of a given number. A prime factorization of a number is a list of prime numbers that multiply together to give the original number.</p><h3>Example</h3><p>For <code>n = 18</code>, the prime factorization is <code>[2, 3, 3]</code> since <code>18 = 2 * 3 * 3</code>.</p><h3>Constraints</h3><ul><li>1 ≤ n ≤ 10^6</li><li>Time complexity should be O(sqrt(n)) or better.</li></ul>',
+'<h3>Example Input</h3><pre>18</pre><h3>Example Output</h3><pre>[2, 3, 3]</pre>', 
+'1 ≤ n ≤ 10^6', 
+'medium', 
+'A number n to factorize', 
+'A list of prime factors of n', 
+'1 second', 
+'128 MB', 
+'d2cf8bcf-7e45-482d-897f-a57277f63087');

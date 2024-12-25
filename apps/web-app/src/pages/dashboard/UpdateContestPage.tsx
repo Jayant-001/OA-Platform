@@ -153,13 +153,22 @@ export function UpdateContestPage() {
                 return;
             }
         }
-        console.log(selectedProblemsPoints);
-        await updateContestProblems(formData.id, selectedProblemsPoints);
+        try {
+            await updateContestProblems(formData.id, selectedProblemsPoints);
+            toast.success("Problems updated successfully");
+        } catch (error) {
+            toast.error("Failed to update problems");
+        }
     };
 
     const handleUsersUpdate = async (e: React.FormEvent) => {
         e.preventDefault();
-        await updateContestUsers(formData.id, selectedUsers);
+        try {
+            await updateContestUsers(formData.id, selectedUsers);
+            toast.success("Users updated successfully");
+        } catch (error) {
+            toast.error("Failed to update users");
+        }
     };
 
     return (

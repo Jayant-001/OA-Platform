@@ -55,9 +55,9 @@ function App() {
                         <Route
                             path={ROUTES.HOME}
                             element={
-                                <ProtectedRoute>
-                                    <HomePage />
-                                </ProtectedRoute>
+                                // <ProtectedRoute>
+                                <HomePage />
+                                // </ProtectedRoute>
                             }
                         />
                         <Route
@@ -134,7 +134,7 @@ function App() {
                         />
 
                         <Route
-                            path="/contests/:id/leaderboard"
+                            path={ROUTES.DASHBOARD.LEADERBOARD_CONTEST}
                             element={
                                 // <ProtectedRoute>
                                 <ContestLeaderboardPage />
