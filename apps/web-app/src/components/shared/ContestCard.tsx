@@ -25,29 +25,25 @@ export function ContestCard({ contest }: ContestCardProps) {
             <CardHeader>
                 <CardTitle>{contest.title}</CardTitle>
                 <CardDescription>
-                    Starts: {new Date(contest.startTime).toLocaleString()}
+                    Starts: {new Date(contest.start_time).toLocaleString()}
                 </CardDescription>
             </CardHeader>
             <CardContent>
-                <p className="mb-4">Problems: {contest.problemCount}</p>
-                <p className="mb-4">Duration: {contest.duration} minutes</p>
-                {isDashboard ? (
-                    <Button
-                        onClick={() =>
-                            navigate(`contests/${contest.id}/update`)
-                        }
-                        variant="outline"
-                    >
-                        Update Contest
-                    </Button>
-                ) : (
+                <div className="flex flex-col justify-between items-stretch h-[100%] border">
+                    <div className="flex-grow">
+                        <p className="mb-4">Code: {contest.contest_code} </p>
+                        <p className="mb-4">
+                            Join Duration: {contest.join_duration}
+                        </p>
+                    </div>
+
                     <Button
                         onClick={() => navigate(`contests/${contest.id}`)}
                         variant="outline"
                     >
                         View Details
                     </Button>
-                )}
+                </div>
             </CardContent>
         </Card>
     );

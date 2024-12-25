@@ -11,11 +11,12 @@ import {
     SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { problems } from "@/data";
 import { Problem } from "@/types";
 import MonacoEditor from "@monaco-editor/react";
 import { Resizable } from "re-resizable";
 import { ChevronDown, ChevronUp } from "lucide-react";
+import { useAdminApi } from "@/hooks/useApi";
+import toast from "react-hot-toast";
 
 export function ProblemDescriptionPage() {
     const { problem_id } = useParams();
@@ -25,11 +26,20 @@ export function ProblemDescriptionPage() {
     const [input, setInput] = useState("");
     const [output, setOutput] = useState("");
     const [isConsoleCollapsed, setIsConsoleCollapsed] = useState(false);
+    const {fetchProblemById} = useAdminApi();
 
     useEffect(() => {
         // Fetch problem data
         if (problem_id) {
-            setProblem(problems.find((p) => p.id === problem_id) || null);
+            (async () => {
+                try {
+                    const problem = await fetchProblemById(problem_id);
+                    setProblem(problem);
+                } catch (error) {
+                    console.log(error);
+                    toast.error("Failed to fetch problem data");
+                }
+            })();
         }
     }, [problem_id]);
 
