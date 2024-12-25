@@ -17,7 +17,7 @@ class ProblemService {
     async createProblem(
         problemData: Omit<Problem, "id" | "created_at" | "updated_at">
     ): Promise<Problem> {
-        return this.problemRepository.create(problemData);
+        return this.problemRepository.createProblem(problemData);
     }
 
     async updateProblem(
@@ -33,7 +33,7 @@ class ProblemService {
             );
         }
 
-        return this.problemRepository.update(id, problemData);
+        return this.problemRepository.updateProblem(id, problemData);
     }
 
     async deleteProblem(id: string): Promise<void> {
@@ -45,7 +45,7 @@ class ProblemService {
                 "Problem not found"
             );
         }
-        return this.problemRepository.delete(id);
+        return this.problemRepository.deleteProblem(id);
     }
 
     async createSubmission(submissionData: Omit<ProblemSubmissions, "id" | "submitted_at">): Promise<ProblemSubmissions> {
