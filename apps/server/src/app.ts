@@ -17,6 +17,7 @@ import cookieParser from 'cookie-parser';
 import cors from "cors";
 import dotenv from "dotenv";
 dotenv.config();
+import morgan from "morgan";
 
 const app = express();
 const PORT = process.env.PORT;
@@ -27,6 +28,23 @@ const corsOptions = {
 app.use(cors(corsOptions));
 app.use(cookieParser());
 app.use(express.json());
+ 
+const morganFormat = ":method :url :status :response-time ms";
+app.use(
+    morgan(morganFormat, {
+        stream: {
+            write: (message) => {
+                const logObject = {
+                    method: message.split(" ")[0],
+                    url: message.split(" ")[1],
+                    status: message.split(" ")[2],
+                    responseTime: message.split(" ")[3],
+                };
+                console.log(JSON.stringify(logObject));
+            },
+        },
+    })
+);
 
 app.use("/auth/users", userAuthRoutes); // User auth
 app.use("/api/users", userAuthMiddleware, userRoutes);

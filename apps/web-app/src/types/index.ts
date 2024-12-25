@@ -46,3 +46,29 @@ export interface Problem {
     updated_at: string;
     tags: string[];
 }
+
+export interface ContestProblems {
+    problem_id: string;
+    points: string;
+}
+
+export interface Tag {
+    id: string;
+    name: string;
+    code: string;
+    created_at: Date;
+    updated_at: Date;
+}
+
+export interface CreateProblem {
+    title: string;
+    problem_statement: string;
+    example: string;
+    constraints: string;
+    level: string;
+    input_format: string;
+    output_format: string;
+    time_limit: string;
+    memory_limit: string;
+    tags: string[];
+}

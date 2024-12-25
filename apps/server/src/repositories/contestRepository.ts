@@ -179,7 +179,6 @@ export class ContestRepository extends Repository<Contest> {
 
     async addProblemsToContest(contest_id: string, problems: ContestProblem[] | []): Promise<void> {
 
-        console.log(contest_id, problems);
         // Begin the transaction
         await db.query('BEGIN');
 
