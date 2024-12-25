@@ -10,9 +10,9 @@ const db = pgp({
   database: process.env.DB_NAME,
   user: process.env.DB_USER,
   password: process.env.DB_PASSWORD,
-  ssl: {
-    rejectUnauthorized: false, // Set this only if you are certain about security implications
-  }
+  // ssl: {
+  //   rejectUnauthorized: false, // Set this only if you are certain about security implications
+  // }
 });
 
 export default db;

@@ -76,11 +76,12 @@ export function AddProblemPage() {
                     setSelectedTags(problem.tags.map((tag: Tag) => tag.id));
                 } catch (error) {
                     console.log(error);
+                    toast.error("Failed to fetch problem data");
                     navigate(-1);
                 }
             })();
         }
-    }, [problem_id]);
+    }, [problem_id,]);
 
     const handleChange = (
         e: React.ChangeEvent<

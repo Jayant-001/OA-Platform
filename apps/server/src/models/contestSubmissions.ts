@@ -3,7 +3,7 @@ export interface ContestSubmissions {
     user_id: string;
     contest_id: string;
     problem_id: string;
-    verdict: string; 
+    verdict?: string; 
     code: string;
     language: string;
     execution_time?: number;

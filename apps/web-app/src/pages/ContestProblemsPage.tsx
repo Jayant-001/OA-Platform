@@ -4,43 +4,40 @@ import { Navbar } from "@/components/layout/Navbar";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
+import toast from "react-hot-toast";
+import { useUsersApi } from "@/hooks/useApi";
 
 interface Problem {
     id: string;
     title: string;
-    difficulty: "easy" | "medium" | "hard";
-    solved: boolean;
+    status: string; // "solved" | "unsolved" | "attempted"
     points: number;
 }
 
 export function ContestProblemsPage() {
-    const { id: contestId } = useParams();
+    const { contest_id } = useParams();
     const [problems, setProblems] = useState<Problem[]>([]);
     const [loading, setLoading] = useState(true);
     const navigate = useNavigate();
+    const { getContestProblems } = useUsersApi();
 
     useEffect(() => {
+        if (!contest_id) {
+            toast.error("Contest ID not provided");
+            return;
+        }
+
         const fetchProblems = async () => {
             try {
-                // TODO: Replace with actual API call
-                const mockProblems = [
-                    {
-                        id: "1",
-                        title: "Two Sum",
-                        difficulty: "easy",
-                        solved: false,
-                        points: 100,
-                    },
-                    {
-                        id: "2",
-                        title: "Binary Tree Maximum Path",
-                        difficulty: "hard",
-                        solved: false,
-                        points: 300,
-                    },
-                ] as Problem[];
-
-                setProblems(mockProblems);
+                const problems = await getContestProblems(contest_id);
+                setProblems(
+                    problems.map((problem) => ({
+                        ...problem,
+                        id: problem.problem_id,
+                        status: "unsolved",
+                    }))
+                );
             } catch (error) {
                 console.error("Failed to fetch problems:", error);
             } finally {
@@ -49,25 +46,11 @@ export function ContestProblemsPage() {
         };
 
         fetchProblems();
-    }, [contestId]);
-
-    const getDifficultyColor = (difficulty: Problem["difficulty"]) => {
-        switch (difficulty) {
-            case "easy":
-                return "bg-green-100 text-green-800";
-            case "medium":
-                return "bg-yellow-100 text-yellow-800";
-            case "hard":
-                return "bg-red-100 text-red-800";
-            default:
-                return "";
-        }
-    };
+    }, [contest_id]);
 
     return (
         <div className="min-h-screen bg-background">
             <Navbar />
-
             <main className="container mx-auto px-4 py-8">
                 <div className="mb-8">
                     <h1 className="text-3xl font-bold mb-2">
@@ -80,7 +63,24 @@ export function ContestProblemsPage() {
                 </div>
 
                 {loading ? (
-                    <div>Loading problems...</div>
+                    <div className="space-y-4">
+                        {[...Array(3)].map((_, index) => (
+                            <Card
+                                key={index}
+                                className="hover:shadow-md transition-shadow"
+                            >
+                                <CardHeader className="flex flex-row items-center justify-between">
+                                    <Skeleton className="h-6 w-1/2" />
+                                </CardHeader>
+                                <CardContent>
+                                    <div className="flex justify-between items-center">
+                                        <Skeleton className="h-4 w-1/4" />
+                                        <Skeleton className="h-8 w-24" />
+                                    </div>
+                                </CardContent>
+                            </Card>
+                        ))}
+                    </div>
                 ) : (
                     <div className="space-y-4">
                         {problems.map((problem) => (
@@ -92,30 +92,27 @@ export function ContestProblemsPage() {
                                     <CardTitle className="text-xl">
                                         {problem.title}
                                     </CardTitle>
-                                    <div className="flex items-center gap-4">
-                                        <Badge
-                                            className={getDifficultyColor(
-                                                problem.difficulty
-                                            )}
-                                        >
-                                            {problem.difficulty}
-                                        </Badge>
-                                        <span className="text-sm text-muted-foreground">
-                                            {problem.points} points
-                                        </span>
-                                    </div>
                                 </CardHeader>
                                 <CardContent>
                                     <div className="flex justify-between items-center">
                                         <div className="flex items-center gap-2">
-                                            {problem.solved && (
-                                                <Badge
-                                                    variant="outline"
-                                                    className="text-green-600"
-                                                >
-                                                    Solved
-                                                </Badge>
-                                            )}
+                                            <span className="text-sm text-muted-foreground">
+                                                <b>Points:</b> {problem.points}
+                                            </span>
+
+                                            <Badge
+                                                variant="outline"
+                                                className={
+                                                    problem.status == "solved"
+                                                        ? `text-green-600`
+                                                        : problem.status ==
+                                                          "unsolved"
+                                                        ? `text-red-600`
+                                                        : `text-yellow-600`
+                                                }
+                                            >
+                                                {problem.status}
+                                            </Badge>
                                         </div>
                                         <Button
                                             onClick={() =>

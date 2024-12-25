@@ -476,3 +476,34 @@ export const problems = [
         points: 300,
     },
 ] as const;
+
+
+export const dummyContest = {
+    id: "a8bab1e6-09a3-459d-8027-a57e4eb131e9",
+    title: "DP Contest updated by mirdul",
+    description:
+        '<h1><span style="color: rgb(230, 0, 0);">About the Contest Updated</span></h1><p>This is an unofficial contest to practice DP (Dynamic Programming). We selected 26 DPs, mostly basic ones, and prepared a problem to learn each of them. Test your skills during the real contest, and brush them up after it ends.</p><p><br></p><h3><strong>Details</strong></h3><ol><li data-list="bullet"><span class="ql-ui" contenteditable="false"></span>Time (YY-MM-DD): 2019-01-06(Sun) 11:00-16:00 UTC (postponed)</li><li data-list="bullet"><span class="ql-ui" contenteditable="false"></span>Duration: 5 hours</li><li data-list="bullet"><span class="ql-ui" contenteditable="false"></span>Number of Tasks: 26</li><li data-list="bullet"><span class="ql-ui" contenteditable="false"></span>Point Values: 100 points each</li><li data-list="bullet"><span class="ql-ui" contenteditable="false"></span>Rated: No</li></ol><p><br></p><h3><strong>Rules</strong></h3><p>The rules for ABC, ARC and AGC apply. The important points are:</p><p><br></p><ol><li data-list="bullet"><span class="ql-ui" contenteditable="false"></span>This is an individual match; no teams allowed.</li><li data-list="bullet"><span class="ql-ui" contenteditable="false"></span>Revealing the solutions to others during the contest is prohibited.</li><li data-list="bullet"><span class="ql-ui" contenteditable="false"></span>The penalty for an incorrect submission is 5 minutes.</li></ol><p><br></p><h3><strong>Notices</strong></h3><ol><li data-list="bullet"><span class="ql-ui" contenteditable="false"></span>The problems may NOT be arranged in ascending order of difficulty.</li><li data-list="bullet"><span class="ql-ui" contenteditable="false"></span>There are many famous problems.</li><li data-list="bullet"><span class="ql-ui" contenteditable="false"></span>The contest is not intended for experts such as reds (anyone can compete, though).</li><li data-list="bullet"><span class="ql-ui" contenteditable="false"></span>It is recommended to use languages that are not too slow (such as C++ and Java).</li></ol><p><br></p><h3><strong>Staff</strong></h3><ol><li data-list="bullet"><span class="ql-ui" contenteditable="false"></span>Problems written by: sugim48</li><li data-list="bullet"><span class="ql-ui" contenteditable="false"></span>Tested by: asi1024, camypaper</li><li data-list="bullet"><span class="ql-ui" contenteditable="false"></span>Translated by: evima</li></ol>',
+    duration: 1000,
+    start_time: "2024-12-24T12:35:00.000Z",
+    contest_code: "DP_CONTEST_update_bymridul",
+    join_duration: 100,
+    strict_time: true,
+    created_by: "544d4a2e-305e-4354-aa62-2d5081da40b0",
+    created_at: "2024-12-24T04:26:52.227Z",
+    updated_at: "2024-12-24T01:30:44.887Z",
+    problems: [
+        {
+            problem_id: "55c18fb1-72b6-478e-84ed-f3e180cd0261",
+            points: 10,
+        },
+        {
+            problem_id: "b3a7eaf8-cbf1-47a1-b9a3-a8d4350c0800",
+            points: 123,
+        },
+    ],
+    users: [
+        "57fe641a-f251-4fc5-9217-f43ced9dd982",
+        "c6f9a1d6-c04d-443c-b7a2-d1e3f1342c4a",
+        "dd149bdc-478f-4fd7-abcd-a364866df5a2",
+    ],
+};
