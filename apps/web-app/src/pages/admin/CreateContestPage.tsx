@@ -47,6 +47,9 @@ export function CreateContestPage() {
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
 
+        console.log(formData);
+        return;
+
         try {
             await apiService.post("/api/admins/contests", {
                 ...formData,

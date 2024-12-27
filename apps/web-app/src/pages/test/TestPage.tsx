@@ -13,7 +13,7 @@ const TestPage = () => {
             [{ script: "sub" }, { script: "super" }],
             [{ list: "ordered" }, { list: "bullet" }],
             [{ indent: "-1" }, { indent: "+1" }],
-            ["link", "image", "code-block"],
+            ["link", "blockquote", "image", "code-block"],
             [{ align: [] }],
             ["clean"],
         ],
@@ -31,6 +31,7 @@ const TestPage = () => {
         "list",
         "indent",
         "link",
+        "blockquote",
         "image",
         "code-block",
         "align",
@@ -104,7 +105,8 @@ const TestPage = () => {
                     <div className="mt-8">
                         <h3 className="text-lg font-semibold mb-2">Preview:</h3>
                         <div
-                            className="prose max-w-none"
+                            // className="prose max-w-none"
+                            className="prose"
                             dangerouslySetInnerHTML={{ __html: content }}
                         />
                     </div>
@@ -114,7 +116,7 @@ const TestPage = () => {
                 {content && (
                     <div className="mt-8">
                         <h3 className="text-lg font-semibold mb-2">Preview:</h3>
-                        <p>{content}</p>
+                        <>{content}</>
                     </div>
                 )}
             </div>
