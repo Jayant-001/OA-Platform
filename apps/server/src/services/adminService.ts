@@ -1,37 +1,19 @@
-import { AdminRepository } from '../repositories/adminRepository';
+import { UserRepository } from '../repositories/userRepository';
 import { Admin } from '../models/admin';
 import { HttpException } from '../middleware/errorHandler';
 
 export class AdminService {
-    private adminRepository = new AdminRepository();
+    private userRepository = new UserRepository();
 
     async getAllAdmins(): Promise<Admin[]> {
-        return this.adminRepository.findAll();
+        return this.userRepository.findAllAdmins();
     }
 
     async getAdminById(adminId: string): Promise<Admin | null> {
-        return this.adminRepository.findById(adminId);
+        return this.userRepository.findAdminById(adminId);
     }
 
-    async createAdmin(admin: Omit<Admin, 'id'>): Promise<Admin> {
-        return this.adminRepository.create(admin);
-    }
-
-    async updateAdmin(adminId: string, adminData: Partial<Admin>): Promise<void> {
-        const isExists = await this.adminRepository.findById(adminId);
-        if (isExists === null) {
-            throw new HttpException(404, "ADMIN_NOT_FOUND", "Admin not found");
-        }
-        return this.adminRepository.update(adminId, adminData);
-    }
-
-    async deleteAdmin(adminId: string): Promise<void> {
-        const isExists = await this.adminRepository.findById(adminId);
-        if (isExists === null) {
-            throw new HttpException(404, "ADMIN_NOT_FOUND", "Admin not found");
-        }
-        return this.adminRepository.delete(adminId);
-    }
+  
 }
 
 export default AdminService;

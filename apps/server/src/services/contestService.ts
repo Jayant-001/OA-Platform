@@ -16,8 +16,8 @@ class ContestService {
         return this.contestRepository.findById(id);
     }
 
-    async getContestByIdWithoutDetails(id: string): Promise<Contest | null> {
-        return this.contestRepository.findByIdWithoutDetails(id);
+    async getContestByIdWithoutDetails(id: string,userId: string): Promise<Contest | null> {
+        return this.contestRepository.findByIdWithoutDetails(id,userId);
     }
 
     async createContest(
@@ -177,8 +177,8 @@ class ContestService {
         await this.contestRepository.addProblemsToContest(contest_id, problems);
     }
 
-    async getContestProblems(contestId: string): Promise<{ problem_id: string, title: string, points: number }[]> {
-        const contestExists = await this.contestRepository.findByIdWithoutDetails(contestId);
+    async getContestProblems(contestId: string,userId:string): Promise<{ problem_id: string, title: string, points: number }[]> {
+        const contestExists = await this.contestRepository.findByIdWithoutDetails(contestId,userId);
         if (contestExists === null) {
             throw new HttpException(
                 404,
@@ -186,7 +186,7 @@ class ContestService {
                 "Contest not found"
             );
         }
-        return this.contestRepository.findProblemsByContestId(contestId);
+        return this.contestRepository.findProblemsByContestId(contestId,userId);
     }
 
     async getProblemById(problemId: string): Promise<any> { // Replace 'any' with the appropriate type if available
@@ -199,6 +199,37 @@ class ContestService {
             );
         }
         return problem;
+    }
+
+    async getContestByCode(contestCode: string): Promise<Contest | null> {
+        return this.contestRepository.findContestByCode(contestCode);
+    }
+
+    async registerUserForContest(contestId: string, userId: string): Promise<void> {
+        const contestExists = await this.contestRepository.findById(contestId);
+        if (contestExists === null) {
+            throw new HttpException(
+                404,
+                "CONTEST_NOT_FOUND",
+                "Contest not found"
+            );
+        }
+
+        const userAlreadyRegistered = await this.contestRepository.findUserContest(contestId, userId);
+        if (userAlreadyRegistered) {
+            throw new HttpException(
+                400,
+                "USER_ALREADY_REGISTERED",
+                "User is already registered for the contest"
+            );
+        }
+
+        await this.contestRepository.registerUserForContest(contestId, userId);
+    }
+
+    async getRegisteredUpcomingContests(userId: string): Promise<Contest[]> {
+      
+        return this.contestRepository.findRegisteredUpcomingContestsByUserId(userId);
     }
 }
 

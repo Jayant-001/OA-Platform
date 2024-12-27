@@ -36,21 +36,22 @@ export class UserController {
         }
     }
 
-    async updateUser(req: Request, res: Response, next: NextFunction): Promise<void> {
-        try {
-            await this.userService.updateUser(req.params.userId, req.body);
-            res.status(204).send();
-        } catch (error) {
-            next(error);
-        }
-    }
 
-    async deleteUser(req: Request, res: Response, next: NextFunction): Promise<void> {
-        try {
-            await this.userService.deleteUser(req.params.userId);
-            res.status(204).send();
-        } catch (error) {
-            next(error);
-        }
-    }
+    // async updateUser(req: Request, res: Response, next: NextFunction): Promise<void> {
+    //     try {
+    //         await this.userService.updateUser(req.params.userId, req.body);
+    //         res.status(204).send();
+    //     } catch (error) {
+    //         next(error);
+    //     }
+    // }
+
+    // async deleteUser(req: Request, res: Response, next: NextFunction): Promise<void> {
+    //     try {
+    //         await this.userService.deleteUser(req.params.userId);
+    //         res.status(204).send();
+    //     } catch (error) {
+    //         next(error);
+    //     }
+    // }
 }
