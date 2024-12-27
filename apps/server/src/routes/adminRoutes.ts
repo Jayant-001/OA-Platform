@@ -11,8 +11,8 @@ router.get('/users', userController.getAllUsers.bind(userController));
 router.get('/users/:userId', userController.getUserById.bind(userController));
 router.get('/', adminController.getAllAdmins.bind(adminController));
 router.get('/:adminId', adminController.getAdminById.bind(adminController));
-router.post('/', adminController.createAdmin.bind(adminController));
-router.put('/:adminId', adminController.updateAdmin.bind(adminController));
-router.delete('/:adminId', adminController.deleteAdmin.bind(adminController));
+//router.post('/', adminController.createAdmin.bind(adminController));
+//router.put('/:adminId', adminController.updateAdmin.bind(adminController));
+//router.delete('/:adminId', adminController.deleteAdmin.bind(adminController));
 
 export default router;

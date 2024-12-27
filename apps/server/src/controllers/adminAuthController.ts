@@ -9,7 +9,7 @@ class AdminAuthController {
             if (req?.user?.role !== 'admin') {
                 return res.status(403).json({ message: "Not authorized to register an admin" });
             }
-            const admin = await this.authService.registerAdmin(req.body);
+            const admin = await this.authService.register(req.body);
             res.status(201).json(admin);
         } catch (error) {
             next(error);
@@ -18,7 +18,7 @@ class AdminAuthController {
 
     async login(req: Request, res: Response, next: NextFunction) {
         try {
-            const token = await this.authService.loginAdmin(req.body.email, req.body.password);
+            const token = await this.authService.login(req.body.email, req.body.password);
             // Set the token in a cookie
             res.cookie('auth_token', token, {
                 httpOnly: true,  // Ensures the cookie is not accessible via JavaScript (for security)

@@ -1,6 +1,8 @@
 import db from "../config/database";
 import { Contest, ContestProblem } from "../models/contest";
 import { Repository, getConnection, Connection } from "typeorm";
+import { UserDetails } from "../models/user";
+import { HttpException } from "../middleware/errorHandler";
 
 export class ContestRepository extends Repository<Contest> {
     async findAll(): Promise<Contest[]> {
@@ -17,16 +19,28 @@ export class ContestRepository extends Repository<Contest> {
     async findById(id: string): Promise<Contest | null> {
         const contest = await db.oneOrNone("SELECT * FROM contests WHERE id = $1", [id]);
         if (contest) {
-            const problems = await db.any("SELECT problem_id, points FROM contest_problems WHERE contest_id = $1", [contest.id]);
-            const users = await db.any("SELECT user_id FROM contest_users WHERE contest_id = $1", [contest.id]);
+            const problems = await db.any("SELECT problem_id,problems.title AS problem_name, points FROM contest_problems JOIN problems On problem_id=problems.id WHERE contest_id = $1", [contest.id]);
+            const users = await db.any("SELECT COUNT(*) FROM contest_users WHERE contest_id = $1", [contest.id]);
             contest.problems = problems.map(p => ({ problem_id: p.problem_id, points: p.points }));
-            contest.users = users.map(u => u.user_id);
+            contest.registered_users = parseInt(users[0].count, 10);
         }
         return contest;
     }
 
-    async findByIdWithoutDetails(id: string): Promise<Contest | null> {
-        return db.oneOrNone("SELECT * FROM contests WHERE id = $1", [id]);
+    async findAllUsersOfContest(id: string): Promise<UserDetails[] | null> {
+
+        const users = await db.any("SELECT * FROM contest_users JOIN user_details On contest_users.user_id=user_details.user_id JOIN users ON contest_users.user_id=id WHERE contest_id = $1", [id]);
+        return users;
+    }
+
+    async findByIdWithoutDetails(id: string, userId: string): Promise<Contest | null> {
+        const query = `
+            SELECT c.*
+            FROM contests c
+            WHERE c.id = $1
+        `;
+        const values = [id];
+        return db.oneOrNone(query, values);
     }
 
     async createContest(
@@ -170,6 +184,23 @@ export class ContestRepository extends Repository<Contest> {
         return result;
     }
 
+    async findRegisteredUpcomingContestsByUserId(userId: string): Promise<Contest[]> {
+        const query = `
+            SELECT c.*
+            FROM contests c
+            JOIN contest_users cu ON c.id = cu.contest_id
+            WHERE cu.user_id = $1
+            AND (
+                (c.strict_time = true AND c.start_time + INTERVAL '1 second' * c.duration > NOW())
+                OR
+                (c.strict_time = false AND c.start_time + INTERVAL '1 second' * (c.buffer_time + c.duration) > NOW())
+            )
+        `;
+        const values = [userId];
+        const result = await db.query(query, values);
+        return result;
+    }
+
     async findUserContest(contest_id: string, user_id: string): Promise<{ joined_at: Date } | null> {
         return db.oneOrNone(
             `SELECT joined_at FROM contest_users WHERE contest_id = $1 AND user_id = $2`,
@@ -208,14 +239,52 @@ export class ContestRepository extends Repository<Contest> {
         }
     }
 
-    async findProblemsByContestId(contestId: string): Promise<{ problem_id: string, title: string, points: number }[]> {
-        const query = `
-            SELECT p.id as problem_id, p.title, cp.points
-            FROM contest_problems cp
-            JOIN problems p ON cp.problem_id = p.id
-            WHERE cp.contest_id = $1
-        `;
-        return db.any(query, [contestId]);
+    async findProblemsByContestId(contestId: string, userId: string): Promise<{ problem_id: string, title: string, points: number }[]> {
+        return db.tx(async t => {
+            const query = `
+                SELECT c.*
+                FROM contests c
+                JOIN contest_users cu ON c.id = cu.contest_id
+                WHERE cu.user_id = $1 AND cu.contest_id = $2
+                AND (
+                    (c.strict_time = true AND c.start_time + INTERVAL '1 second' * c.duration > NOW())
+                    OR
+                    (c.strict_time = false AND c.start_time + INTERVAL '1 second' * (c.buffer_time + c.duration) > NOW())
+                )
+            `;
+            const values = [userId, contestId];
+            const result = await t.oneOrNone(query, values);
+            if (result) {
+                // Check if join_time is null and update it
+                await t.none(
+                    `UPDATE contest_users SET join_time = NOW() AT TIME ZONE 'UTC' WHERE contest_id = $1 AND user_id = $2 AND join_time IS NULL`,
+                    [contestId, userId]
+                );
+
+                // Then fetch problems
+                const problemsQuery = `
+                    SELECT p.id as problem_id, p.title, cp.points
+                    FROM contest_problems cp
+                    JOIN problems p ON cp.problem_id = p.id
+                    WHERE cp.contest_id = $1
+                `;
+                return t.any(problemsQuery, [contestId]);
+            } else {
+                throw new HttpException(404, "CONTEST_NOT_FOUND", "Contest not accessible");
+            }
+        });
+    }
+
+    async findContestByCode(contest_code: string): Promise<Contest | null> {
+        const contest = await db.oneOrNone("SELECT * FROM contests WHERE contest_code = $1 AND is_registration_open=true ", [contest_code]);
+        return contest;
+    }
+
+    async registerUserForContest(contest_id: string, user_id: string): Promise<void> {
+        await db.none(
+            `INSERT INTO contest_users (contest_id, user_id) VALUES ($1, $2)`,
+            [contest_id, user_id]
+        );
     }
 
 }
