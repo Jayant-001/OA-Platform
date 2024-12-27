@@ -127,7 +127,7 @@ class ContestController {
     async getUserContest(req: Request, res: Response, next: NextFunction) {
         try {
             const { contestId } = req.params;
-            const contest = await this.contestService.getContestByIdWithoutDetails(contestId);
+            const contest = await this.contestService.getContestByIdWithoutDetails(contestId,req.user?.id as string);
             if (!contest) {
                 return res.status(404).json({ message: "Contest not found" });
             }
@@ -142,7 +142,7 @@ class ContestController {
     async getUserContestProblems(req: Request, res: Response, next: NextFunction) {
         try {
             const { contestId } = req.params;
-            const problems = await this.contestService.getContestProblems(contestId);
+            const problems = await this.contestService.getContestProblems(contestId,req.user?.id as string);
             if (!problems) {
                 return res.status(404).json({ message: "Problems not found for the contest" });
             }
@@ -160,6 +160,44 @@ class ContestController {
                 return res.status(404).json({ message: "Problem not found" });
             }
             res.json(problem);
+        } catch (error) {
+            next(error);
+        }
+    }
+
+    async getContestByCode(req: Request, res: Response, next: NextFunction) {
+        try {
+            const contestCode = req.query.contestCode as string;
+            const contest = await this.contestService.getContestByCode(contestCode);
+            if (!contest) {
+                return res.status(404).json({ message: "Contest not found or registration is closed" });
+            }
+            const { description, created_by, created_at, updated_at, ...contestDetails } = contest;
+            res.json(contestDetails);
+        } catch (error) {
+            next(error);
+        }
+    }
+
+    async registerUserForContest(req: Request, res: Response, next: NextFunction) {
+        try {
+            const { contestId } = req.params;
+            await this.contestService.registerUserForContest(contestId, req.user?.id as string);
+            res.status(204).send();
+        } catch (error) {
+            next(error);
+        }
+    }
+
+    async getRegisteredUpcomingContests(req: Request, res: Response, next: NextFunction) {
+        try {
+            const userId = req.user?.id as string; // Assuming user ID is available in the request object
+            const contests = await this.contestService.getRegisteredUpcomingContests(userId);
+            const filteredContests = contests.map(contest => {
+                const { description, created_by, created_at, updated_at, ...contestDetails } = contest;
+                return contestDetails;
+            });
+            res.status(200).json(filteredContests);
         } catch (error) {
             next(error);
         }

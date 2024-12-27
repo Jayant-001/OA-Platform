@@ -27,32 +27,23 @@ class AdminController {
         }
     }
 
-    async createAdmin(req: Request, res: Response, next: NextFunction) {
-        try {
-            const admin = await this.adminService.createAdmin(req.body);
-            res.status(201).json(admin);
-        } catch (error) {
-            next(error);
-        }
-    }
+    // async updateAdmin(req: Request, res: Response, next: NextFunction) {
+    //     try {
+    //         await this.adminService.updateAdmin(req.params.adminId, req.body);
+    //         res.status(204).send();
+    //     } catch (error) {
+    //         next(error);
+    //     }
+    // }
 
-    async updateAdmin(req: Request, res: Response, next: NextFunction) {
-        try {
-            await this.adminService.updateAdmin(req.params.adminId, req.body);
-            res.status(204).send();
-        } catch (error) {
-            next(error);
-        }
-    }
-
-    async deleteAdmin(req: Request, res: Response, next: NextFunction) {
-        try {
-            await this.adminService.deleteAdmin(req.params.adminId);
-            res.status(204).send();
-        } catch (error) {
-            next(error);
-        }
-    }
+    // async deleteAdmin(req: Request, res: Response, next: NextFunction) {
+    //     try {
+    //         await this.adminService.deleteAdmin(req.params.adminId);
+    //         res.status(204).send();
+    //     } catch (error) {
+    //         next(error);
+    //     }
+    // }
 }
 
 export default AdminController;
