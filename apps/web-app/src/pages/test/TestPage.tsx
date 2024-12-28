@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { useQuill } from "react-quilljs";
 import "quill/dist/quill.snow.css";
+import CryptoJS from "crypto-js";
 
 const TestPage = () => {
     const [content, setContent] = useState("");
@@ -92,6 +93,36 @@ const TestPage = () => {
         handleImageUpload();
     }, [handleContentChange, handleImageUpload]);
 
+    const encryptionKey = "your-encryption-key"; // 32-byte key for AES-256 encryption
+
+    // The data you want to encrypt
+    const data = {
+        iv: CryptoJS.lib.WordArray.random(16), // Generate a random 16-byte initialization vector (IV)
+        keys: {
+            exampleKey: "some-encrypted-value",
+        },
+        cipher: "This is a secret message",
+        v_rem: "1378cb77-9e12-4a5a-95e5-e988e50f10cd",
+    };
+
+    // Encrypt the data
+    const encryptedData = CryptoJS.AES.encrypt(
+        JSON.stringify(data),
+        encryptionKey,
+        {
+            iv: data.iv,
+        }
+    ).toString();
+
+    const decryptedBytes = CryptoJS.AES.decrypt(encryptedData, encryptionKey, {
+        iv: data.iv,
+    });
+    const decryptedData = JSON.parse(
+        decryptedBytes.toString(CryptoJS.enc.Utf8)
+    );
+    
+    console.log(decryptedData.cipher)
+
     return (
         <div className="min-h-screen bg-background p-4">
             <div className="container mx-auto">
@@ -119,6 +150,8 @@ const TestPage = () => {
                         <>{content}</>
                     </div>
                 )}
+                <div>{JSON.stringify({ feb: encryptedData })}</div>
+                <div>{JSON.stringify(decryptedData)}</div>
             </div>
         </div>
     );

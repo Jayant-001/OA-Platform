@@ -58,7 +58,7 @@ const adminAuthMiddleware = async (
         const secret = process.env.JWT_SECRET || "your_jwt_secret";
         const decoded = jwt.verify(token, secret) as ReqUser;
         req.user = decoded;
-        console.log(req.user);
+
         if (req?.user?.role !== "admin" && req?.user?.role !== "panel") {
             return next(new HttpException(
                 401,

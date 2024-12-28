@@ -240,7 +240,7 @@ export function ContestDetailPage() {
                         <div className="grid grid-cols-2 gap-4">
                             <div>
                                 <h3 className="font-semibold">Join Duration</h3>
-                                <p>{contest.join_duration} minutes</p>
+                                <p>{contest.buffer_time} minutes</p>
                             </div>
                             <div>
                                 <h3 className="font-semibold">Strict Time</h3>
