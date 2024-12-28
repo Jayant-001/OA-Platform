@@ -39,7 +39,7 @@ export function UpdateContestPage() {
         start_time: "",
         duration: 0,
         contest_code: "",
-        join_duration: 0,
+        buffer_time: 0,
         strict_time: false,
         created_at: "",
         created_by: "",
@@ -124,7 +124,7 @@ export function UpdateContestPage() {
             duration,
             start_time,
             contest_code,
-            join_duration,
+            buffer_time,
             strict_time,
         } = formData;
         await updateContestById(id, {
@@ -133,7 +133,7 @@ export function UpdateContestPage() {
             duration,
             start_time,
             contest_code,
-            join_duration,
+            buffer_time,
             strict_time,
         });
     };
@@ -262,18 +262,18 @@ export function UpdateContestPage() {
                                     />
                                 </div>
                                 <div className="space-y-2">
-                                    <Label htmlFor="join_duration">
+                                    <Label htmlFor="buffer_time">
                                         Join Duration (minutes)
                                     </Label>
                                     <Input
-                                        id="join_duration"
-                                        name="join_duration"
+                                        id="buffer_time"
+                                        name="buffer_time"
                                         type="number"
-                                        value={formData.join_duration}
+                                        value={formData.buffer_time}
                                         onChange={(e) =>
                                             setFormData((prev) => ({
                                                 ...prev,
-                                                join_duration: Number(
+                                                buffer_time: Number(
                                                     e.target.value
                                                 ),
                                             }))

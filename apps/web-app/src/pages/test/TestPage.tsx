@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { useQuill } from "react-quilljs";
 import "quill/dist/quill.snow.css";
+import CryptoJS from "crypto-js";
 
 const TestPage = () => {
     const [content, setContent] = useState("");
@@ -13,7 +14,7 @@ const TestPage = () => {
             [{ script: "sub" }, { script: "super" }],
             [{ list: "ordered" }, { list: "bullet" }],
             [{ indent: "-1" }, { indent: "+1" }],
-            ["link", "image", "code-block"],
+            ["link", "blockquote", "image", "code-block"],
             [{ align: [] }],
             ["clean"],
         ],
@@ -31,6 +32,7 @@ const TestPage = () => {
         "list",
         "indent",
         "link",
+        "blockquote",
         "image",
         "code-block",
         "align",
@@ -91,6 +93,36 @@ const TestPage = () => {
         handleImageUpload();
     }, [handleContentChange, handleImageUpload]);
 
+    const encryptionKey = "your-encryption-key"; // 32-byte key for AES-256 encryption
+
+    // The data you want to encrypt
+    const data = {
+        iv: CryptoJS.lib.WordArray.random(16), // Generate a random 16-byte initialization vector (IV)
+        keys: {
+            exampleKey: "some-encrypted-value",
+        },
+        cipher: "This is a secret message",
+        v_rem: "1378cb77-9e12-4a5a-95e5-e988e50f10cd",
+    };
+
+    // Encrypt the data
+    const encryptedData = CryptoJS.AES.encrypt(
+        JSON.stringify(data),
+        encryptionKey,
+        {
+            iv: data.iv,
+        }
+    ).toString();
+
+    const decryptedBytes = CryptoJS.AES.decrypt(encryptedData, encryptionKey, {
+        iv: data.iv,
+    });
+    const decryptedData = JSON.parse(
+        decryptedBytes.toString(CryptoJS.enc.Utf8)
+    );
+    
+    console.log(decryptedData.cipher)
+
     return (
         <div className="min-h-screen bg-background p-4">
             <div className="container mx-auto">
@@ -104,7 +136,8 @@ const TestPage = () => {
                     <div className="mt-8">
                         <h3 className="text-lg font-semibold mb-2">Preview:</h3>
                         <div
-                            className="prose max-w-none"
+                            // className="prose max-w-none"
+                            className="prose"
                             dangerouslySetInnerHTML={{ __html: content }}
                         />
                     </div>
@@ -114,9 +147,11 @@ const TestPage = () => {
                 {content && (
                     <div className="mt-8">
                         <h3 className="text-lg font-semibold mb-2">Preview:</h3>
-                        <p>{content}</p>
+                        <>{content}</>
                     </div>
                 )}
+                <div>{JSON.stringify({ feb: encryptedData })}</div>
+                <div>{JSON.stringify(decryptedData)}</div>
             </div>
         </div>
     );

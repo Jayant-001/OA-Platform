@@ -82,6 +82,7 @@ export function ContestDetailPage() {
     const [problems, setProblems] = useState<Problem[]>([]);
     const [users, setUsers] = useState<User[]>([]);
     const [loading, setLoading] = useState(true);
+    const [timeLeft, setTimeLeft] = useState<string | null>(null);
 
     const location = useLocation();
     const isDashboard = location.pathname.includes("/dashboard/");
@@ -116,6 +117,49 @@ export function ContestDetailPage() {
         }
     }, [contest_id]);
 
+    useEffect(() => {
+        if (contest) {
+            const now = new Date().getTime();
+            const startTime = new Date(contest.start_time).getTime();
+            const distance = startTime - now;
+
+            if (distance <= 0) {
+                setTimeLeft("");
+                return;
+            }
+
+            const interval = setInterval(() => {
+                const now = new Date().getTime();
+                const distance = startTime - now;
+
+                if (distance <= 0) {
+                    clearInterval(interval);
+                    window.location.reload();
+                } else {
+                    const days = Math.floor(distance / (1000 * 60 * 60 * 24));
+                    const hours = Math.floor(
+                        (distance % (1000 * 60 * 60 * 24)) /
+                            (1000 * 60 * 60)
+                    );
+                    const minutes = Math.floor(
+                        (distance % (1000 * 60 * 60)) / (1000 * 60)
+                    );
+                    const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+
+                    setTimeLeft(
+                        `${days * 24 + hours}:${minutes
+                            .toString()
+                            .padStart(2, "0")}:${seconds
+                            .toString()
+                            .padStart(2, "0")}`
+                    );
+                }
+            }, 1000);
+
+            return () => clearInterval(interval);
+        }
+    }, [contest]);
+
     const handleDeleteContest = async (e) => {
         e.preventDefault();
 
@@ -137,13 +181,17 @@ export function ContestDetailPage() {
             <div className="container mx-auto py-8">
                 <Card>
                     <CardHeader>
-                        <Skeleton className="h-8 w-1/2" />
+                        <Skeleton className="h-12 w-1/2" />
                     </CardHeader>
                     <CardContent className="space-y-6">
-                        <Skeleton className="h-6 w-full" />
-                        <Skeleton className="h-6 w-full" />
-                        <Skeleton className="h-6 w-full" />
-                        <Skeleton className="h-6 w-full" />
+                        <Skeleton className="h-8 w-full" />
+                        <Skeleton className="h-8 w-full" />
+                        <Skeleton className="h-8 w-full" />
+                        <Skeleton className="h-8 w-full" />
+                        <Skeleton className="h-8 w-full" />
+                        <Skeleton className="h-8 w-full" />
+                        <Skeleton className="h-8 w-full" />
+                        <Skeleton className="h-12 w-full" />
                     </CardContent>
                 </Card>
             </div>
@@ -192,7 +240,7 @@ export function ContestDetailPage() {
                         <div className="grid grid-cols-2 gap-4">
                             <div>
                                 <h3 className="font-semibold">Join Duration</h3>
-                                <p>{contest.join_duration} minutes</p>
+                                <p>{contest.buffer_time} minutes</p>
                             </div>
                             <div>
                                 <h3 className="font-semibold">Strict Time</h3>
@@ -316,8 +364,13 @@ export function ContestDetailPage() {
                                     navigate(`/contests/${contest_id}/problems`)
                                 }
                                 className="w-full"
+                                disabled={timeLeft === null || timeLeft !== ""}
                             >
-                                Join Contest
+                                {timeLeft === null
+                                    ? "Loading..."
+                                    : timeLeft !== ""
+                                    ? `Starts in ${timeLeft}`
+                                    : "Join Contest"}
                             </Button>
                         )}
                     </CardContent>
@@ -325,4 +378,5 @@ export function ContestDetailPage() {
             </div>
         </div>
     );
+
 }

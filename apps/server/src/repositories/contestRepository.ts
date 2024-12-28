@@ -174,9 +174,9 @@ export class ContestRepository extends Repository<Contest> {
             JOIN contest_users cu ON c.id = cu.contest_id
             WHERE cu.user_id = $1
             AND (
-                (c.strict_time = true AND c.start_time + INTERVAL '1 second' * c.duration > NOW())
+                (c.strict_time = true AND c.start_time + INTERVAL '60 second' * c.duration > NOW())
                 OR
-                (c.strict_time = false AND cu.joined_at + INTERVAL '1 second' * c.duration > NOW())
+                (c.strict_time = false AND cu.joined_at + INTERVAL '60 second' * c.duration > NOW())
             )
         `;
         const values = [userId];
@@ -191,9 +191,9 @@ export class ContestRepository extends Repository<Contest> {
             JOIN contest_users cu ON c.id = cu.contest_id
             WHERE cu.user_id = $1
             AND (
-                (c.strict_time = true AND c.start_time + INTERVAL '1 second' * c.duration > NOW())
+                (c.strict_time = true AND c.start_time + INTERVAL '60 second' * c.duration > NOW())
                 OR
-                (c.strict_time = false AND c.start_time + INTERVAL '1 second' * (c.buffer_time + c.duration) > NOW())
+                (c.strict_time = false AND c.start_time + INTERVAL '60 second' * (c.buffer_time + c.duration) > NOW())
             )
         `;
         const values = [userId];
@@ -247,9 +247,9 @@ export class ContestRepository extends Repository<Contest> {
                 JOIN contest_users cu ON c.id = cu.contest_id
                 WHERE cu.user_id = $1 AND cu.contest_id = $2
                 AND (
-                    (c.strict_time = true AND c.start_time + INTERVAL '1 second' * c.duration > NOW())
+                    (c.strict_time = true AND c.start_time + INTERVAL '60 second' * c.duration > NOW())
                     OR
-                    (c.strict_time = false AND c.start_time + INTERVAL '1 second' * (c.buffer_time + c.duration) > NOW())
+                    (c.strict_time = false AND c.start_time + INTERVAL '60 second' * (c.buffer_time + c.duration) > NOW())
                 )
             `;
             const values = [userId, contestId];
