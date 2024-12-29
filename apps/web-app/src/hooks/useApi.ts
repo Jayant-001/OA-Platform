@@ -15,9 +15,7 @@ export const useAdminApi = () => {
     };
 
     const updateContestById = async (contest_id: string, contestData: any) => {
-        return await apiService.put(`/api/admins/contests/${contest_id}`, {
-            ...contestData,
-        });
+        return await apiService.put(`/api/admins/contests/${contest_id}`, contestData);
     };
 
     const updateContestProblems = async (

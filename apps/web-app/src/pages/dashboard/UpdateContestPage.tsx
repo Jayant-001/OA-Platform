@@ -45,6 +45,7 @@ export function UpdateContestPage() {
         is_registration_open: false,
         start_time: "",
         strict_time: false,
+        is_registered: false,
         buffer_time: 0,
     });
     const [description, setDescription] = useState<string>("");
