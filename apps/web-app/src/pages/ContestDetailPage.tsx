@@ -76,6 +76,7 @@ export function ContestDetailPage() {
     const [problems, setProblems] = useState<Problem[]>([]);
     const [loading, setLoading] = useState(true);
     const [timeLeft, setTimeLeft] = useState<string | null>(null);
+    const [endTimeLeft, setEndTimeLeft] = useState<string | null>(null);
 
     const location = useLocation();
     const isDashboard = location.pathname.includes("/dashboard/");
@@ -139,6 +140,54 @@ export function ContestDetailPage() {
                     const seconds = Math.floor((distance % (1000 * 60)) / 1000);
 
                     setTimeLeft(
+                        `${days * 24 + hours}:${minutes
+                            .toString()
+                            .padStart(2, "0")}:${seconds
+                            .toString()
+                            .padStart(2, "0")}`
+                    );
+                }
+            }, 1000);
+
+            return () => clearInterval(interval);
+        }
+    }, [contest]);
+
+    useEffect(() => {
+        if (contest) {
+            const status = getContestStatus();
+
+            if (status !== "live") {
+                return;
+            }
+            const now = new Date().getTime();
+            const startTime = new Date(contest.start_time);
+            const endTime = addMinutes(startTime, contest.duration);
+            const distance = new Date(endTime).getTime() - now;
+
+            if (distance <= 0) {
+                setTimeLeft("");
+                return;
+            }
+
+            const interval = setInterval(() => {
+                const now = new Date().getTime();
+                const distance = new Date(endTime).getTime() - now;
+
+                if (distance <= 0) {
+                    clearInterval(interval);
+                    window.location.reload();
+                } else {
+                    const days = Math.floor(distance / (1000 * 60 * 60 * 24));
+                    const hours = Math.floor(
+                        (distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)
+                    );
+                    const minutes = Math.floor(
+                        (distance % (1000 * 60 * 60)) / (1000 * 60)
+                    );
+                    const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+
+                    setEndTimeLeft(
                         `${days * 24 + hours}:${minutes
                             .toString()
                             .padStart(2, "0")}:${seconds
@@ -325,6 +374,26 @@ export function ContestDetailPage() {
                                     {contest.buffer_time} minutes
                                 </p>
                             </div>
+                            {timeLeft && timeLeft != "" && (
+                                <div className="space-y-2">
+                                    <h4 className="font-medium flex items-center gap-2 text-slate-700">
+                                        <Timer className="w-4 h-4 text-purple-600" />
+                                        Starts in
+                                    </h4>
+                                    <p className="text-slate-600">{timeLeft}</p>
+                                </div>
+                            )}
+                            {endTimeLeft && endTimeLeft != "" && (
+                                <div className="space-y-2">
+                                    <h4 className="font-medium flex items-center gap-2 text-slate-700">
+                                        <Timer className="w-4 h-4 text-purple-600" />
+                                        Ends in
+                                    </h4>
+                                    <p className="text-slate-600">
+                                        {endTimeLeft}
+                                    </p>
+                                </div>
+                            )}
 
                             {isDashboard && (
                                 <div className="space-y-2">
