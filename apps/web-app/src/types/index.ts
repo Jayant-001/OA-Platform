@@ -28,6 +28,8 @@ export interface Contest {
     created_by: string; // The ID of the admin who created the contest (foreign key reference)
     created_at: string; // Timestamp when the contest was created (ISO string)
     updated_at: string; // Timestamp when the contest was last updated (ISO string)
+    is_registration_open: boolean;
+    is_registered: boolean;
 }
 
 export interface Problem {

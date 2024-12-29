@@ -2,76 +2,126 @@ import { ContestSubmissionRepository } from "../repositories/contestSubmissionRe
 import { ContestRepository } from "../repositories/contestRepository";
 import { ContestSubmissions } from "../models/contestSubmissions";
 import { HttpException } from "../middleware/errorHandler";
+import { CacheFactory } from "./redis-cache.service";
+import { CacheStrategy } from "../types/cache.types";
 
 class ContestSubmissionService {
     private contestSubmissionRepository = new ContestSubmissionRepository();
     private contestRepository = new ContestRepository();
+    
+    // Cache for contest status (active/inactive) for users
+    private contestStatusCache = CacheFactory.create<boolean>(
+        { host: "localhost", port: 6379 },
+        "contest_status_cache:",
+        {
+            strategy: CacheStrategy.LRU,
+            maxEntries: 1000,
+            ttl: 300 // 5 minutes
+        }
+    );
+
+    // Cache for user contest details
+    private userContestCache = CacheFactory.create<any>(
+        { host: "localhost", port: 6379 },
+        "user_contest_cache:",
+        {
+            strategy: CacheStrategy.LRU,
+            maxEntries: 500,
+            ttl: 600 // 10 minutes
+        }
+    );
 
     async createSubmission(
         contest_id: string,
         problem_id: string,
-        submissionData: Omit<
-            ContestSubmissions,
-            "id" | "submitted_at" | "contest_id"
-        >,
+        submissionData: Omit<ContestSubmissions, "id" | "submitted_at" | "contest_id">,
         user_id: string
     ): Promise<ContestSubmissions> {
         const userId = user_id;
         const isActive = await this.isContestActiveForUser(contest_id, userId);
+        
         if (!isActive) {
-            throw new HttpException(
-                400,
-                "CONTEST_NOT_ACTIVE",
-                "The contest is not active for the user"
-            );
+            throw new HttpException(400, "CONTEST_NOT_ACTIVE", "The contest is not active for the user");
         }
-        submissionData.user_id = userId;
-        return this.contestSubmissionRepository.create({
+
+        const submission = await this.contestSubmissionRepository.create({
             ...submissionData,
             contest_id,
             problem_id,
+            user_id: userId,
         });
+
+        // Invalidate relevant caches after submission
+        await this.invalidateUserContestCache(contest_id, user_id);
+        
+        return submission;
     }
 
-    private async isContestActiveForUser(
-        contest_id: string,
-        user_id: string
-    ): Promise<boolean> {
+    private async isContestActiveForUser(contest_id: string, user_id: string): Promise<boolean> {
+        const cacheKey = `contest:${contest_id}:user:${user_id}:status`;
+        const cachedStatus = await this.contestStatusCache.get(cacheKey);
+
+        if (cachedStatus !== null) {
+            return cachedStatus;
+        }
+
+        const contest = await this.getContestDetails(contest_id);
+        const userContest = await this.getUserContest(contest_id, user_id);
+        
+        const currentTime = new Date();
+        let isActive = false;
+
+        if (contest.strict_time) {
+            isActive = currentTime < new Date(contest.start_time.getTime() + contest.duration * 1000);
+        } else {
+            isActive = currentTime < new Date(userContest.joined_at.getTime() + contest.duration * 1000);
+        }
+
+        // Cache the result
+        await this.contestStatusCache.set(cacheKey, isActive);
+        return isActive;
+    }
+
+    private async getContestDetails(contest_id: string) {
+        const cacheKey = `contest:${contest_id}`;
+        const cachedContest = await this.userContestCache.get(cacheKey);
+
+        if (cachedContest) {
+            return cachedContest;
+        }
+
         const contest = await this.contestRepository.findById(contest_id);
         if (!contest) {
-            throw new HttpException(
-                404,
-                "CONTEST_NOT_FOUND",
-                "Contest not found"
-            );
+            throw new HttpException(404, "CONTEST_NOT_FOUND", "Contest not found");
         }
 
-        const userContest = await this.contestRepository.findUserContest(
-            contest_id,
-            user_id
-        );
+        await this.userContestCache.set(cacheKey, contest);
+        return contest;
+    }
+
+    private async getUserContest(contest_id: string, user_id: string) {
+        const cacheKey = `contest:${contest_id}:user:${user_id}`;
+        const cachedUserContest = await this.userContestCache.get(cacheKey);
+
+        if (cachedUserContest) {
+            return cachedUserContest;
+        }
+
+        const userContest = await this.contestRepository.findUserContest(contest_id, user_id);
         if (!userContest) {
-            throw new HttpException(
-                404,
-                "USER_NOT_IN_CONTEST",
-                "User is not part of the contest"
-            );
+            throw new HttpException(404, "USER_NOT_IN_CONTEST", "User is not part of the contest");
         }
 
-        const currentTime = new Date();
-        if (contest.strict_time) {
-            return (
-                currentTime <
-                new Date(contest.start_time.getTime() + contest.duration * 1000)
-            );
-        } else {
-            return (
-                currentTime <
-                new Date(
-                    userContest.joined_at.getTime() + contest.duration * 1000
-                )
-            );
-        }
+        await this.userContestCache.set(cacheKey, userContest);
+        return userContest;
+    }
+
+    private async invalidateUserContestCache(contest_id: string, user_id: string): Promise<void> {
+        await Promise.all([
+            this.contestStatusCache.delete(`contest:${contest_id}:user:${user_id}:status`),
+            this.userContestCache.delete(`contest:${contest_id}:user:${user_id}`),
+            this.userContestCache.delete(`contest:${contest_id}`)
+        ]);
     }
 }
 
