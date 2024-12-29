@@ -287,4 +287,24 @@ export class ContestRepository extends Repository<Contest> {
         );
     }
 
+    async getUserAllContest(userId: string): Promise<Contest[]> {
+        const query = `
+            SELECT c.id, c.title, c.description, c.duration, c.start_time, c.contest_code, 
+            c.buffer_time, c.strict_time, c.created_at, c.updated_at
+            FROM contests c
+            JOIN contest_users cu ON c.id = cu.contest_id
+            WHERE cu.user_id = $1
+        `;
+        return await db.any(query, [userId]);
+    }
+
+    // returns true if userId is already registered in contestId
+    async isUserRegistered(userId: string, contestId: string): Promise<boolean> {
+        const result = await db.oneOrNone(
+            `SELECT 1 FROM contest_users WHERE contest_id = $1 AND user_id = $2`,
+            [contestId, userId]
+          );
+
+        return result !== null;
+    }
 }

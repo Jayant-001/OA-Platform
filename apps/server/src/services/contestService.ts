@@ -231,6 +231,15 @@ class ContestService {
       
         return this.contestRepository.findRegisteredUpcomingContestsByUserId(userId);
     }
+
+    async getUserAllContest(userId: string): Promise<Contest[]> {
+        return this.contestRepository.getUserAllContest(userId);
+    }
+
+    // returns true if userId is already registered in contestId
+    async isUserRegistered(userId: string, contestId: string): Promise<boolean> {
+        return this.contestRepository.isUserRegistered(userId, contestId);
+    }
 }
 
 export default ContestService;

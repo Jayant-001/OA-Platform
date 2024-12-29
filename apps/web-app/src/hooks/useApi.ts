@@ -97,6 +97,18 @@ export const useUsersApi = () => {
         // ----------------------------------- User routes --------------------------------
     */
 
+    const searchContestByCode = async (code: string) => {
+        return await apiService.get(`/api/users/contests/search?contestCode=${code}`);
+    }
+
+    const fetchAllRegisteredContests = async () => {
+        return await apiService.get(`/api/users/contests`);
+    }
+
+    const registerToContest = async (contestId: string) => {
+        return await apiService.post(`/api/users/contests/${contestId}/register`, {})
+    }
+
     const fetchUpcomingContests = async () => {
         return await apiService.get("/api/users/contests/upcoming-contests");
     };
@@ -113,5 +125,5 @@ export const useUsersApi = () => {
         return await apiService.get(`/api/users/contests/${contest_id}/problems/${problem_id}`);
     }
 
-    return { fetchUpcomingContests, fetchContestById, getContestProblems, getContestProblemById };
+    return { fetchUpcomingContests, fetchContestById, getContestProblems, getContestProblemById, searchContestByCode, fetchAllRegisteredContests, registerToContest };
 };
