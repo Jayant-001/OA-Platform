@@ -3,7 +3,7 @@ import { Contest, ContestProblem } from "../models/contest";
 import { UserDetails } from "../models/user";
 import { HttpException } from "../middleware/errorHandler";
 
-export class ContestRepository  {
+export class ContestRepository {
     async findAll(): Promise<Contest[]> {
         const contests = await db.any("SELECT * FROM contests");
         // for (const contest of contests) {
@@ -240,7 +240,7 @@ export class ContestRepository  {
         }
     }
 
-    async findProblemsByContestId(contestId: string, userId: string): Promise<{ problem_id: string, title: string, points: number }[]> {
+    async findProblemsByContestId(contestId: string, userId: string): Promise<{ id: string, title: string, points: number }[]> {
         return db.tx(async t => {
             const query = `
                 SELECT c.*
@@ -264,7 +264,7 @@ export class ContestRepository  {
 
                 // Then fetch problems
                 const problemsQuery = `
-                    SELECT p.id as problem_id, p.title, cp.points
+                    SELECT p.id as id, p.title, cp.points
                     FROM contest_problems cp
                     JOIN problems p ON cp.problem_id = p.id
                     WHERE cp.contest_id = $1
@@ -304,7 +304,7 @@ export class ContestRepository  {
         const result = await db.oneOrNone(
             `SELECT 1 FROM contest_users WHERE contest_id = $1 AND user_id = $2`,
             [contestId, userId]
-          );
+        );
 
         return result !== null;
     }

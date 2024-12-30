@@ -43,7 +43,7 @@ export function ProblemDescriptionPage() {
                     if(isDashboardPage) {
                         fetched_problem = await fetchProblemById(problem_id);
                     } else {
-                        fetched_problem = await getContestProblemById(contest_id as string, problem_id);
+                        fetched_problem = await getContestProblemById(contest_id as string, problem_id as string);
                     }
                     setProblem(fetched_problem);
                 } catch (error) {
