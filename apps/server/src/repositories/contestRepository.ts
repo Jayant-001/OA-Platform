@@ -1,10 +1,9 @@
 import db from "../config/database";
 import { Contest, ContestProblem } from "../models/contest";
-import { Repository, getConnection, Connection } from "typeorm";
 import { UserDetails } from "../models/user";
 import { HttpException } from "../middleware/errorHandler";
 
-export class ContestRepository extends Repository<Contest> {
+export class ContestRepository  {
     async findAll(): Promise<Contest[]> {
         const contests = await db.any("SELECT * FROM contests");
         // for (const contest of contests) {
@@ -41,16 +40,6 @@ export class ContestRepository extends Repository<Contest> {
         `;
         const values = [id];
         const contest = await db.oneOrNone(query, values);
-
-        if (contest) {
-            const userRegisteredQuery = `
-                SELECT 1
-                FROM contest_users
-                WHERE contest_id = $1 AND user_id = $2
-            `;
-            const userRegistered = await db.oneOrNone(userRegisteredQuery, [id, userId]);
-            contest.is_user_registered = userRegistered !== null;
-        }
 
         return contest;
     }
@@ -318,5 +307,23 @@ export class ContestRepository extends Repository<Contest> {
           );
 
         return result !== null;
+    }
+
+    async getAllContestSubmissionsByUser(userId: string): Promise<any[]> {
+        const query = `
+            SELECT cs.*
+            FROM contest_submissions cs
+            WHERE cs.user_id = $1
+        `;
+        return await db.any(query, [userId]);
+    }
+
+    async getAllContestSubmissionsByUserAndContest(userId: string, contestId: string): Promise<any[]> {
+        const query = `
+            SELECT cs.*
+            FROM contest_submissions cs
+            WHERE cs.user_id = $1 AND cs.contest_id = $2
+        `;
+        return await db.any(query, [userId, contestId]);
     }
 }

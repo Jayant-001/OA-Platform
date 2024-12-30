@@ -1,8 +1,10 @@
 import { Request, Response, NextFunction } from "express";
 import ContestService from "../services/contestService";
+import ContestSubmissionService from "../services/contestSubmissionService";
 
 class ContestController {
     private contestService = new ContestService();
+    private contestSubmissionService = new ContestSubmissionService();
 
     async getAllContests(req: Request, res: Response, next: NextFunction) {
         try {
@@ -145,11 +147,27 @@ class ContestController {
     async getUserContestProblems(req: Request, res: Response, next: NextFunction) {
         try {
             const { contestId } = req.params;
-            const problems = await this.contestService.getContestProblems(contestId, req.user?.id as string);
+            const userId = req.user?.id as string;
+            const problems = await this.contestService.getContestProblems(contestId, userId);
+
             if (!problems) {
                 return res.status(404).json({ message: "Problems not found for the contest" });
             }
-            res.json(problems);
+
+            const submissions = await this.contestService.getAllContestSubmissionsByUserAndContest(userId, contestId);
+            const problemStatus = problems.map(problem => {
+                const problemSubmissions = submissions.filter(submission => submission.problem_id === problem.problem_id);
+                const acceptedSubmission = problemSubmissions.find(submission => submission.verdict === 'accepted');
+                if (acceptedSubmission) {
+                    return { ...problem, status: 'accepted' };
+                } else if (problemSubmissions.length > 0) {
+                    return { ...problem, status: 'attempted' };
+                } else {
+                    return { ...problem, status: 'not_attempted' };
+                }
+            });
+
+            res.json(problemStatus);
         } catch (error) {
             next(error);
         }
@@ -157,12 +175,15 @@ class ContestController {
 
     async getUserContestProblem(req: Request, res: Response, next: NextFunction) {
         try {
-            const { problemId } = req.params;
+            const { contestId, problemId } = req.params;
+            const userId= req.user?.id as string;   
             const problem = await this.contestService.getProblemById(problemId);
             if (!problem) {
                 return res.status(404).json({ message: "Problem not found" });
             }
-            res.json(problem);
+
+            const submissions = await this.contestSubmissionService.getUserSubmissionsForProblem(contestId, problemId, userId);
+            res.json({ problem, submissions });
         } catch (error) {
             next(error);
         }

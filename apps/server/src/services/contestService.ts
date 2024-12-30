@@ -2,7 +2,6 @@ import { ContestRepository } from "../repositories/contestRepository";
 import { ProblemRepository } from "../repositories/problemRepository";
 import { Contest, ContestProblem } from "../models/contest";
 import { HttpException } from "../middleware/errorHandler";
-import { getConnection } from "typeorm"; // Import getConnection for transaction management
 
 class ContestService {
     private contestRepository = new ContestRepository();
@@ -239,6 +238,14 @@ class ContestService {
     // returns true if userId is already registered in contestId
     async isUserRegistered(userId: string, contestId: string): Promise<boolean> {
         return this.contestRepository.isUserRegistered(userId, contestId);
+    }
+
+    async getAllContestSubmissionsByUser(userId: string): Promise<any[]> {
+        return this.contestRepository.getAllContestSubmissionsByUser(userId);
+    }
+
+    async getAllContestSubmissionsByUserAndContest(userId: string, contestId: string): Promise<any[]> {
+        return this.contestRepository.getAllContestSubmissionsByUserAndContest(userId, contestId);
     }
 }
 
