@@ -40,7 +40,19 @@ export class ContestRepository extends Repository<Contest> {
             WHERE c.id = $1
         `;
         const values = [id];
-        return db.oneOrNone(query, values);
+        const contest = await db.oneOrNone(query, values);
+
+        if (contest) {
+            const userRegisteredQuery = `
+                SELECT 1
+                FROM contest_users
+                WHERE contest_id = $1 AND user_id = $2
+            `;
+            const userRegistered = await db.oneOrNone(userRegisteredQuery, [id, userId]);
+            contest.is_user_registered = userRegistered !== null;
+        }
+
+        return contest;
     }
 
     async createContest(
