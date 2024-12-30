@@ -22,10 +22,10 @@ export class ContestSubmissionRepository {
             const currentTime = new Date(new Date().toISOString()); // Ensure current time is in UTC
             const startTime = new Date(contest.start_time);
             const endTime = contest.strict_time
-                ? new Date(startTime.getTime() + contest.duration * 1000)
+                ? new Date(startTime.getTime() + contest.duration * 60000)
                 : new Date(Math.min(
-                    new Date(contest.join_time).getTime() + contest.duration * 1000,
-                    startTime.getTime() + (contest.duration + contest.buffer_time) * 1000
+                    new Date(contest.join_time).getTime() + contest.duration * 60000,
+                    startTime.getTime() + (contest.duration + contest.buffer_time) * 60000
                 ));
 
             if (currentTime < startTime || currentTime > endTime) {
@@ -47,5 +47,14 @@ export class ContestSubmissionRepository {
                 ]
             );
         });
+    }
+
+    async findUserSubmissionsForProblem(contest_id: string, problem_id: string, user_id: string): Promise<ContestSubmissions[]> {
+        return db.any(
+            `SELECT * FROM contest_submissions 
+             WHERE contest_id = $1 AND problem_id = $2 AND user_id = $3
+             ORDER BY submitted_at DESC`,
+            [contest_id, problem_id, user_id]
+        );
     }
 }

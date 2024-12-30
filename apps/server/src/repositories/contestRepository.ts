@@ -1,10 +1,9 @@
 import db from "../config/database";
 import { Contest, ContestProblem } from "../models/contest";
-import { Repository, getConnection, Connection } from "typeorm";
 import { UserDetails } from "../models/user";
 import { HttpException } from "../middleware/errorHandler";
 
-export class ContestRepository extends Repository<Contest> {
+export class ContestRepository {
     async findAll(): Promise<Contest[]> {
         const contests = await db.any("SELECT * FROM contests");
         // for (const contest of contests) {
@@ -40,7 +39,9 @@ export class ContestRepository extends Repository<Contest> {
             WHERE c.id = $1
         `;
         const values = [id];
-        return db.oneOrNone(query, values);
+        const contest = await db.oneOrNone(query, values);
+
+        return contest;
     }
 
     async createContest(
@@ -239,7 +240,7 @@ export class ContestRepository extends Repository<Contest> {
         }
     }
 
-    async findProblemsByContestId(contestId: string, userId: string): Promise<{ problem_id: string, title: string, points: number }[]> {
+    async findProblemsByContestId(contestId: string, userId: string): Promise<{ id: string, title: string, points: number }[]> {
         return db.tx(async t => {
             const query = `
                 SELECT c.*
@@ -263,7 +264,7 @@ export class ContestRepository extends Repository<Contest> {
 
                 // Then fetch problems
                 const problemsQuery = `
-                    SELECT p.id as problem_id, p.title, cp.points
+                    SELECT p.id as id, p.title, cp.points
                     FROM contest_problems cp
                     JOIN problems p ON cp.problem_id = p.id
                     WHERE cp.contest_id = $1
@@ -303,8 +304,26 @@ export class ContestRepository extends Repository<Contest> {
         const result = await db.oneOrNone(
             `SELECT 1 FROM contest_users WHERE contest_id = $1 AND user_id = $2`,
             [contestId, userId]
-          );
+        );
 
         return result !== null;
+    }
+
+    async getAllContestSubmissionsByUser(userId: string): Promise<any[]> {
+        const query = `
+            SELECT cs.*
+            FROM contest_submissions cs
+            WHERE cs.user_id = $1
+        `;
+        return await db.any(query, [userId]);
+    }
+
+    async getAllContestSubmissionsByUserAndContest(userId: string, contestId: string): Promise<any[]> {
+        const query = `
+            SELECT cs.*
+            FROM contest_submissions cs
+            WHERE cs.user_id = $1 AND cs.contest_id = $2
+        `;
+        return await db.any(query, [userId, contestId]);
     }
 }
