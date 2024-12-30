@@ -17,6 +17,7 @@ import TextEditor from "@/components/shared/TextEditor";
 import { Contest, Problem } from "@/types";
 import toast from "react-hot-toast";
 import { useAdminApi } from "@/hooks/useApi";
+import { format, toZonedTime } from "date-fns-tz"; // Importing necessary date-fns-tz functions
 
 export function UpdateContestPage() {
     const { contest_id } = useParams();
@@ -36,14 +37,16 @@ export function UpdateContestPage() {
         id: "",
         title: "",
         description: "",
-        start_time: "",
-        duration: 0,
         contest_code: "",
-        join_duration: 0,
-        strict_time: false,
         created_at: "",
-        created_by: "",
         updated_at: "",
+        created_by: "",
+        duration: 0,
+        is_registration_open: false,
+        start_time: "",
+        strict_time: false,
+        is_registered: false,
+        buffer_time: 0,
     });
     const [description, setDescription] = useState<string>("");
     const [problems, setProblems] = useState<Problem[] | []>([]);
@@ -72,11 +75,13 @@ export function UpdateContestPage() {
                             {} as Record<string, number>
                         );
                         setProblemPoints(pointsMap || {});
+                        const localDate = toZonedTime(
+                            contest.start_time,
+                            Intl.DateTimeFormat().resolvedOptions().timeZone
+                        ); // Use the local time zone of the user's system
                         setFormData({
                             ...contest,
-                            start_time: contest.start_time.endsWith("Z")
-                                ? contest.start_time.slice(0, -1)
-                                : contest.start_time,
+                            start_time: format(localDate, "yyyy-MM-dd'T'HH:mm"),
                         });
                         setDescription(contest.description);
                         setSelectedProblems(
@@ -117,31 +122,48 @@ export function UpdateContestPage() {
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        // Handle form submission
-        const {
-            id,
-            title,
-            duration,
-            start_time,
-            contest_code,
-            join_duration,
-            strict_time,
-        } = formData;
-        await updateContestById(id, {
-            title,
-            description,
-            duration,
-            start_time,
-            contest_code,
-            join_duration,
-            strict_time,
-        });
+
+        try {
+            // Handle form submission
+            if (contest_id == null || formData == null) {
+                toast.error(`Can't find contest with id ${contest_id}`);
+                return;
+            }
+            const {
+                id,
+                title,
+                duration,
+                start_time,
+                contest_code,
+                buffer_time,
+                strict_time,
+                is_registration_open,
+            } = formData;
+            await updateContestById(id, {
+                title,
+                description,
+                duration,
+                start_time: new Date(start_time).toUTCString(),
+                contest_code,
+                buffer_time,
+                strict_time,
+                is_registration_open,
+            });
+            toast.success("Contest updated successfully");
+        } catch (error) {
+            toast.error("Failed to update the contest");
+        }
     };
 
     const [selectedTab, setSelectedTab] = useState("problems");
 
     const handleProblemsUpdate = async (e: React.FormEvent) => {
         e.preventDefault();
+
+        if (contest_id == null || formData == null) {
+            toast.error(`Can't find contest with id ${contest_id}`);
+            return;
+        }
 
         const selectedProblemsPoints = selectedProblems.map((problem_id) => ({
             problem_id,
@@ -163,6 +185,12 @@ export function UpdateContestPage() {
 
     const handleUsersUpdate = async (e: React.FormEvent) => {
         e.preventDefault();
+
+        if (contest_id == null || formData == null) {
+            toast.error(`Can't find contest with id ${contest_id}`);
+            return;
+        }
+
         try {
             await updateContestUsers(formData.id, selectedUsers);
             toast.success("Users updated successfully");
@@ -170,6 +198,10 @@ export function UpdateContestPage() {
             toast.error("Failed to update users");
         }
     };
+
+    if (formData == null) {
+        return <h1>Loading</h1>;
+    }
 
     return (
         <div className="container mx-auto py-8">
@@ -204,7 +236,7 @@ export function UpdateContestPage() {
                                 />
                             </div>
 
-                            <div className="grid grid-cols-2 gap-4">
+                            <div className="grid grid-cols-3 gap-4">
                                 <div className="space-y-2">
                                     <Label htmlFor="start_time">
                                         Start Time
@@ -238,6 +270,22 @@ export function UpdateContestPage() {
                                         Strict Time
                                     </Label>
                                 </div>
+                                <div className="flex items-center space-x-2">
+                                    <Checkbox
+                                        id="open_registration"
+                                        checked={formData.is_registration_open}
+                                        onCheckedChange={(checked) =>
+                                            setFormData((prev) => ({
+                                                ...prev,
+                                                is_registration_open:
+                                                    checked as boolean,
+                                            }))
+                                        }
+                                    />
+                                    <Label htmlFor="open_registration">
+                                        Open Registration
+                                    </Label>
+                                </div>
                             </div>
 
                             <div className="grid grid-cols-2 gap-4">
@@ -262,18 +310,18 @@ export function UpdateContestPage() {
                                     />
                                 </div>
                                 <div className="space-y-2">
-                                    <Label htmlFor="join_duration">
+                                    <Label htmlFor="buffer_time">
                                         Join Duration (minutes)
                                     </Label>
                                     <Input
-                                        id="join_duration"
-                                        name="join_duration"
+                                        id="buffer_time"
+                                        name="buffer_time"
                                         type="number"
-                                        value={formData.join_duration}
+                                        value={formData.buffer_time}
                                         onChange={(e) =>
                                             setFormData((prev) => ({
                                                 ...prev,
-                                                join_duration: Number(
+                                                buffer_time: Number(
                                                     e.target.value
                                                 ),
                                             }))

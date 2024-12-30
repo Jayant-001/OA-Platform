@@ -3,8 +3,7 @@ import { useParams, useLocation, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import type { Contest, Problem, User } from "@/types";
-import { DataTable } from "@/components/shared/DataTable";
+import type { Contest, Problem } from "@/types";
 import { Badge } from "@/components/ui/badge";
 import {
     Table,
@@ -14,10 +13,26 @@ import {
     TableHeader,
     TableRow,
 } from "@/components/ui/table";
-import { userColumns } from "./admin/columns/userColumns"; // Add this import
 import toast from "react-hot-toast";
 import { useAdminApi, useUsersApi } from "@/hooks/useApi";
 import { Navbar } from "@/components/layout/Navbar";
+import {
+    format,
+    isPast,
+    isFuture,
+    isWithinInterval,
+    addMinutes,
+} from "date-fns";
+import {
+    Trophy,
+    Calendar,
+    Clock,
+    Timer,
+    Users,
+    AlertCircle,
+    Play,
+    Shield,
+} from "lucide-react";
 
 const dummyProblems: Problem[] = [
     {
@@ -54,39 +69,20 @@ const dummyProblems: Problem[] = [
     },
 ];
 
-const dummyUsers: User[] = [
-    {
-        id: "57fe641a-f251-4fc5-9217-f43ced9dd982",
-        email: "user1@example.com",
-        name: "User One",
-        role: "user",
-    },
-    {
-        id: "c6f9a1d6-c04d-443c-b7a2-d1e3f1342c4a",
-        email: "user2@example.com",
-        name: "User Two",
-        role: "user",
-    },
-    {
-        id: "dd149bdc-478f-4fd7-abcd-a364866df5a2",
-        email: "user3@example.com",
-        name: "User Three",
-        role: "user",
-    },
-];
-
 export function ContestDetailPage() {
     const { contest_id } = useParams();
     const navigate = useNavigate();
     const [contest, setContest] = useState<Contest | null>(null);
     const [problems, setProblems] = useState<Problem[]>([]);
-    const [users, setUsers] = useState<User[]>([]);
     const [loading, setLoading] = useState(true);
+    const [timeLeft, setTimeLeft] = useState<string | null>(null);
+    const [endTimeLeft, setEndTimeLeft] = useState<string | null>(null);
 
     const location = useLocation();
     const isDashboard = location.pathname.includes("/dashboard/");
     const { fetchContestById, deleteContestById } = useAdminApi();
-    const { fetchContestById: fetchUserContestById } = useUsersApi();
+    const { fetchContestById: fetchUserContestById, registerToContest } =
+        useUsersApi();
 
     useEffect(() => {
         if (contest_id) {
@@ -102,7 +98,6 @@ export function ContestDetailPage() {
 
                     setContest(fetched_contest);
                     setProblems(dummyProblems);
-                    setUsers(dummyUsers);
                     setLoading(false);
                 } catch (error) {
                     console.log(error);
@@ -115,6 +110,96 @@ export function ContestDetailPage() {
             navigate(-1);
         }
     }, [contest_id]);
+
+    useEffect(() => {
+        if (contest) {
+            const now = new Date().getTime();
+            const startTime = new Date(contest.start_time).getTime();
+            const distance = startTime - now;
+
+            if (distance <= 0) {
+                setTimeLeft("");
+                return;
+            }
+
+            const interval = setInterval(() => {
+                const now = new Date().getTime();
+                const distance = startTime - now;
+
+                if (distance <= 0) {
+                    clearInterval(interval);
+                    window.location.reload();
+                } else {
+                    const days = Math.floor(distance / (1000 * 60 * 60 * 24));
+                    const hours = Math.floor(
+                        (distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)
+                    );
+                    const minutes = Math.floor(
+                        (distance % (1000 * 60 * 60)) / (1000 * 60)
+                    );
+                    const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+
+                    setTimeLeft(
+                        `${days * 24 + hours}:${minutes
+                            .toString()
+                            .padStart(2, "0")}:${seconds
+                            .toString()
+                            .padStart(2, "0")}`
+                    );
+                }
+            }, 1000);
+
+            return () => clearInterval(interval);
+        }
+    }, [contest]);
+
+    useEffect(() => {
+        if (contest) {
+            const status = getContestStatus();
+
+            if (status !== "live") {
+                return;
+            }
+            const now = new Date().getTime();
+            const startTime = new Date(contest.start_time);
+            const endTime = addMinutes(startTime, contest.duration);
+            const distance = new Date(endTime).getTime() - now;
+
+            if (distance <= 0) {
+                setTimeLeft("");
+                return;
+            }
+
+            const interval = setInterval(() => {
+                const now = new Date().getTime();
+                const distance = new Date(endTime).getTime() - now;
+
+                if (distance <= 0) {
+                    clearInterval(interval);
+                    window.location.reload();
+                } else {
+                    const days = Math.floor(distance / (1000 * 60 * 60 * 24));
+                    const hours = Math.floor(
+                        (distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)
+                    );
+                    const minutes = Math.floor(
+                        (distance % (1000 * 60 * 60)) / (1000 * 60)
+                    );
+                    const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+
+                    setEndTimeLeft(
+                        `${days * 24 + hours}:${minutes
+                            .toString()
+                            .padStart(2, "0")}:${seconds
+                            .toString()
+                            .padStart(2, "0")}`
+                    );
+                }
+            }, 1000);
+
+            return () => clearInterval(interval);
+        }
+    }, [contest]);
 
     const handleDeleteContest = async (e) => {
         e.preventDefault();
@@ -132,18 +217,68 @@ export function ContestDetailPage() {
         }
     };
 
+    const getContestStatus = () => {
+        if (!contest) return null;
+
+        const now = new Date();
+        const startTime = new Date(contest.start_time);
+        const endTime = addMinutes(startTime, contest.duration);
+
+        if (isPast(endTime)) return "completed";
+        if (isWithinInterval(now, { start: startTime, end: endTime }))
+            return "live";
+        if (isFuture(startTime)) return "upcoming";
+    };
+
+    const getStatusBadge = () => {
+        const status = getContestStatus();
+        const styles = {
+            completed: "bg-slate-100 text-slate-700 border-slate-200",
+            live: "bg-green-100 text-green-700 border-green-200",
+            upcoming: "bg-blue-100 text-blue-700 border-blue-200",
+        }[status || "upcoming"];
+
+        return (
+            <span
+                className={`px-3 py-1 rounded-full text-sm border ${styles} font-medium`}
+            >
+                {status?.toUpperCase()}
+            </span>
+        );
+    };
+
+    const handleRegisterToContest = async (e) => {
+        e.preventDefault();
+
+        if (!contest) {
+            toast.error("Can't get contest");
+            return;
+        }
+
+        try {
+            await registerToContest(contest.id);
+            window.location.reload();
+        } catch (error) {
+            toast.error("Registration failed. Try again");
+        }
+    };
+
     if (loading) {
         return (
             <div className="container mx-auto py-8">
                 <Card>
                     <CardHeader>
-                        <Skeleton className="h-8 w-1/2" />
+                        <Skeleton className="h-12 w-1/2" />
                     </CardHeader>
                     <CardContent className="space-y-6">
-                        <Skeleton className="h-6 w-full" />
-                        <Skeleton className="h-6 w-full" />
-                        <Skeleton className="h-6 w-full" />
-                        <Skeleton className="h-6 w-full" />
+                        <Skeleton className="h-8 w-full" />
+                        <Skeleton className="h-8 w-full" />
+                        <Skeleton className="h-8 w-full" />
+                        <Skeleton className="h-8 w-full" />
+                        <Skeleton className="h-8 w-full" />
+                        <Skeleton className="h-8 w-full" />
+                        <Skeleton className="h-8 w-full" />
+                        <Skeleton className="h-12 w-full" />
                     </CardContent>
                 </Card>
             </div>
@@ -153,172 +288,311 @@ export function ContestDetailPage() {
     if (!contest) return <div>Loading...</div>;
 
     return (
-        <div className="min-h-screen bg-background">
+        <div className="min-h-screen bg-gradient-to-b from-slate-50 to-slate-100">
             <Navbar />
-            <div className="container mx-auto py-8">
-                <Card>
-                    <CardHeader>
-                        <CardTitle>
-                            {contest.title}{" "}
-                            {isDashboard && `| ${contest.contest_code}`}
-                        </CardTitle>
+            <div className="container mx-auto py-8 px-4">
+                <Card className="backdrop-blur-sm bg-white/90 border-slate-200/60 shadow-lg">
+                    <CardHeader className="space-y-4">
+                        <div className="flex justify-between items-start flex-wrap gap-4">
+                            <div className="space-y-1">
+                                <CardTitle className="text-3xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
+                                    {contest.title}
+                                </CardTitle>
+                                {isDashboard && (
+                                    <p className="text-slate-600 flex items-center gap-2">
+                                        <Trophy className="w-4 h-4" />
+                                        Contest Code: {contest.contest_code}
+                                    </p>
+                                )}
+                            </div>
+                            {getStatusBadge()}
+                        </div>
                     </CardHeader>
-                    <CardContent className="space-y-6">
-                        <div>
-                            <h3 className="text-lg font-semibold">
+
+                    <CardContent className="space-y-8">
+                        {/* Common Content */}
+                        <div className="prose prose-slate max-w-none">
+                            <h3 className="text-xl font-semibold mb-2 flex items-center gap-2">
+                                <AlertCircle className="w-5 h-5 text-purple-600" />
                                 Description
                             </h3>
                             <div
+                                className="text-slate-600"
                                 dangerouslySetInnerHTML={{
                                     __html: contest.description,
                                 }}
                             />
                         </div>
 
-                        <div className="grid grid-cols-2 gap-4">
-                            <div>
-                                <h3 className="font-semibold">Start Time</h3>
-                                <p>
-                                    {new Date(
-                                        contest.start_time
-                                    ).toLocaleString()}
+                        {/* Contest Details Grid */}
+                        <div className="grid md:grid-cols-2 gap-6 p-6 bg-slate-50 rounded-lg border border-slate-100">
+                            <div className="space-y-2">
+                                <h4 className="font-medium flex items-center gap-2 text-slate-700">
+                                    <Calendar className="w-4 h-4 text-purple-600" />
+                                    Start Time
+                                </h4>
+                                <p className="text-slate-600">
+                                    {format(
+                                        new Date(contest.start_time),
+                                        "PPpp"
+                                    )}
                                 </p>
                             </div>
-                            <div>
-                                <h3 className="font-semibold">Duration</h3>
-                                <p>{contest.duration} minutes</p>
-                            </div>
-                        </div>
-                        <div className="grid grid-cols-2 gap-4">
-                            <div>
-                                <h3 className="font-semibold">Join Duration</h3>
-                                <p>{contest.join_duration} minutes</p>
-                            </div>
-                            <div>
-                                <h3 className="font-semibold">Strict Time</h3>
-                                <p>{contest.strict_time ? "Yes" : "No"}</p>
-                            </div>
-                        </div>
-                        {isDashboard && (
-                            <div className="grid grid-cols-2 gap-4">
-                                Created By: {contest.created_by}
-                            </div>
-                        )}
 
-                        {isDashboard && (
-                            <div>
-                                <h3 className="text-lg font-semibold">
-                                    Problems
-                                </h3>
-                                <div className="border rounded-lg">
-                                    <Table>
-                                        <TableHeader>
-                                            <TableRow>
-                                                <TableHead className="w-[50px]">
-                                                    S.No
-                                                </TableHead>
-                                                <TableHead>Title</TableHead>
-                                                <TableHead>
-                                                    Difficulty
-                                                </TableHead>
-                                                <TableHead>
-                                                    Acceptance
-                                                </TableHead>
-                                                <TableHead>Tags</TableHead>
-                                            </TableRow>
-                                        </TableHeader>
-                                        <TableBody>
-                                            {problems.map((problem, index) => (
-                                                <TableRow key={problem.id}>
-                                                    <TableCell>
-                                                        {index + 1}
-                                                    </TableCell>
-                                                    <TableCell className="font-medium hover:text-primary cursor-pointer">
-                                                        {problem.title}
-                                                    </TableCell>
-                                                    <TableCell
-                                                        className={
-                                                            problem.difficulty ===
-                                                            "easy"
-                                                                ? "text-green-500"
-                                                                : problem.difficulty ===
-                                                                  "medium"
-                                                                ? "text-yellow-500"
-                                                                : "text-red-500"
-                                                        }
-                                                    >
-                                                        {problem.difficulty
-                                                            .charAt(0)
-                                                            .toUpperCase() +
-                                                            problem.difficulty.slice(
-                                                                1
-                                                            )}
-                                                    </TableCell>
-                                                    <TableCell>
-                                                        {problem.acceptance}%
-                                                    </TableCell>
-                                                    <TableCell>
-                                                        <div className="flex gap-1 flex-wrap">
-                                                            {problem.tags.map(
-                                                                (tag) => (
-                                                                    <Badge
-                                                                        key={
-                                                                            tag
-                                                                        }
-                                                                        variant="secondary"
-                                                                        className="cursor-pointer"
-                                                                    >
-                                                                        {tag}
-                                                                    </Badge>
-                                                                )
-                                                            )}
-                                                        </div>
-                                                    </TableCell>
-                                                </TableRow>
-                                            ))}
-                                        </TableBody>
-                                    </Table>
+                            <div className="space-y-2">
+                                <h4 className="font-medium flex items-center gap-2 text-slate-700">
+                                    <Calendar className="w-4 h-4 text-purple-600" />
+                                    End Time
+                                </h4>
+                                <p className="text-slate-600">
+                                    {format(
+                                        addMinutes(
+                                            new Date(contest.start_time),
+                                            contest.duration
+                                        ),
+                                        "PPpp"
+                                    )}
+                                </p>
+                            </div>
+
+                            <div className="space-y-2">
+                                <h4 className="font-medium flex items-center gap-2 text-slate-700">
+                                    <Clock className="w-4 h-4 text-purple-600" />
+                                    Duration
+                                </h4>
+                                <p className="text-slate-600">
+                                    {contest.duration} minutes
+                                </p>
+                            </div>
+
+                            <div className="space-y-2">
+                                <h4 className="font-medium flex items-center gap-2 text-slate-700">
+                                    <Timer className="w-4 h-4 text-purple-600" />
+                                    Buffer Time
+                                </h4>
+                                <p className="text-slate-600">
+                                    {contest.buffer_time} minutes
+                                </p>
+                            </div>
+                            {timeLeft && timeLeft != "" && (
+                                <div className="space-y-2">
+                                    <h4 className="font-medium flex items-center gap-2 text-slate-700">
+                                        <Timer className="w-4 h-4 text-purple-600" />
+                                        Starts in
+                                    </h4>
+                                    <p className="text-slate-600">{timeLeft}</p>
                                 </div>
-                            </div>
-                        )}
+                            )}
+                            {endTimeLeft && endTimeLeft != "" && (
+                                <div className="space-y-2">
+                                    <h4 className="font-medium flex items-center gap-2 text-slate-700">
+                                        <Timer className="w-4 h-4 text-purple-600" />
+                                        Ends in
+                                    </h4>
+                                    <p className="text-slate-600">
+                                        {endTimeLeft}
+                                    </p>
+                                </div>
+                            )}
 
+                            {isDashboard && (
+                                <div className="space-y-2">
+                                    <h4 className="font-medium flex items-center gap-2 text-slate-700">
+                                        <Users className="w-4 h-4 text-purple-600" />
+                                        Registered Users
+                                    </h4>
+                                    <p className="text-slate-600">
+                                        {contest.registered_users}
+                                    </p>
+                                </div>
+                            )}
+                        </div>
+
+                        {/* Admin-specific content */}
                         {isDashboard && (
-                            <div>
-                                <h3 className="text-lg font-semibold">Users</h3>
-                                <DataTable
-                                    columns={userColumns}
-                                    data={users}
-                                    selectedRows={[]}
-                                    setSelectedRows={() => {}}
-                                />
-                            </div>
+                            <>
+                                <div className="space-y-4">
+                                    <h3 className="text-xl font-semibold flex items-center gap-2">
+                                        <Shield className="w-5 h-5 text-purple-600" />
+                                        Administrative Details
+                                    </h3>
+                                    <div className="grid md:grid-cols-2 gap-4 p-4 bg-slate-50 rounded-lg">
+                                        <div className="space-y-1">
+                                            <h4 className="text-sm text-slate-500">
+                                                Created By
+                                            </h4>
+                                            <p className="text-slate-700">
+                                                {contest.created_by}
+                                            </p>
+                                        </div>
+                                        <div className="space-y-1">
+                                            <h4 className="text-sm text-slate-500">
+                                                Created At
+                                            </h4>
+                                            <p className="text-slate-700">
+                                                {format(
+                                                    new Date(
+                                                        contest.created_at
+                                                    ),
+                                                    "PPp"
+                                                )}
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* Problems Table - existing admin table code */}
+                                <div>
+                                    <h3 className="text-lg font-semibold">
+                                        Problems
+                                    </h3>
+                                    <div className="border rounded-lg">
+                                        <Table>
+                                            <TableHeader>
+                                                <TableRow>
+                                                    <TableHead className="w-[50px]">
+                                                        S.No
+                                                    </TableHead>
+                                                    <TableHead>Title</TableHead>
+                                                    <TableHead>
+                                                        Difficulty
+                                                    </TableHead>
+                                                    <TableHead>
+                                                        Acceptance
+                                                    </TableHead>
+                                                    <TableHead>Tags</TableHead>
+                                                </TableRow>
+                                            </TableHeader>
+                                            <TableBody>
+                                                {problems.map(
+                                                    (problem, index) => (
+                                                        <TableRow
+                                                            key={problem.id}
+                                                        >
+                                                            <TableCell>
+                                                                {index + 1}
+                                                            </TableCell>
+                                                            <TableCell className="font-medium hover:text-primary cursor-pointer">
+                                                                {problem.title}
+                                                            </TableCell>
+                                                            <TableCell
+                                                                className={
+                                                                    problem.difficulty ===
+                                                                    "easy"
+                                                                        ? "text-green-500"
+                                                                        : problem.difficulty ===
+                                                                          "medium"
+                                                                        ? "text-yellow-500"
+                                                                        : "text-red-500"
+                                                                }
+                                                            >
+                                                                {problem.difficulty
+                                                                    .charAt(0)
+                                                                    .toUpperCase() +
+                                                                    problem.difficulty.slice(
+                                                                        1
+                                                                    )}
+                                                            </TableCell>
+                                                            <TableCell>
+                                                                {
+                                                                    problem.acceptance
+                                                                }
+                                                                %
+                                                            </TableCell>
+                                                            <TableCell>
+                                                                <div className="flex gap-1 flex-wrap">
+                                                                    {problem.tags.map(
+                                                                        (
+                                                                            tag
+                                                                        ) => (
+                                                                            <Badge
+                                                                                key={
+                                                                                    tag
+                                                                                }
+                                                                                variant="secondary"
+                                                                                className="cursor-pointer"
+                                                                            >
+                                                                                {
+                                                                                    tag
+                                                                                }
+                                                                            </Badge>
+                                                                        )
+                                                                    )}
+                                                                </div>
+                                                            </TableCell>
+                                                        </TableRow>
+                                                    )
+                                                )}
+                                            </TableBody>
+                                        </Table>
+                                    </div>
+                                </div>
+
+                                {/* Admin Actions */}
+                                <div className="flex gap-4">
+                                    <Button
+                                        onClick={() => navigate(`update`)}
+                                        className="flex-1 bg-gradient-to-r from-blue-600 to-indigo-600"
+                                    >
+                                        Update Contest
+                                    </Button>
+                                    <Button
+                                        variant="destructive"
+                                        onClick={handleDeleteContest}
+                                        className="flex-1"
+                                    >
+                                        Delete Contest
+                                    </Button>
+                                </div>
+                            </>
                         )}
 
-                        {isDashboard ? (
-                            <div className="space-y-5">
-                                <Button
-                                    onClick={() => navigate(`update`)}
-                                    className="w-full"
-                                >
-                                    Update Contest
-                                </Button>
-                                <Button
-                                    variant={"destructive"}
-                                    onClick={handleDeleteContest}
-                                    className="w-full"
-                                >
-                                    Delete Contest
-                                </Button>
+                        {/* User-specific content */}
+                        {!isDashboard && (
+                            <div className="space-y-4">
+                                {contest.is_registered ? (
+                                    <Button
+                                        onClick={() =>
+                                            navigate(
+                                                `/contests/${contest_id}/problems`
+                                            )
+                                        }
+                                        className="w-full bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700"
+                                        disabled={
+                                            !getContestStatus() ||
+                                            getContestStatus() ===
+                                                "completed" ||
+                                            getContestStatus() === "upcoming"
+                                        }
+                                    >
+                                        {timeLeft ? (
+                                            <>
+                                                <Timer className="w-4 h-4 mr-2" />
+                                                Starts in {timeLeft}
+                                            </>
+                                        ) : (
+                                            <>
+                                                <Play className="w-4 h-4 mr-2" />
+                                                Start Contest
+                                            </>
+                                        )}
+                                    </Button>
+                                ) : (
+                                    <Button
+                                        onClick={handleRegisterToContest}
+                                        className="w-full bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700"
+                                        disabled={
+                                            !contest.is_registration_open ||
+                                            getContestStatus() === "completed"
+                                        }
+                                    >
+                                        <Users className="w-4 h-4 mr-2" />
+                                        {contest.is_registration_open
+                                            ? "Register Now"
+                                            : "Registration Closed"}
+                                    </Button>
+                                )}
                             </div>
-                        ) : (
-                            <Button
-                                onClick={() =>
-                                    navigate(`/contests/${contest_id}/problems`)
-                                }
-                                className="w-full"
-                            >
-                                Join Contest
-                            </Button>
                         )}
                     </CardContent>
                 </Card>

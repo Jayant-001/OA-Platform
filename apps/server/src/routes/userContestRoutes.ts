@@ -27,4 +27,7 @@ router.get('/:contestId/problems', asyncHandler(contestController.getUserContest
 
 router.get('/:contestId/problems/:problemId', asyncHandler(contestController.getUserContestProblem.bind(contestController)));
 
+// Get all the contests in which user is registered
+router.get('/', asyncHandler(contestController.getUserAllContest.bind(contestController)));
+
 export default router;
