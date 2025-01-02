@@ -9,6 +9,8 @@ const contestController = new ContestController();
 
 router.post('/:contestId/problems/:problemId/submissions', asyncHandler(contestSubmissionController.createSubmission.bind(contestSubmissionController)));
 
+router.get('/:contestId/problems/:problemId/submissions', asyncHandler(contestSubmissionController.getUserSubmissionsForContest.bind(contestSubmissionController)));
+
 // DOn't use this route (use the below one instead)
 router.get('/upcoming-contests', asyncHandler(contestController.getUpcomingContests.bind(contestController)));
 
@@ -29,5 +31,8 @@ router.get('/:contestId/problems/:problemId', asyncHandler(contestController.get
 
 // Get all the contests in which user is registered
 router.get('/', asyncHandler(contestController.getUserAllContest.bind(contestController)));
+
+// Route to get submission details by submission ID
+router.get('/submissions/:submissionId', asyncHandler(contestSubmissionController.getSubmissionById.bind(contestSubmissionController)));
 
 export default router;

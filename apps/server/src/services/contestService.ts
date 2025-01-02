@@ -239,14 +239,6 @@ class ContestService {
     async isUserRegistered(userId: string, contestId: string): Promise<boolean> {
         return this.contestRepository.isUserRegistered(userId, contestId);
     }
-
-    async getAllContestSubmissionsByUser(userId: string): Promise<any[]> {
-        return this.contestRepository.getAllContestSubmissionsByUser(userId);
-    }
-
-    async getAllContestSubmissionsByUserAndContest(userId: string, contestId: string): Promise<any[]> {
-        return this.contestRepository.getAllContestSubmissionsByUserAndContest(userId, contestId);
-    }
 }
 
 export default ContestService;

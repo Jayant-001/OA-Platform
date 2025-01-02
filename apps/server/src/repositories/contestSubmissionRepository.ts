@@ -49,12 +49,37 @@ export class ContestSubmissionRepository {
         });
     }
 
+    async getAllContestSubmissionsByUser(userId: string): Promise<any[]> {
+        return db.any(
+            `SELECT * FROM contest_submissions 
+             WHERE user_id = $1
+             ORDER BY submitted_at DESC`,
+            [userId]
+        );
+    }
+
+    async getAllContestSubmissionsByUserAndContest(userId: string, contestId: string): Promise<any[]> {
+        return db.any(
+            `SELECT * FROM contest_submissions 
+             WHERE user_id = $1 AND contest_id = $2
+             ORDER BY submitted_at DESC`,
+            [userId, contestId]
+        );
+    }
+
     async findUserSubmissionsForProblem(contest_id: string, problem_id: string, user_id: string): Promise<ContestSubmissions[]> {
         return db.any(
             `SELECT * FROM contest_submissions 
              WHERE contest_id = $1 AND problem_id = $2 AND user_id = $3
              ORDER BY submitted_at DESC`,
             [contest_id, problem_id, user_id]
+        );
+    }
+
+    async findById(submissionId: string): Promise<ContestSubmissions | null> {
+        return db.oneOrNone(
+            `SELECT * FROM contest_submissions WHERE id = $1`,
+            [submissionId]
         );
     }
 }

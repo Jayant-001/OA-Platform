@@ -6,42 +6,36 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import toast from "react-hot-toast";
-import { useUsersApi } from "@/hooks/useApi";
 import { FaCheckCircle, FaTimesCircle, FaExclamationCircle } from "react-icons/fa";
-
-interface Problem {
-    id: string;
-    title: string;
-    status: string; // "Solved" | "Attempted" | "Not Attempted"
-    points: number;
-}
+import { useProblemContext } from "@/context/ProblemContext";
 
 export function ContestProblemsPage() {
     const { contest_id } = useParams();
-    const [problems, setProblems] = useState<Problem[]>([]);
-    const [loading, setLoading] = useState(true);
     const navigate = useNavigate();
-    const { getContestProblems } = useUsersApi();
+    const { problems ,loading} = useProblemContext();
+
+    // useEffect(() => {
+    //     if (!contest_id) {
+    //         toast.error("Contest ID not provided");
+    //         return;
+    //     }
+
+    //    // if (problems.length === 0) {
+    //         const fetchProblemsData = async () => {
+    //             await fetchProblems(contest_id);
+    //             setLoading(false);
+    //        // };
+
+    //         fetchProblemsData();
+    //     // } else {
+    //     //     setLoading(false);
+    //      }
+    // }, []);
 
     useEffect(() => {
-        if (!contest_id) {
-            toast.error("Contest ID not provided");
-            return;
-        }
-
-        const fetchProblems = async () => {
-            try {
-                const problems = await getContestProblems(contest_id);
-                setProblems(problems);
-            } catch (error) {
-                console.error("Failed to fetch problems:", error);
-            } finally {
-                setLoading(false);
-            }
-        };
-
-        fetchProblems();
-    }, [contest_id]);
+        //console.log("Problems", problems);  
+     }
+    , [problems]);
 
     const getStatusColor = (status: string) => {
         switch (status) {
