@@ -125,3 +125,23 @@ export const useUsersApi = () => {
 
     return { fetchUpcomingContests, fetchContestById, getContestProblems, getContestProblemById, searchContestByCode, fetchAllRegisteredContests, registerToContest };
 };
+
+export const useSubmissionApi = () => {
+    const getSubmissionsByProblemId = async (contestId: string, problemId: string) => {
+        return await apiService.get(`/api/users/contests/${contestId}/problems/${problemId}/submissions`);
+    };
+
+    const getSubmissionById = async (submissionId: string) => {
+        return await apiService.get(`/api/users/contests/submissions/${submissionId}`);
+    };
+
+    const createSubmission = async ({ code, language, problemId, contestId }: { code: string, language: string, problemId: string, contestId: string }) => {
+        console.log("ContestId:", contestId);    
+        console.log("ProblemId:", problemId);
+        const url = `/api/users/contests/${contestId}/problems/${problemId}/submissions`;
+        console.log("Request URL:", url);
+        return await apiService.post(url, { code, language });
+    };
+
+    return { getSubmissionsByProblemId, getSubmissionById, createSubmission };
+};

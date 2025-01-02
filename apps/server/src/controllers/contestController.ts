@@ -1,8 +1,10 @@
 import { Request, Response, NextFunction } from "express";
 import ContestService from "../services/contestService";
+import ContestSubmissionService from "../services/contestSubmissionService";
 
 class ContestController {
     private contestService = new ContestService();
+    private contestSubmissionService = new ContestSubmissionService();
 
     async getAllContests(req: Request, res: Response, next: NextFunction) {
         try {
@@ -152,7 +154,7 @@ class ContestController {
                 return res.status(404).json({ message: "Problems not found for the contest" });
             }
 
-            const submissions = await this.contestService.getAllContestSubmissionsByUserAndContest(userId, contestId);
+            const submissions = await this.contestSubmissionService.getAllContestSubmissionsByUserAndContest(userId, contestId);
             const problemStatus = problems.map(problem => {
                 const problemSubmissions = submissions.filter(submission => submission.problem_id === problem.id);
                 const acceptedSubmission = problemSubmissions.find(submission => submission.verdict === 'accepted');
@@ -173,7 +175,8 @@ class ContestController {
 
     async getUserContestProblem(req: Request, res: Response, next: NextFunction) {
         try {
-            const { problemId } = req.params;
+            const { contestId, problemId } = req.params;
+            const userId = req.user?.id as string;
             const problem = await this.contestService.getProblemById(problemId);
             if (!problem) {
                 return res.status(404).json({ message: "Problem not found" });

@@ -61,6 +61,18 @@ class ContestSubmissionService {
         return this.contestSubmissionRepository.findUserSubmissionsForProblem(contest_id, problem_id, user_id);
     }
 
+    async getAllContestSubmissionsByUser(userId: string): Promise<any[]> {
+        return this.contestSubmissionRepository.getAllContestSubmissionsByUser(userId);
+    }
+
+    async getAllContestSubmissionsByUserAndContest(userId: string, contestId: string): Promise<any[]> {
+        return this.contestSubmissionRepository.getAllContestSubmissionsByUserAndContest(userId, contestId);
+    }
+
+    async getSubmissionById(submissionId: string) {
+        return await this.contestSubmissionRepository.findById(submissionId);
+    }
+
     private async isContestActiveForUser(contest_id: string, user_id: string): Promise<boolean> {
         const cacheKey = `contest:${contest_id}:user:${user_id}:status`;
         const cachedStatus = await this.contestStatusCache.get(cacheKey);

@@ -1,6 +1,7 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/context/AuthContext";
 import { UserProvider } from "@/context/UserContext";
+import { ProblemProvider } from "@/context/ProblemContext";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { LoginPage } from "@/pages/auth/LoginPage";
 import { RegisterPage } from "@/pages/auth/RegisterPage";
@@ -47,7 +48,7 @@ function App() {
                         <Route
                             path="/test2"
                             element={
-                                <TestPage2 content={""} setContent={() => {}} />
+                                <TestPage2 content={""} setContent={() => { }} />
                             }
                         />
 
@@ -72,7 +73,9 @@ function App() {
                             path={ROUTES.CONTEST.PROBLEMS}
                             element={
                                 // <ProtectedRoute>
-                                <ContestProblemsPage />
+                                 <ProblemProvider>
+                                    <ContestProblemsPage />
+                                </ProblemProvider>
                                 // </ProtectedRoute>
                             }
                         />
@@ -81,7 +84,9 @@ function App() {
                             path={ROUTES.CONTEST.SOLVE_PROBLEMS}
                             element={
                                 // <ProtectedRoute>
-                                <ProblemDescriptionPage />
+                                <ProblemProvider>   
+                                    <ProblemDescriptionPage />
+                                </ProblemProvider>
                                 // </ProtectedRoute>
                             }
                         />
@@ -127,8 +132,13 @@ function App() {
                         <Route
                             path="/problems/:id"
                             element={
+
                                 // <ProtectedRoute>
-                                <ProblemDescriptionPage />
+                                <ProblemProvider>
+
+                                    <ProblemDescriptionPage />
+                                </ProblemProvider>
+
                                 // </ProtectedRoute>
                             }
                         />
