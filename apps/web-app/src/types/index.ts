@@ -50,8 +50,10 @@ export interface Problem {
 }
 
 export interface ContestProblems {
-    problem_id: string;
-    points: string;
+    id: string;
+    title: string;
+    points: number;
+    status: string;
 }
 
 export interface Tag {

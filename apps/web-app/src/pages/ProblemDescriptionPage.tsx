@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useContext } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useLocation, useParams, useNavigate } from "react-router-dom";
 import { Split } from "@geoffcox/react-splitter";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -10,23 +10,41 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select";
-import { Textarea } from "@/components/ui/textarea";
 import { Problem, Submission } from "@/types";
 import MonacoEditor from "@monaco-editor/react";
-import { Resizable } from "re-resizable";
-import { ChevronDown, ChevronUp } from "lucide-react";
 import { useAdminApi, useUsersApi, useSubmissionApi } from "@/hooks/useApi";
 import toast from "react-hot-toast";
 import classNames from "classnames";
-import { Dialog, DialogOverlay, DialogContent, DialogHeader, DialogTitle, DialogClose, DialogBody } from "../components/ui/dialog";
+import {
+    Dialog,
+    DialogOverlay,
+    DialogContent,
+    DialogHeader,
+    DialogTitle,
+    DialogClose,
+    DialogBody,
+} from "../components/ui/dialog";
 import { CopyToClipboard } from "react-copy-to-clipboard";
-import { FaBars, FaTimes } from "react-icons/fa";
 import { useProblemContext } from "@/context/ProblemContext";
+import {
+    BookOpen,
+    Menu,
+    Code as CodeIcon,
+    PlayCircle,
+    SendHorizonal,
+    XCircle,
+    Clock,
+    Terminal,
+    Cpu,
+    ChevronRight,
+    FileCode,
+    AlignLeft,
+} from "lucide-react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 export function ProblemDescriptionPage() {
-    const { problem_id: paramProblemId, contest_id } = useParams();
+    const { problem_id: problemId, contest_id } = useParams();
     const location = useLocation();
-    const [problemId, setProblemId] = useState<string | undefined>(paramProblemId);
     const [problem, setProblem] = useState<Problem | null>(null);
     const [language, setLanguage] = useState("javascript");
     const [code, setCode] = useState("");
@@ -34,15 +52,19 @@ export function ProblemDescriptionPage() {
     const [output, setOutput] = useState("");
     const [isConsoleCollapsed, setIsConsoleCollapsed] = useState(false);
     const [submissions, setSubmissions] = useState<Submission[]>([]);
-    const [selectedSubmission, setSelectedSubmission] = useState<Submission | null>(null);
+    const [selectedSubmission, setSelectedSubmission] =
+        useState<Submission | null>(null);
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
     const { fetchProblemById } = useAdminApi();
     const { getContestProblemById } = useUsersApi();
-    const { getSubmissionsByProblemId, getSubmissionById, createSubmission } = useSubmissionApi();
+    const { getSubmissionsByProblemId, getSubmissionById, createSubmission } =
+        useSubmissionApi();
     const { problems } = useProblemContext();
     const isDashboardPage = location.pathname.includes("/dashboard");
     const navigate = useNavigate();
-
+    const [contestEndTime] = useState(new Date(Date.now() + 2 * 60 * 60 * 1000)); // 2 hours from now
+    const [timeToEnd, setTimeToEnd] = useState<string>('');
+    const [consoleSize, setConsoleSize] = useState(30); // default size 30%
 
     useEffect(() => {
         if (!problemId) {
@@ -56,9 +78,14 @@ export function ProblemDescriptionPage() {
                 if (isDashboardPage) {
                     fetched_problem = await fetchProblemById(problemId);
                 } else {
-                    fetched_problem = await getContestProblemById(contest_id as string, problemId as string);
-                    fetched_submissions = await getSubmissionsByProblemId(contest_id as string, problemId as string);
-
+                    fetched_problem = await getContestProblemById(
+                        contest_id as string,
+                        problemId as string
+                    );
+                    fetched_submissions = await getSubmissionsByProblemId(
+                        contest_id as string,
+                        problemId as string
+                    );
                 }
                 setProblem(fetched_problem);
                 setSubmissions(fetched_submissions);
@@ -69,6 +96,25 @@ export function ProblemDescriptionPage() {
         })();
     }, [problemId, contest_id, isDashboardPage]);
 
+    useEffect(() => {
+        const interval = setInterval(() => {
+            const now = new Date();
+            if (now >= contestEndTime) {
+                setTimeToEnd('Contest Ended');
+                clearInterval(interval);
+                return;
+            }
+
+            const hours = Math.floor((contestEndTime.getTime() - now.getTime()) / (1000 * 60 * 60));
+            const minutes = Math.floor(((contestEndTime.getTime() - now.getTime()) % (1000 * 60 * 60)) / (1000 * 60));
+            const seconds = Math.floor(((contestEndTime.getTime() - now.getTime()) % (1000 * 60)) / 1000);
+
+            setTimeToEnd(`${hours}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`);
+        }, 1000);
+
+        return () => clearInterval(interval);
+    }, [contestEndTime]);
+
     const handleRun = () => {
         // Handle running code
         setOutput("Running code...");
@@ -77,11 +123,11 @@ export function ProblemDescriptionPage() {
     const handleSubmit = async () => {
         setOutput("Submitting solution...");
         try {
-            const response = await createSubmission({
+            await createSubmission({
                 code,
                 language,
                 problemId: problemId || "",
-                contestId: contest_id || ""
+                contestId: contest_id || "",
             });
             setOutput("Submission successful!");
             toast.success("Submission successful!");
@@ -92,18 +138,20 @@ export function ProblemDescriptionPage() {
         }
     };
 
-    const verdictClass = useMemo(() => ({
-        accepted: "text-green-500",
-        wrong_answer: "text-red-500",
-        time_limit_exceeded: "text-yellow-500",
-        memory_limit_exceeded: "text-purple-500",
-        default: "text-gray-500"
-    }), []);
+    const verdictClass = useMemo(
+        () => ({
+            accepted: "text-green-500",
+            wrong_answer: "text-red-500",
+            time_limit_exceeded: "text-yellow-500",
+            memory_limit_exceeded: "text-purple-500",
+            default: "text-gray-500",
+        }),
+        []
+    );
 
     const handleProblemClick = (id: string) => {
         if (id !== problemId) {
             console.log("Problem ID Switched To:", id);
-            setProblemId(id); // Update local state
             navigate(`/contests/${contest_id}/problems/${id}/solve`);
             setIsSidebarOpen(false);
         }
@@ -122,230 +170,383 @@ export function ProblemDescriptionPage() {
     if (!problem) return <div>Loading...</div>;
 
     return (
-        <div className="h-screen flex">
-            {/* Sidebar */}
-            <div className={`fixed inset-y-0 left-0 bg-gray-800 shadow-lg z-50 transform ${isSidebarOpen ? "translate-x-0" : "-translate-x-full"} transition-transform duration-300 ease-in-out`}>
-                <div className="p-4">
-                    <div className="flex justify-between items-center mb-4">
-                        <h2 className="text-xl font-bold text-white">Problems</h2>
-                        <button onClick={() => setIsSidebarOpen(false)} className="text-gray-500 hover:text-gray-300">
-                            <FaTimes size={20} />
-                        </button>
-                    </div>
-                    <ul className="space-y-2">
-                        {problems.map((prob) => (
-                            <li key={prob.id} className="cursor-pointer hover:bg-gray-700 p-2 rounded text-white" onClick={() => handleProblemClick(prob.id)}>
-                                {prob.title}
-                            </li>
-                        ))}
-                    </ul>
-                </div>
+        <div className="h-screen flex overflow-hidden">
+            {/* Problems List Drawer - Floating */}
+            <div
+                className={`fixed top-4 ${isSidebarOpen ? 'left-4' : 'left-0'} z-50 transition-transform duration-300 ease-in-out ${
+                    isSidebarOpen ? "translate-x-0" : "-translate-x-full"
+                }`}
+            >
+                <Card className="w-72 shadow-lg border-0 bg-white/90 backdrop-blur-sm">
+                    <CardHeader className="flex flex-row items-center justify-between py-3">
+                        <CardTitle className="text-lg font-semibold flex items-center gap-2">
+                            <BookOpen className="w-5 h-5 text-purple-600" />
+                            Problems
+                        </CardTitle>
+                        <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => setIsSidebarOpen(false)}
+                            className="hover:bg-slate-100"
+                        >
+                            <XCircle className="w-5 h-5" />
+                        </Button>
+                    </CardHeader>
+                    <CardContent className="px-2 py-2">
+                        <div className="space-y-1">
+                            {problems.map((prob, index) => (
+                                <button
+                                    key={prob.id}
+                                    onClick={() => handleProblemClick(prob.id)}
+                                    className={`w-full text-left px-3 py-2 rounded-md transition-colors ${
+                                        prob.id === problemId
+                                            ? "bg-purple-100 text-purple-700"
+                                            : "hover:bg-slate-100"
+                                    }`}
+                                >
+                                    <div className="flex items-center gap-2">
+                                        <span className="font-medium">
+                                            {String.fromCharCode(65 + index)}
+                                        </span>
+                                        <span className="truncate">
+                                            {prob.title}
+                                        </span>
+                                    </div>
+                                </button>
+                            ))}
+                        </div>
+                    </CardContent>
+                </Card>
             </div>
 
-            <div className="flex-grow flex flex-col">
-                <div className="bg-gray-700 p-2 flex justify-between items-center border-b">
-                    <button onClick={() => setIsSidebarOpen(!isSidebarOpen)} className="text-white">
-                        <FaBars size={20} />
-                    </button>
-                    <Select value={language} onValueChange={setLanguage}>
-                        <SelectTrigger className="w-[180px] bg-white text-black">
-                            <SelectValue placeholder="Select language" />
-                        </SelectTrigger>
-                        <SelectContent>
-                            <SelectItem value="javascript">
-                                JavaScript
-                            </SelectItem>
-                            <SelectItem value="python">Python</SelectItem>
-                            <SelectItem value="cpp">C++</SelectItem>
-                            <SelectItem value="java">Java</SelectItem>
-                        </SelectContent>
-                    </Select>
-                    <div className="flex space-x-2">
-                        <Button variant="outline" onClick={handleRun}>
+            {/* Main Content */}
+            <div className="flex-grow flex flex-col h-screen">
+                {/* Top Bar */}
+                <div className="bg-white border-b px-4 py-2 flex items-center justify-between">
+                    <Button
+                        title="Toggle Problems List"
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => setIsSidebarOpen(true)}
+                        className="hover:bg-slate-100"
+                    >
+                        <Menu className="w-5 h-5" />
+                    </Button>
+
+                    {/* Contest Timer */}
+                    <div className="flex items-center gap-2 bg-slate-100 px-4 py-2 rounded-full">
+                        <Clock className="w-4 h-4 text-purple-600 animate-pulse" />
+                        <span className="font-medium text-slate-700">Ends in:</span>
+                        <span className="font-mono text-purple-600 font-bold">
+                            {timeToEnd}
+                        </span>
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                        <Select value={language} onValueChange={setLanguage}>
+                            <SelectTrigger className="w-[150px] border-slate-200">
+                                <CodeIcon className="w-4 h-4 mr-2 text-slate-500" />
+                                <SelectValue placeholder="Select language" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="javascript">
+                                    JavaScript
+                                </SelectItem>
+                                <SelectItem value="python">Python</SelectItem>
+                                <SelectItem value="cpp">C++</SelectItem>
+                                <SelectItem value="java">Java</SelectItem>
+                            </SelectContent>
+                        </Select>
+                        <Button
+                            variant="outline"
+                            onClick={handleRun}
+                            className="gap-2 border-slate-200 hover:bg-slate-50"
+                        >
+                            <PlayCircle className="w-4 h-4" />
                             Run
                         </Button>
-                        <Button onClick={handleSubmit}>Submit</Button>
+                        <Button
+                            onClick={handleSubmit}
+                            className="gap-2 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700"
+                        >
+                            <SendHorizonal className="w-4 h-4" />
+                            Submit
+                        </Button>
                     </div>
                 </div>
 
-                <div className="flex-grow flex flex-col">
-                    <Split
-                        horizontal={false}
-                        initialPrimarySize="40%"
-                        minPrimarySize="20%"
-                        minSecondarySize="40%"
-                    >
-                        {/* Problem Description Panel */}
-                        <div className="h-full overflow-y-auto bg-background p-4">
-                            <Tabs defaultValue="description">
-                                <TabsList>
-                                    <TabsTrigger value="description">
-                                        Description
-                                    </TabsTrigger>
-                                    <TabsTrigger value="submissions">
-                                        Submissions
-                                    </TabsTrigger>
-                                </TabsList>
+                {/* Main Split */}
+                <Split
+                    className="h-[calc(100vh-4rem)]"
+                    initialPrimarySize="40%"
+                    minPrimarySize="30%"
+                    maxPrimarySize="70%"
+                >
+                    {/* Left Panel - Problem Description */}
+                    <div className="h-full overflow-y-auto bg-white p-2">
+                        <Tabs defaultValue="description" className="space-y-6">
+                            <TabsList>
+                                <TabsTrigger value="description">
+                                    Description
+                                </TabsTrigger>
+                                <TabsTrigger value="submissions">
+                                    Submissions
+                                </TabsTrigger>
+                            </TabsList>
 
-                                <TabsContent key={problem.id} value="description">
-                                    <h1 className="text-2xl font-bold mb-4">
-                                        {problem.title}
-                                    </h1>
-                                    <div
-                                        className="prose max-w-none"
-                                        dangerouslySetInnerHTML={{
-                                            __html: problem.problem_statement,
-                                        }}
-                                    />
-
-                                    <h3 className="text-lg font-semibold mt-6 mb-2">
-                                        Examples
-                                    </h3>
-                                    <div
-                                        className="prose max-w-none"
-                                        dangerouslySetInnerHTML={{
-                                            __html: problem.example,
-                                        }}
-                                    />
-
-                                    <h3 className="text-lg font-semibold mt-6 mb-2">
-                                        Constraints
-                                    </h3>
-                                    <p>{problem.constraints}</p>
-                                </TabsContent>
-
-                                <TabsContent value="submissions">
-                                    <div className="space-y-4">
-                                        {submissions.length === 0 ? (
-                                            <p>No submissions yet</p>
-                                        ) : (
-                                            submissions.map((submission) => (
-                                                <div
-                                                    key={submission.id}
-                                                    className="p-4 border rounded-md cursor-pointer hover:bg-gray-100 transition"
-                                                    onClick={() => handleSubmissionClick(submission.id)}
-                                                >
-                                                    <div className="flex justify-between items-center">
-                                                        <div>
-                                                            <span className="font-medium">
-                                                                {new Date(submission.submitted_at).toLocaleString()}
-                                                            </span>
-                                                            <div className="text-sm text-gray-500">
-                                                                {submission.language}
-                                                            </div>
-                                                        </div>
-                                                        <span className={classNames(verdictClass[submission.verdict || "default"], "font-semibold")}>
-                                                            {submission.verdict ? submission.verdict.replace(/_/g, " ") : "No Verdict"}
-                                                        </span>
-                                                    </div>
-                                                </div>
-                                            ))
-                                        )}
-                                    </div>
-                                </TabsContent>
-                            </Tabs>
-                        </div>
-
-                        {/* Code Editor Panel */}
-                        <div className="h-full flex flex-col">
-                            {/* Editor */}
-                            <div className="flex-grow">
-                                <MonacoEditor
-                                    height="100%"
-                                    language={language}
-                                    theme="vs-dark"
-                                    value={code}
-                                    onChange={(value) => setCode(value || "")}
-                                    options={{
-                                        minimap: { enabled: false },
-                                        scrollBeyondLastLine: false,
-                                        fontSize: 14,
+                            <TabsContent key={problem.id} value="description">
+                                <h1 className="text-2xl font-bold mb-4">
+                                    {problem.title}
+                                </h1>
+                                <div
+                                    className="prose max-w-none"
+                                    dangerouslySetInnerHTML={{
+                                        __html: problem.problem_statement,
                                     }}
                                 />
-                            </div>
 
-                            {/* Console */}
-                            <Resizable
-                                enable={{ top: true }}
-                                defaultSize={{ width: "100%", height: 200 }}
-                                minHeight={40}
-                                maxHeight={400}
-                            >
-                                <div className="bg-secondary border-t">
-                                    <div
-                                        className="flex items-center justify-between p-2 cursor-pointer"
-                                        onClick={() =>
-                                            setIsConsoleCollapsed(!isConsoleCollapsed)
-                                        }
-                                    >
-                                        <span className="font-medium">Console</span>
-                                        {isConsoleCollapsed ? (
-                                            <ChevronUp size={20} />
-                                        ) : (
-                                            <ChevronDown size={20} />
-                                        )}
-                                    </div>
-                                    {!isConsoleCollapsed && (
-                                        <div className="p-2 space-y-2">
-                                            <div>
-                                                <label className="text-sm font-medium">
-                                                    Input:
-                                                </label>
-                                                <Textarea
-                                                    value={input}
-                                                    onChange={(e) =>
-                                                        setInput(e.target.value)
-                                                    }
-                                                    placeholder="Enter input here..."
-                                                    className="font-mono"
-                                                />
+                                <h3 className="text-lg font-semibold mt-6 mb-2">
+                                    Examples
+                                </h3>
+                                <div
+                                    className="prose max-w-none"
+                                    dangerouslySetInnerHTML={{
+                                        __html: problem.example,
+                                    }}
+                                />
+
+                                <h3 className="text-lg font-semibold mt-6 mb-2">
+                                    Constraints
+                                </h3>
+                                <p>{problem.constraints}</p>
+                            </TabsContent>
+
+                            <TabsContent value="submissions">
+                                <div className="space-y-4">
+                                    {submissions.length === 0 ? (
+                                        <p>No submissions yet</p>
+                                    ) : (
+                                        submissions.map((submission) => (
+                                            <div
+                                                key={submission.id}
+                                                className="p-4 border rounded-md cursor-pointer hover:bg-gray-100 transition"
+                                                onClick={() =>
+                                                    handleSubmissionClick(
+                                                        submission.id
+                                                    )
+                                                }
+                                            >
+                                                <div className="flex justify-between items-center">
+                                                    <div>
+                                                        <span className="font-medium">
+                                                            {new Date(
+                                                                submission.submitted_at
+                                                            ).toLocaleString()}
+                                                        </span>
+                                                        <div className="text-sm text-gray-500">
+                                                            {
+                                                                submission.language
+                                                            }
+                                                        </div>
+                                                    </div>
+                                                    <span
+                                                        className={classNames(
+                                                            verdictClass[
+                                                                submission.verdict ||
+                                                                    "default"
+                                                            ],
+                                                            "font-semibold"
+                                                        )}
+                                                    >
+                                                        {submission.verdict
+                                                            ? submission.verdict.replace(
+                                                                  /_/g,
+                                                                  " "
+                                                              )
+                                                            : "No Verdict"}
+                                                    </span>
+                                                </div>
                                             </div>
-                                            <div>
-                                                <label className="text-sm font-medium">
-                                                    Output:
-                                                </label>
-                                                <Textarea
-                                                    value={output}
-                                                    readOnly
-                                                    className="font-mono bg-muted"
-                                                />
-                                            </div>
-                                        </div>
+                                        ))
                                     )}
                                 </div>
-                            </Resizable>
+                            </TabsContent>
+                        </Tabs>
+                    </div>
+
+                    {/* Right Panel - Editor and Console */}
+                    <Split
+                        className="h-full"
+                        horizontal
+                        initialPrimarySize={isConsoleCollapsed ? "92%" : "70%"}
+                        primarySize={isConsoleCollapsed ? "92%" : `${100 - consoleSize}%`}
+                        minPrimarySize="60%"
+                        maxPrimarySize="92%"
+                        onDragEnd={(e) => {
+                            if (!isConsoleCollapsed) {
+                                setConsoleSize(100 - Number(e.toString().replace('%', '')));
+                            }
+                        }}
+                    >
+                        {/* Editor */}
+                        <div className="h-full">
+                            <MonacoEditor
+                                height="100%"
+                                language={language}
+                                theme="vs-dark"
+                                value={code}
+                                onChange={(value) => setCode(value || "")}
+                                options={{
+                                    minimap: { enabled: false },
+                                    scrollBeyondLastLine: false,
+                                    fontSize: 14,
+                                    lineNumbers: "on",
+                                    roundedSelection: false,
+                                    scrollbar: {
+                                        vertical: "hidden",
+                                        horizontal: "hidden",
+                                    },
+                                }}
+                            />
+                        </div>
+
+                        {/* Console */}
+                        <div className="h-full bg-slate-900 text-white flex flex-col">
+                            <div
+                                className="flex items-center justify-between px-4 py-2 cursor-pointer bg-slate-800 select-none"
+                                onClick={() => setIsConsoleCollapsed(!isConsoleCollapsed)}
+                            >
+                                <div className="flex items-center gap-2">
+                                    <Terminal className="w-4 h-4" />
+                                    <span className="font-medium">Console</span>
+                                </div>
+                                <ChevronRight 
+                                    className={`w-5 h-5 transition-transform duration-300 ${
+                                        isConsoleCollapsed ? '-rotate-90' : 'rotate-90'
+                                    }`} 
+                                />
+                            </div>
+                            
+                            <div className={`flex-1 overflow-auto transition-all duration-300 ${
+                                isConsoleCollapsed ? 'hidden' : 'block'
+                            }`}>
+                                <div className="p-4 space-y-3">
+                                    <div>
+                                        <label className="text-sm text-slate-400">Input:</label>
+                                        <textarea
+                                            value={input}
+                                            onChange={(e) => setInput(e.target.value)}
+                                            className="w-full bg-slate-800 border-0 rounded-md p-2 text-sm font-mono resize-none"
+                                            rows={3}
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="text-sm text-slate-400">Output:</label>
+                                        <pre className="w-full bg-slate-800 rounded-md p-2 text-sm font-mono min-h-[60px] overflow-auto">
+                                            {output}
+                                        </pre>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </Split>
-                </div>
+                </Split>
             </div>
 
-            {/* Submission Code Modal */}
-            {selectedSubmission && (
-                <Dialog isOpen={!!selectedSubmission} onClose={() => setSelectedSubmission(null)}>
-                    <DialogOverlay>
-                        <></>
-                    </DialogOverlay>
-                    <DialogContent>
-                        <DialogHeader>
-                            <DialogTitle>Submission Code</DialogTitle>
-                            <DialogClose onClose={() => setSelectedSubmission(null)} />
-                        </DialogHeader>
-                        <DialogBody>
-                            <div className="flex justify-between items-center mb-4">
-                                <span className="font-medium">Code:</span>
-                                <CopyToClipboard text={selectedSubmission.code}>
-                                    <Button variant="outline">Copy Code</Button>
-                                </CopyToClipboard>
+            {/* Submission Modal */}
+            <Dialog
+                isOpen={!!selectedSubmission}
+                onClose={() => setSelectedSubmission(null)}
+            >
+                <DialogOverlay className="backdrop-blur-sm" />
+                <DialogContent className="max-w-[90vw] w-[1000px]">
+                    <DialogHeader>
+                        <DialogTitle className="flex items-center gap-2">
+                            <FileCode className="w-5 h-5 text-purple-600" />
+                            Submission Details
+                        </DialogTitle>
+                        <DialogClose
+                            onClose={() => setSelectedSubmission(null)}
+                        />
+                    </DialogHeader>
+                    <DialogBody className="max-h-[80vh] overflow-y-auto">
+                        {selectedSubmission && (
+                            <div className="space-y-4">
+                                <div className="grid grid-cols-2 gap-4 p-4 bg-slate-50 rounded-lg">
+                                    <div className="space-y-1">
+                                        <label className="text-sm text-slate-500">
+                                            Status
+                                        </label>
+                                        <p
+                                            className={classNames(
+                                                "font-semibold",
+                                                verdictClass[
+                                                    selectedSubmission.verdict ||
+                                                        "default"
+                                                ]
+                                            )}
+                                        >
+                                            {selectedSubmission.verdict?.replace(
+                                                /_/g,
+                                                " "
+                                            ) || "Processing"}
+                                        </p>
+                                    </div>
+                                    <div className="space-y-1">
+                                        <label className="text-sm text-slate-500">
+                                            Language
+                                        </label>
+                                        <p className="font-semibold">
+                                            {selectedSubmission.language}
+                                        </p>
+                                    </div>
+                                    <div className="space-y-1">
+                                        <label className="text-sm text-slate-500">
+                                            <Clock className="w-4 h-4 inline mr-1" />
+                                            Execution Time
+                                        </label>
+                                        <p className="font-mono">
+                                            {selectedSubmission.execution_time}
+                                        </p>
+                                    </div>
+                                    <div className="space-y-1">
+                                        <label className="text-sm text-slate-500">
+                                            <Cpu className="w-4 h-4 inline mr-1" />
+                                            Memory Used
+                                        </label>
+                                        <p className="font-mono">
+                                            {selectedSubmission.memory_used}
+                                        </p>
+                                    </div>
+                                </div>
+
+                                <div className="space-y-2">
+                                    <div className="flex justify-between items-center">
+                                        <label className="text-sm font-medium flex items-center gap-2">
+                                            <AlignLeft className="w-4 h-4" />
+                                            Submitted Code
+                                        </label>
+                                        <CopyToClipboard
+                                            text={selectedSubmission.code}
+                                        >
+                                            <Button variant="outline" size="sm">
+                                                Copy Code
+                                            </Button>
+                                        </CopyToClipboard>
+                                    </div>
+                                    <div className="relative rounded-lg overflow-hidden">
+                                        <pre className="p-4 bg-slate-900 text-slate-50 overflow-x-auto max-h-[60vh]">
+                                            <code className="text-sm font-mono">
+                                                {selectedSubmission.code}
+                                            </code>
+                                        </pre>
+                                    </div>
+                                </div>
                             </div>
-                            <pre className="whitespace-pre-wrap overflow-auto max-h-96">{selectedSubmission.code}</pre>
-                            <div className="mt-4">
-                                <p><strong>Execution Time:</strong> {selectedSubmission.execution_time}</p>
-                                <p><strong>Memory Used:</strong> {selectedSubmission.memory_used}</p>
-                            </div>
-                        </DialogBody>
-                    </DialogContent>
-                </Dialog>
-            )}
+                        )}
+                    </DialogBody>
+                </DialogContent>
+            </Dialog>
         </div>
     );
 }

@@ -12,7 +12,7 @@ export function Navbar() {
             <div className="container mx-auto px-4 py-3 flex items-center justify-between">
                 <Link to={ROUTES.HOME} className="flex items-center gap-2 text-purple-600">
                     <Code className="w-6 h-6" />
-                    <span className="font-bold text-xl">OA Platform</span>
+                    <span className="font-bold text-xl">Code Clash</span>
                 </Link>
 
                 <div className="flex items-center gap-4">
