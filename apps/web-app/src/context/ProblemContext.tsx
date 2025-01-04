@@ -1,23 +1,21 @@
-import React, { createContext, useState, useContext, useCallback, useEffect } from 'react';
-import { Problem } from '@/types';
+import React, { createContext, useState, useContext, useEffect } from 'react';
+import { ContestProblems } from '@/types';
 import { useUsersApi } from "@/hooks/useApi";
 import toast from "react-hot-toast";
 import { useParams } from "react-router-dom";
 
 interface ProblemContextType {
-    problems: Problem[];
-    setProblems: React.Dispatch<React.SetStateAction<Problem[]>>;
+    problems: ContestProblems[];
+    setProblems: React.Dispatch<React.SetStateAction<ContestProblems[]>>;
     loading: boolean;
-
 }
 
 const ProblemContext = createContext<ProblemContextType | undefined>(undefined);
 
 export const ProblemProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-    const [problems, setProblems] = useState<Problem[]>([]);
+    const [problems, setProblems] = useState<ContestProblems[]>([]);
     const { getContestProblems } = useUsersApi();
     const { contest_id } = useParams();
-    const useparam = useParams();
     const [loading, setLoading] = useState(true);
 
     const fetchProblems = async (contestId: string) => {
@@ -34,13 +32,8 @@ export const ProblemProvider: React.FC<{ children: React.ReactNode }> = ({ child
         }
     };
 
-    const clearProblems = () => {
-        setProblems([]);
-    };
-
     useEffect(() => {
         fetchProblems(contest_id as string);
-        //clearProblems();
     }, [contest_id]);
 
     return (
