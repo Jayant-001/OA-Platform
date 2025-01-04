@@ -6,47 +6,62 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import toast from "react-hot-toast";
-import { useUsersApi } from "@/hooks/useApi";
-
-interface Problem {
-    id: string;
-    title: string;
-    status: string; // "solved" | "unsolved" | "attempted"
-    points: number;
-}
+import { FaCheckCircle, FaTimesCircle, FaExclamationCircle } from "react-icons/fa";
+import { useProblemContext } from "@/context/ProblemContext";
 
 export function ContestProblemsPage() {
     const { contest_id } = useParams();
-    const [problems, setProblems] = useState<Problem[]>([]);
-    const [loading, setLoading] = useState(true);
     const navigate = useNavigate();
-    const { getContestProblems } = useUsersApi();
+    const { problems ,loading} = useProblemContext();
+
+    // useEffect(() => {
+    //     if (!contest_id) {
+    //         toast.error("Contest ID not provided");
+    //         return;
+    //     }
+
+    //    // if (problems.length === 0) {
+    //         const fetchProblemsData = async () => {
+    //             await fetchProblems(contest_id);
+    //             setLoading(false);
+    //        // };
+
+    //         fetchProblemsData();
+    //     // } else {
+    //     //     setLoading(false);
+    //      }
+    // }, []);
 
     useEffect(() => {
-        if (!contest_id) {
-            toast.error("Contest ID not provided");
-            return;
+        //console.log("Problems", problems);  
+     }
+    , [problems]);
+
+    const getStatusColor = (status: string) => {
+        switch (status) {
+            case 'Solved':
+                return 'text-green-600';
+            case 'Attempted':
+                return 'text-yellow-600';
+            case 'Not Attempted':
+                return 'text-red-600';
+            default:
+                return 'text-gray-600';
         }
+    };
 
-        const fetchProblems = async () => {
-            try {
-                const problems = await getContestProblems(contest_id);
-                setProblems(
-                    problems.map((problem) => ({
-                        ...problem,
-                        id: problem.problem_id,
-                        status: "unsolved",
-                    }))
-                );
-            } catch (error) {
-                console.error("Failed to fetch problems:", error);
-            } finally {
-                setLoading(false);
-            }
-        };
-
-        fetchProblems();
-    }, [contest_id]);
+    const getStatusIcon = (status: string) => {
+        switch (status) {
+            case 'Solved':
+                return <FaCheckCircle className="mr-1" />;
+            case 'Attempted':
+                return <FaExclamationCircle className="mr-1" />;
+            case 'Not Attempted':
+                return <FaTimesCircle className="mr-1" />;
+            default:
+                return null;
+        }
+    };
 
     return (
         <div className="min-h-screen bg-background">
@@ -102,15 +117,9 @@ export function ContestProblemsPage() {
 
                                             <Badge
                                                 variant="outline"
-                                                className={
-                                                    problem.status == "solved"
-                                                        ? `text-green-600`
-                                                        : problem.status ==
-                                                          "unsolved"
-                                                        ? `text-red-600`
-                                                        : `text-yellow-600`
-                                                }
+                                                className={`flex items-center ${getStatusColor(problem.status)}`}
                                             >
+                                                {getStatusIcon(problem.status)}
                                                 {problem.status}
                                             </Badge>
                                         </div>

@@ -2,9 +2,8 @@ import db from "../config/database";
 import { HttpException } from "../middleware/errorHandler";
 import { Problem } from "../models/problem";
 import { ProblemSubmissions } from '../models/problemSubmissions';
-import { Repository } from "typeorm";
 
-export class ProblemRepository extends Repository<Problem> {
+export class ProblemRepository {
     async findAll(): Promise<Problem[]> {
         const problems = await db.any("SELECT * FROM problems order by created_by");
         const problemsWithTags = await Promise.all(problems.map(async problem => {

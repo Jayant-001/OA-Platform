@@ -1,8 +1,10 @@
 import { Request, Response, NextFunction } from "express";
 import ContestService from "../services/contestService";
+import ContestSubmissionService from "../services/contestSubmissionService";
 
 class ContestController {
     private contestService = new ContestService();
+    private contestSubmissionService = new ContestSubmissionService();
 
     async getAllContests(req: Request, res: Response, next: NextFunction) {
         try {
@@ -136,7 +138,7 @@ class ContestController {
             const is_registered = await this.contestService.isUserRegistered(req.user?.id as string, contestId);
 
             const { contest_code, created_by, created_at, updated_at, ...contestDetails } = contest;
-            res.json({...contestDetails, is_registered});
+            res.json({ ...contestDetails, is_registered });
         } catch (error) {
             next(error);
         }
@@ -145,11 +147,27 @@ class ContestController {
     async getUserContestProblems(req: Request, res: Response, next: NextFunction) {
         try {
             const { contestId } = req.params;
-            const problems = await this.contestService.getContestProblems(contestId, req.user?.id as string);
+            const userId = req.user?.id as string;
+            const problems = await this.contestService.getContestProblems(contestId, userId);
+
             if (!problems) {
                 return res.status(404).json({ message: "Problems not found for the contest" });
             }
-            res.json(problems);
+
+            const submissions = await this.contestSubmissionService.getAllContestSubmissionsByUserAndContest(userId, contestId);
+            const problemStatus = problems.map(problem => {
+                const problemSubmissions = submissions.filter(submission => submission.problem_id === problem.id);
+                const acceptedSubmission = problemSubmissions.find(submission => submission.verdict === 'accepted');
+                if (acceptedSubmission) {
+                    return { ...problem, status: 'Solved' };
+                } else if (problemSubmissions.length > 0) {
+                    return { ...problem, status: 'Attempted' };
+                } else {
+                    return { ...problem, status: 'Not Attempted' };
+                }
+            });
+
+            res.json(problemStatus);
         } catch (error) {
             next(error);
         }
@@ -157,7 +175,8 @@ class ContestController {
 
     async getUserContestProblem(req: Request, res: Response, next: NextFunction) {
         try {
-            const { problemId } = req.params;
+            const { contestId, problemId } = req.params;
+            const userId = req.user?.id as string;
             const problem = await this.contestService.getProblemById(problemId);
             if (!problem) {
                 return res.status(404).json({ message: "Problem not found" });

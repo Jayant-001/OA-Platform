@@ -74,3 +74,18 @@ export interface CreateProblem {
     memory_limit: string;
     tags: string[];
 }
+
+export interface Submission {
+    id: string;
+    user_id: string;
+    contest_id: string;
+    problem_id: string;
+    verdict: "accepted" | "wrong_answer" | "time_limit_exceeded" | "memory_limit_exceeded";
+    code: string;
+    language: string;
+    execution_time: number | null;
+    memory_used: number | null;
+    score: number | null;
+    submitted_at: string;
+    updated_at: string;
+}

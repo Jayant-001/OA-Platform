@@ -29,7 +29,7 @@ class ProblemService {
     async getAllProblems(): Promise<Problem[]> {
         const cacheKey = "all_problems";
         const cachedProblems = await this.problemListCache.get(cacheKey);
-        
+
         if (cachedProblems) {
             return cachedProblems;
         }
@@ -42,7 +42,7 @@ class ProblemService {
     async getProblemById(id: string): Promise<Problem | null> {
         const cacheKey = `problem:${id}`;
         const cachedProblem = await this.problemCache.get(cacheKey);
-        
+
         if (cachedProblem) {
             return cachedProblem;
         }
@@ -80,7 +80,7 @@ class ProblemService {
         if (!isExists) {
             throw new HttpException(404, "PROBLEM_NOT_FOUND", "Problem not found");
         }
-        
+
         await this.problemRepository.deleteProblem(id);
         await this.invalidateCache(id);
     }
@@ -88,7 +88,7 @@ class ProblemService {
     private async invalidateCache(id?: string): Promise<void> {
         // Clear the problem list cache
         await this.problemListCache.clear();
-        
+
         // If an ID is provided, also clear that specific problem's cache
         if (id) {
             await this.problemCache.delete(`problem:${id}`);

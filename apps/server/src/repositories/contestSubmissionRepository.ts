@@ -22,10 +22,10 @@ export class ContestSubmissionRepository {
             const currentTime = new Date(new Date().toISOString()); // Ensure current time is in UTC
             const startTime = new Date(contest.start_time);
             const endTime = contest.strict_time
-                ? new Date(startTime.getTime() + contest.duration * 1000)
+                ? new Date(startTime.getTime() + contest.duration * 60000)
                 : new Date(Math.min(
-                    new Date(contest.join_time).getTime() + contest.duration * 1000,
-                    startTime.getTime() + (contest.duration + contest.buffer_time) * 1000
+                    new Date(contest.join_time).getTime() + contest.duration * 60000,
+                    startTime.getTime() + (contest.duration + contest.buffer_time) * 60000
                 ));
 
             if (currentTime < startTime || currentTime > endTime) {
@@ -47,5 +47,39 @@ export class ContestSubmissionRepository {
                 ]
             );
         });
+    }
+
+    async getAllContestSubmissionsByUser(userId: string): Promise<any[]> {
+        return db.any(
+            `SELECT * FROM contest_submissions 
+             WHERE user_id = $1
+             ORDER BY submitted_at DESC`,
+            [userId]
+        );
+    }
+
+    async getAllContestSubmissionsByUserAndContest(userId: string, contestId: string): Promise<any[]> {
+        return db.any(
+            `SELECT * FROM contest_submissions 
+             WHERE user_id = $1 AND contest_id = $2
+             ORDER BY submitted_at DESC`,
+            [userId, contestId]
+        );
+    }
+
+    async findUserSubmissionsForProblem(contest_id: string, problem_id: string, user_id: string): Promise<ContestSubmissions[]> {
+        return db.any(
+            `SELECT * FROM contest_submissions 
+             WHERE contest_id = $1 AND problem_id = $2 AND user_id = $3
+             ORDER BY submitted_at DESC`,
+            [contest_id, problem_id, user_id]
+        );
+    }
+
+    async findById(submissionId: string): Promise<ContestSubmissions | null> {
+        return db.oneOrNone(
+            `SELECT * FROM contest_submissions WHERE id = $1`,
+            [submissionId]
+        );
     }
 }

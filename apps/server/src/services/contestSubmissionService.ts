@@ -57,6 +57,22 @@ class ContestSubmissionService {
         return submission;
     }
 
+    async getUserSubmissionsForProblem(contest_id: string, problem_id: string, user_id: string): Promise<ContestSubmissions[]> {
+        return this.contestSubmissionRepository.findUserSubmissionsForProblem(contest_id, problem_id, user_id);
+    }
+
+    async getAllContestSubmissionsByUser(userId: string): Promise<any[]> {
+        return this.contestSubmissionRepository.getAllContestSubmissionsByUser(userId);
+    }
+
+    async getAllContestSubmissionsByUserAndContest(userId: string, contestId: string): Promise<any[]> {
+        return this.contestSubmissionRepository.getAllContestSubmissionsByUserAndContest(userId, contestId);
+    }
+
+    async getSubmissionById(submissionId: string) {
+        return await this.contestSubmissionRepository.findById(submissionId);
+    }
+
     private async isContestActiveForUser(contest_id: string, user_id: string): Promise<boolean> {
         const cacheKey = `contest:${contest_id}:user:${user_id}:status`;
         const cachedStatus = await this.contestStatusCache.get(cacheKey);
@@ -71,10 +87,12 @@ class ContestSubmissionService {
         const currentTime = new Date();
         let isActive = false;
 
+        const contestStartTime = new Date(contest.start_time); // Ensure contest.start_time is a Date object
+
         if (contest.strict_time) {
-            isActive = currentTime < new Date(contest.start_time.getTime() + contest.duration * 1000);
+            isActive = currentTime < new Date(contestStartTime.getTime() + contest.duration * 60000); // 60,000 ms in a minute
         } else {
-            isActive = currentTime < new Date(userContest.joined_at.getTime() + contest.duration * 1000);
+            isActive = currentTime < new Date(userContest.joined_at.getTime() + contest.duration * 60000); // 60,000 ms in a minute
         }
 
         // Cache the result
