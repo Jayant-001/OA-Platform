@@ -41,7 +41,7 @@ class ContestSubmissionController {
                 timeout: 5000,
                 submissionType: "submit",
             };
-            await this.inputQueueService.getInputQueue().add(queueConfig.queues.input, job);
+            await this.inputQueueService.addJob(job);
             res.status(201).json({
                 ...submission,
                 status: 'PENDING'
@@ -97,7 +97,7 @@ class ContestSubmissionController {
                 timeout: 5000,
                 submissionType: "run",
             };
-            await this.inputQueueService.getInputQueue().add(queueConfig.queues.input, job);
+            await this.inputQueueService.addJob(job);
             res.status(201).json({
                 submission_id,
                 status: 'PENDING'

@@ -21,6 +21,10 @@ import morgan from "morgan";
 import commonRoutes from "./routes/commonRoutes";
 import  OutputQueueService  from "./services/outputQueueService";
 
+
+const outputQueueService = new OutputQueueService();
+outputQueueService.start();
+
 const app = express();
 const PORT = process.env.PORT;
 const corsOptions = {
@@ -70,7 +74,5 @@ app.listen(PORT, () =>
     console.log(`🚀 Server is running on http://localhost:${PORT}`)
 );
 
-const outputQueueService = new OutputQueueService();
-outputQueueService.start();
 
 export default app;
