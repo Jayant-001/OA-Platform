@@ -8,7 +8,7 @@ import { CacheStrategy } from "../types/cache.types";
 class ContestSubmissionService {
     private contestSubmissionRepository = new ContestSubmissionRepository();
     private contestRepository = new ContestRepository();
-    
+
     // Cache for contest status (active/inactive) for users
     private contestStatusCache = CacheFactory.create<boolean>(
         { host: "localhost", port: 6379 },
@@ -39,7 +39,7 @@ class ContestSubmissionService {
     ): Promise<ContestSubmissions> {
         const userId = user_id;
         const isActive = await this.isContestActiveForUser(contest_id, userId);
-        
+
         if (!isActive) {
             throw new HttpException(400, "CONTEST_NOT_ACTIVE", "The contest is not active for the user");
         }
@@ -53,7 +53,7 @@ class ContestSubmissionService {
 
         // Invalidate relevant caches after submission
         await this.invalidateUserContestCache(contest_id, user_id);
-        
+
         return submission;
     }
 
@@ -73,17 +73,37 @@ class ContestSubmissionService {
         return await this.contestSubmissionRepository.findById(submissionId);
     }
 
+    async updateSubmission(id: string, data: {
+        verdict: string;
+        execution_time?: number;
+        memory_used?: number;
+    }): Promise<void> {
+        try {
+            await this.contestSubmissionRepository.updateSubmission(id, {
+                verdict: data.verdict,
+                execution_time: data.execution_time,
+                memory_used: data.memory_used
+            });
+        } catch (error) {
+            if (error instanceof Error) {
+                throw new Error(`Failed to update submission: ${error.message}`);
+            } else {
+                throw new Error('Failed to update submission due to an unknown error');
+            }
+        }
+    }
+
     private async isContestActiveForUser(contest_id: string, user_id: string): Promise<boolean> {
         const cacheKey = `contest:${contest_id}:user:${user_id}:status`;
         const cachedStatus = await this.contestStatusCache.get(cacheKey);
 
-        if (cachedStatus !== null) {
-            return cachedStatus;
-        }
+        // if (cachedStatus !== null) {
+        //     return cachedStatus;
+        // }
 
         const contest = await this.getContestDetails(contest_id);
         const userContest = await this.getUserContest(contest_id, user_id);
-        
+
         const currentTime = new Date();
         let isActive = false;
 
@@ -104,9 +124,9 @@ class ContestSubmissionService {
         const cacheKey = `contest:${contest_id}`;
         const cachedContest = await this.userContestCache.get(cacheKey);
 
-        if (cachedContest) {
-            return cachedContest;
-        }
+        // if (cachedContest) {
+        //     return cachedContest;
+        // }
 
         const contest = await this.contestRepository.findById(contest_id);
         if (!contest) {
