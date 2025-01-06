@@ -1,142 +1,117 @@
-import { useState, useEffect } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { Navbar } from "@/components/layout/Navbar";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Skeleton } from "@/components/ui/skeleton";
-import toast from "react-hot-toast";
-import { FaCheckCircle, FaTimesCircle, FaExclamationCircle } from "react-icons/fa";
 import { useProblemContext } from "@/context/ProblemContext";
+import { 
+    BookOpen, 
+    Check, 
+    AlertTriangle, 
+    XCircle, 
+    Clock, 
+    ArrowRight,
+    BrainCircuit
+} from "lucide-react";
 
 export function ContestProblemsPage() {
-    const { contest_id } = useParams();
     const navigate = useNavigate();
-    const { problems ,loading} = useProblemContext();
-
-    // useEffect(() => {
-    //     if (!contest_id) {
-    //         toast.error("Contest ID not provided");
-    //         return;
-    //     }
-
-    //    // if (problems.length === 0) {
-    //         const fetchProblemsData = async () => {
-    //             await fetchProblems(contest_id);
-    //             setLoading(false);
-    //        // };
-
-    //         fetchProblemsData();
-    //     // } else {
-    //     //     setLoading(false);
-    //      }
-    // }, []);
-
-    useEffect(() => {
-        //console.log("Problems", problems);  
-     }
-    , [problems]);
+    const { problems, loading } = useProblemContext();
 
     const getStatusColor = (status: string) => {
-        switch (status) {
-            case 'Solved':
-                return 'text-green-600';
-            case 'Attempted':
-                return 'text-yellow-600';
-            case 'Not Attempted':
-                return 'text-red-600';
-            default:
-                return 'text-gray-600';
-        }
+        const colors = {
+            'Solved': 'bg-green-100 text-green-700 border-green-200',
+            'Attempted': 'bg-yellow-100 text-yellow-700 border-yellow-200',
+            'Not Attempted': 'bg-red-100 text-red-700 border-red-200'
+        };
+        return colors[status] || 'bg-gray-100 text-gray-700 border-gray-200';
     };
 
     const getStatusIcon = (status: string) => {
-        switch (status) {
-            case 'Solved':
-                return <FaCheckCircle className="mr-1" />;
-            case 'Attempted':
-                return <FaExclamationCircle className="mr-1" />;
-            case 'Not Attempted':
-                return <FaTimesCircle className="mr-1" />;
-            default:
-                return null;
-        }
+        const icons = {
+            'Solved': <Check className="w-4 h-4" />,
+            'Attempted': <AlertTriangle className="w-4 h-4" />,
+            'Not Attempted': <XCircle className="w-4 h-4" />
+        };
+        return icons[status] || null;
     };
 
+    if (loading) {
+        return (
+            <div className="min-h-screen bg-gradient-to-b from-slate-50 to-slate-100">
+                <Navbar />
+                <main className="container mx-auto px-4 py-8">
+                    <div className="flex flex-col items-center justify-center py-12">
+                        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600"></div>
+                        <p className="mt-4 text-slate-600">Loading problems...</p>
+                    </div>
+                </main>
+            </div>
+        );
+    }
+
     return (
-        <div className="min-h-screen bg-background">
+        <div className="min-h-screen bg-gradient-to-b from-slate-50 to-slate-100">
             <Navbar />
-            <main className="container mx-auto px-4 py-8">
-                <div className="mb-8">
-                    <h1 className="text-3xl font-bold mb-2">
+            <main className="container max-w-4xl mx-auto px-4 py-8">
+                <div className="mb-8 text-center">
+                    <h1 className="text-4xl font-bold mb-3 bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent flex items-center justify-center gap-2">
+                        <BrainCircuit className="w-10 h-10" />
                         Contest Problems
                     </h1>
-                    <p className="text-muted-foreground">
-                        Solve all problems within the time limit to win the
-                        contest
+                    <p className="text-slate-600 max-w-2xl mx-auto">
+                        Solve all problems within the time limit to win the contest. 
+                        Good luck and happy coding!
                     </p>
                 </div>
 
-                {loading ? (
-                    <div className="space-y-4">
-                        {[...Array(3)].map((_, index) => (
-                            <Card
-                                key={index}
-                                className="hover:shadow-md transition-shadow"
-                            >
-                                <CardHeader className="flex flex-row items-center justify-between">
-                                    <Skeleton className="h-6 w-1/2" />
-                                </CardHeader>
-                                <CardContent>
-                                    <div className="flex justify-between items-center">
-                                        <Skeleton className="h-4 w-1/4" />
-                                        <Skeleton className="h-8 w-24" />
-                                    </div>
-                                </CardContent>
-                            </Card>
-                        ))}
-                    </div>
-                ) : (
-                    <div className="space-y-4">
-                        {problems.map((problem) => (
-                            <Card
-                                key={problem.id}
-                                className="hover:shadow-md transition-shadow"
-                            >
-                                <CardHeader className="flex flex-row items-center justify-between">
-                                    <CardTitle className="text-xl">
-                                        {problem.title}
-                                    </CardTitle>
-                                </CardHeader>
-                                <CardContent>
-                                    <div className="flex justify-between items-center">
-                                        <div className="flex items-center gap-2">
-                                            <span className="text-sm text-muted-foreground">
-                                                <b>Points:</b> {problem.points}
-                                            </span>
-
-                                            <Badge
-                                                variant="outline"
-                                                className={`flex items-center ${getStatusColor(problem.status)}`}
-                                            >
-                                                {getStatusIcon(problem.status)}
-                                                {problem.status}
-                                            </Badge>
+                <div className="space-y-4">
+                    {problems.map((problem, index) => (
+                        <Card 
+                            key={problem.id}
+                            className="group hover:shadow-lg transition-all duration-300 border-slate-200 hover:border-purple-200 backdrop-blur-sm bg-white/90"
+                        >
+                            <CardHeader>
+                                <div className="flex items-center justify-between flex-wrap gap-4">
+                                    <div className="flex items-center gap-3">
+                                        <span className="text-2xl font-bold text-purple-600 w-8">
+                                            {String.fromCharCode(65 + index)}
+                                        </span>
+                                        <div className="space-y-1">
+                                            <CardTitle className="text-xl font-semibold">
+                                                {problem.title}
+                                            </CardTitle>
+                                            <div className="flex items-center gap-3 text-sm text-slate-600">
+                                                <div className="flex items-center gap-1">
+                                                    <Clock className="w-4 h-4 text-purple-600" />
+                                                    {problem.points} points
+                                                </div>
+                                                
+                                            </div>
                                         </div>
-                                        <Button
-                                            onClick={() =>
-                                                navigate(`${problem.id}/solve`)
-                                            }
-                                            variant="outline"
-                                        >
-                                            Solve Problem
-                                        </Button>
                                     </div>
-                                </CardContent>
-                            </Card>
-                        ))}
-                    </div>
-                )}
+                                    <Badge 
+                                        variant="outline" 
+                                        className={`flex items-center gap-1 ${getStatusColor(problem.status)}`}
+                                    >
+                                        {getStatusIcon(problem.status)}
+                                        {problem.status}
+                                    </Badge>
+                                </div>
+                            </CardHeader>
+                            <CardContent>
+                                <Button
+                                    onClick={() => navigate(`${problem.id}/solve`)}
+                                    className="w-full bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 group-hover:shadow-md transition-all duration-300"
+                                >
+                                    <BookOpen className="w-4 h-4 mr-2" />
+                                    Solve Problem
+                                    <ArrowRight className="w-4 h-4 ml-2 opacity-0 group-hover:opacity-100 transition-opacity" />
+                                </Button>
+                            </CardContent>
+                        </Card>
+                    ))}
+                </div>
             </main>
         </div>
     );

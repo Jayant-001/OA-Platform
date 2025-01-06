@@ -10,7 +10,6 @@ import {
     problemFilters,
 } from "../admin/columns/problemColumns";
 import { userColumns, userFilters } from "../admin/columns/userColumns";
-// import { users } from "@/data";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import TextEditor from "@/components/shared/TextEditor";
