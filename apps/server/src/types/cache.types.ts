@@ -18,3 +18,13 @@ export interface CacheAdapter<T> {
     delete(key: string): Promise<void>;
     clear(): Promise<void>;
 }
+
+export interface SubmissionStatus {
+    status: 'PENDING' | 'COMPLETED' | 'ERROR';
+    result?: {
+        output?: string;
+        error?: string;
+        execution_time?: number;
+        memory_used?: number;
+    };
+}

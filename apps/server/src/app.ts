@@ -18,6 +18,8 @@ import cors from "cors";
 import dotenv from "dotenv";
 dotenv.config();
 import morgan from "morgan";
+import commonRoutes from "./routes/commonRoutes";
+import  OutputQueueService  from "./services/outputQueueService";
 
 const app = express();
 const PORT = process.env.PORT;
@@ -51,6 +53,7 @@ app.use("/api/users", userAuthMiddleware, userRoutes);
 app.use("/api/users/contests", userAuthMiddleware, userContestRoutes); // Contest routes for users
 
 app.use("/auth/admins", adminAuthRoutes); 
+app.use("/api", commonRoutes);
 app.use("/api/admins/contests", adminAuthMiddleware, adminContestRoutes); // Contest routes for admins
 app.use("/api/admins/problems", adminAuthMiddleware, adminProblemRoutes); // Problem routes for admins
 app.use("/api/admins/tags", adminAuthMiddleware, tagRoutes); // Tag routes for admins
@@ -66,5 +69,8 @@ app.use(errorHandler);
 app.listen(PORT, () =>
     console.log(`🚀 Server is running on http://localhost:${PORT}`)
 );
+
+const outputQueueService = new OutputQueueService();
+outputQueueService.start();
 
 export default app;

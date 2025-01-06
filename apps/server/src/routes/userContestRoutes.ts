@@ -35,4 +35,6 @@ router.get('/', asyncHandler(contestController.getUserAllContest.bind(contestCon
 // Route to get submission details by submission ID
 router.get('/submissions/:submissionId', asyncHandler(contestSubmissionController.getSubmissionById.bind(contestSubmissionController)));
 
+
+
 export default router;
