@@ -82,4 +82,25 @@ export class ContestSubmissionRepository {
             [submissionId]
         );
     }
+
+    async updateSubmission(id: string, data: {
+        verdict: string;
+        execution_time?: number;
+        memory_used?: number;
+    }): Promise<void> {
+        await db.none(
+            `UPDATE contest_submissions 
+             SET verdict = $1, 
+                 execution_time = $2, 
+                 memory_used = $3, 
+                 updated_at = NOW()
+             WHERE id = $4`,
+            [
+                data.verdict,
+                data.execution_time || 0,
+                data.memory_used || 0,
+                id
+            ]
+        );
+    }
 }
