@@ -47,6 +47,8 @@ export interface Problem {
     created_at: string;
     updated_at: string;
     tags: string[];
+    points: number;
+    status: "Solved" | "Attempted" | "Not Attempted"; // Add this line
 }
 
 export interface ContestProblems {
