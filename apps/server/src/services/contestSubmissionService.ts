@@ -1,7 +1,7 @@
 import { ContestSubmissionRepository } from "../repositories/contestSubmissionRepository";
 import { ContestRepository } from "../repositories/contestRepository";
 import { ContestSubmissions } from "../models/contestSubmissions";
-import { HttpException } from "../middleware/errorHandler";
+import { CustomException } from "../errors/CustomException";
 import { CacheFactory } from "./redis-cache.service";
 import { CacheStrategy } from "../types/cache.types";
 
@@ -41,7 +41,7 @@ class ContestSubmissionService {
         const isActive = await this.isContestActiveForUser(contest_id, userId);
 
         if (!isActive) {
-            throw new HttpException(400, "CONTEST_NOT_ACTIVE", "The contest is not active for the user");
+            throw new CustomException(400, "The contest is not active for the user", "CONTEST_NOT_ACTIVE");
         }
 
         const submission = await this.contestSubmissionRepository.create({
@@ -130,7 +130,7 @@ class ContestSubmissionService {
 
         const contest = await this.contestRepository.findById(contest_id);
         if (!contest) {
-            throw new HttpException(404, "CONTEST_NOT_FOUND", "Contest not found");
+            throw new CustomException(404, "Contest not found", "CONTEST_NOT_FOUND");
         }
 
         await this.userContestCache.set(cacheKey, contest);
@@ -147,7 +147,7 @@ class ContestSubmissionService {
 
         const userContest = await this.contestRepository.findUserContest(contest_id, user_id);
         if (!userContest) {
-            throw new HttpException(404, "USER_NOT_IN_CONTEST", "User is not part of the contest");
+            throw new CustomException(404, "User is not part of the contest", "USER_NOT_IN_CONTEST");
         }
 
         await this.userContestCache.set(cacheKey, userContest);

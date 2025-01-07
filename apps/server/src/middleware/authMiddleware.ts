@@ -1,13 +1,12 @@
 import { Request, Response, NextFunction } from "express";
 import jwt from "jsonwebtoken";
-import { HttpException } from "./errorHandler";
 import { ReqUser } from "../models/reqUser";
 import { UserService } from "../services/userService";
 import { AdminService } from "../services/adminService";
+import { CustomException } from "../errors/CustomException";
 
 const userService = new UserService();
 const adminService = new AdminService();
-
 
 const userAuthMiddleware = async (
     req: Request,
@@ -18,7 +17,7 @@ const userAuthMiddleware = async (
         req.headers.authorization?.split(" ")[1] || req.cookies?.auth_token;
 
     if (!token) {
-        return next(new HttpException(401, "NOT_AUTHORIZED", "No token provided"));
+        return next(new CustomException(401, "No token provided", "NOT_AUTHORIZED"));
     }
 
     try {
@@ -28,16 +27,12 @@ const userAuthMiddleware = async (
 
         const exists = await userService.getUserById(req.user.id);
         if (!exists || exists.role !== "user") {
-            return next(new HttpException(401, "NOT_AUTHORIZED", "User not found"));
+            return next(new CustomException(401, "User not found", "NOT_AUTHORIZED"));
         }
 
         next();
     } catch (error) {
-        return next(new HttpException(
-            401,
-            "NOT_AUTHORIZED",
-            "Invalid or expired token"
-        ));
+        return next(new CustomException(401, "Invalid or expired token", "NOT_AUTHORIZED"));
     }
 };
 
@@ -48,10 +43,9 @@ const adminAuthMiddleware = async (
 ) => {
     const token =
         req.headers.authorization?.split(" ")[1] || req.cookies?.auth_token;
-    
 
     if (!token) {
-        return next(new HttpException(401, "NOT_AUTHORIZED", "No token provided"));
+        return next(new CustomException(401, "No token provided", "NOT_AUTHORIZED"));
     }
 
     try {
@@ -60,28 +54,20 @@ const adminAuthMiddleware = async (
         req.user = decoded;
 
         if (req?.user?.role !== "admin" && req?.user?.role !== "panel") {
-            return next(new HttpException(
-                401,
-                "NOT_AUTHORIZED",
-                "User is not authorized to access this route"
-            ));
+            return next(new CustomException(401, "User is not authorized to access this route", "NOT_AUTHORIZED"));
         }
-        
+
         const exists = await adminService.getAdminById(req.user.id);
         if (!exists) {
-            return next(new HttpException(401, "NOT_AUTHORIZED", "User not found"));
+            return next(new CustomException(401, "User not found", "NOT_AUTHORIZED"));
         }
 
         next();
     } catch (error) {
-        if (error instanceof HttpException) {
-            return next(new HttpException(401, "NOT_AUTHORIZED", error.message));
+        if (error instanceof CustomException) {
+            return next(new CustomException(401, error.message, "NOT_AUTHORIZED"));
         } else {
-            return next(new HttpException(
-                401,
-                "NOT_AUTHORIZED",
-                "Invalid or expired token"
-            ));
+            return next(new CustomException(401, "Invalid or expired token", "NOT_AUTHORIZED"));
         }
     }
 };

@@ -1,4 +1,4 @@
-import Redis, {RedisOptions} from 'ioredis';
+import Redis, { RedisOptions } from 'ioredis';
 import { CacheAdapter, CacheStrategy, CacheOptions } from '../types/cache.types';
 
 class RedisCacheService<T> implements CacheAdapter<T> {
@@ -20,8 +20,8 @@ class RedisCacheService<T> implements CacheAdapter<T> {
 
   // Core Caching Methods
   async set(
-    key: string, 
-    value: T, 
+    key: string,
+    value: T,
     options: CacheOptions = {}
   ): Promise<void> {
     const fullKey = this.prefix + key;
@@ -52,9 +52,9 @@ class RedisCacheService<T> implements CacheAdapter<T> {
 
   // LRU (Least Recently Used) Strategy
   private async setLRU(
-    key: string, 
-    value: string, 
-    maxEntries: number, 
+    key: string,
+    value: string,
+    maxEntries: number,
     ttl: number
   ): Promise<void> {
     // Use sorted set for tracking access time
@@ -67,9 +67,9 @@ class RedisCacheService<T> implements CacheAdapter<T> {
 
   // LFU (Least Frequently Used) Strategy
   private async setLFU(
-    key: string, 
-    value: string, 
-    maxEntries: number, 
+    key: string,
+    value: string,
+    maxEntries: number,
     ttl: number
   ): Promise<void> {
     // Increment frequency counter
@@ -83,9 +83,9 @@ class RedisCacheService<T> implements CacheAdapter<T> {
 
   // FIFO (First In First Out) Strategy
   private async setFIFO(
-    key: string, 
-    value: string, 
-    maxEntries: number, 
+    key: string,
+    value: string,
+    maxEntries: number,
     ttl: number
   ): Promise<void> {
     await this.redis.multi()
@@ -97,9 +97,9 @@ class RedisCacheService<T> implements CacheAdapter<T> {
 
   // Random Eviction Strategy
   private async setRandom(
-    key: string, 
-    value: string, 
-    maxEntries: number, 
+    key: string,
+    value: string,
+    maxEntries: number,
     ttl: number
   ): Promise<void> {
     // Check current cache size
@@ -114,7 +114,7 @@ class RedisCacheService<T> implements CacheAdapter<T> {
           randomKeys.push(key);
         }
       }
-      
+
       await Promise.all(
         randomKeys.map(k => this.redis.del(k))
       );
@@ -163,7 +163,7 @@ class RedisCacheService<T> implements CacheAdapter<T> {
   }> {
     const keys = await this.getKeys();
     const info = await this.redis.info('memory');
-    
+
     return {
       totalKeys: keys.length,
       memoryUsage: parseFloat(
@@ -181,7 +181,7 @@ export class CacheFactory {
     options: Partial<CacheOptions> = {}
   ): RedisCacheService<T> {
     return new RedisCacheService<T>(
-        redisConfig, prefix, options
+      redisConfig, prefix, options
     );
   }
 }

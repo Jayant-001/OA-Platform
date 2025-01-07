@@ -1,7 +1,7 @@
 import db from "../config/database";
-import { HttpException } from "../middleware/errorHandler";
 import { Problem } from "../models/problem";
 import { ProblemSubmissions } from '../models/problemSubmissions';
+import { TestCase } from "../models/testCase";
 
 export class ProblemRepository {
     async findAll(): Promise<Problem[]> {
@@ -128,5 +128,65 @@ export class ProblemRepository {
                 submission.submitted_by
             ]
         );
+    }
+
+    async createTestCase(testCase: Omit<TestCase, "id" | "created_at" | "updated_at">,problemId:String): Promise<TestCase> {
+        return db.one(`
+            INSERT INTO test_cases (input, output, problem_id, is_sample, input_url, output_url)
+            VALUES ($1, $2, $3, $4, $5, $6)
+            RETURNING *
+        `, [
+            testCase.input,
+            testCase.output,
+            problemId,
+            testCase.is_sample || false,
+            testCase.input_url,
+            testCase.output_url
+        ]);
+    }
+
+    async getTestCasesByProblemId(problemId: string): Promise<TestCase[]> {
+        return db.manyOrNone(`
+            SELECT * FROM test_cases 
+            WHERE problem_id = $1 
+            ORDER BY created_at
+        `, [problemId]);
+    }
+
+    async updateTestCase(id: string, testCase: Partial<Omit<TestCase, "id" | "created_at" | "updated_at">>): Promise<TestCase> {
+        const fields = Object.keys(testCase)
+            .map((key, index) => `${key} = $${index + 2}`)
+            .join(", ");
+        
+        return db.one(`
+            UPDATE test_cases 
+            SET ${fields} 
+            WHERE id = $1 
+            RETURNING *
+        `, [id, ...Object.values(testCase)]);
+    }
+
+    async deleteTestCase(id: string): Promise<void> {
+        await db.none('DELETE FROM test_cases WHERE id = $1', [id]);
+    }
+
+    async createBulkTestCases(testCases: Omit<TestCase, "id" | "created_at" | "updated_at">[]): Promise<TestCase[]> {
+        return db.tx(async t => {
+            const queries = testCases.map(testCase =>
+                t.one(`
+                    INSERT INTO test_cases (input, output, problem_id, is_sample, input_url, output_url)
+                    VALUES ($1, $2, $3, $4, $5, $6)
+                    RETURNING *
+                `, [
+                    testCase.input,
+                    testCase.output,
+                    testCase.problem_id,
+                    testCase.is_sample || false,
+                    testCase.input_url,
+                    testCase.output_url
+                ])
+            );
+            return t.batch(queries);
+        });
     }
 }

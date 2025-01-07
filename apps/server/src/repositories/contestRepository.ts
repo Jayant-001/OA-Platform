@@ -1,7 +1,7 @@
 import db from "../config/database";
+import { CustomException } from "../errors/CustomException";
 import { Contest, ContestProblem } from "../models/contest";
 import { UserDetails } from "../models/user";
-import { HttpException } from "../middleware/errorHandler";
 
 export class ContestRepository {
     async findAll(): Promise<Contest[]> {
@@ -271,7 +271,7 @@ export class ContestRepository {
                 `;
                 return t.any(problemsQuery, [contestId]);
             } else {
-                throw new HttpException(404, "CONTEST_NOT_FOUND", "Contest not accessible");
+                throw new CustomException(404, "CONTEST_NOT_FOUND", "Contest not accessible");
             }
         });
     }

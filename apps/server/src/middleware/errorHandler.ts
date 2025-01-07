@@ -1,21 +1,27 @@
-import { Request, Response, NextFunction } from "express";
+import { Request, Response, NextFunction } from 'express';
+import { CustomException } from '../errors/CustomException';
 
-export class HttpException extends Error {
-    status: number;
-    code: string;
-    message: string;
+export const errorHandler = (
+    err: Error,
+    req: Request,
+    res: Response,
+    next: NextFunction
+) => {
+    console.error(err.stack);
 
-    constructor(status: number, code: string, message: string) {
-        super(message);
-        this.status = status;
-        this.code = code;
-        this.message = message;
+    if (err instanceof CustomException) {
+        return res.status(err.statusCode).json({
+            status: 'error',
+            errorCode: err.errorCode,
+            message: err.message
+        });
     }
-}
 
-export const errorHandler = (err: HttpException, req: Request, res: Response, next: NextFunction) => {
-    const status = err.status || 500;
-    const message = err.message || "Something went wrong";
-    const code = err.code || "INTERNAL_SERVER_ERROR";
-    res.status(status).json({ code, message });
+    // Handle unhandled errors
+    const internalError = CustomException.internal();
+    return res.status(internalError.statusCode).json({
+        status: 'error',
+        errorCode: internalError.errorCode,
+        message: err.message
+    });
 };
