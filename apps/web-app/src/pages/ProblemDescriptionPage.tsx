@@ -14,17 +14,7 @@ import { Problem, Submission } from "@/types";
 import MonacoEditor from "@monaco-editor/react";
 import { useAdminApi, useUsersApi, useSubmissionApi } from "@/hooks/useApi";
 import toast from "react-hot-toast";
-import classNames from "classnames";
-import {
-    Dialog,
-    DialogOverlay,
-    DialogContent,
-    DialogHeader,
-    DialogTitle,
-    DialogClose,
-    DialogBody,
-} from "../components/ui/dialog";
-import { CopyToClipboard } from "react-copy-to-clipboard";
+
 import { useProblemContext } from "@/context/ProblemContext";
 import {
     BookOpen,
@@ -34,13 +24,13 @@ import {
     SendHorizonal,
     XCircle,
     Clock,
-    Terminal,
-    Cpu,
-    ChevronRight,
-    FileCode,
-    AlignLeft,
+    Loader,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import RunConsole from "@/components/problems/RunConsole";
+import { useLongRunningTask } from "@/hooks/useRunCodePool";
+import ContestSubmissions from "@/components/contest/ContestSubmissions";
+import { useSubmissionPool } from "@/hooks/useSubmissionPool";
 
 export function ProblemDescriptionPage() {
     const { problem_id: problemId, contest_id } = useParams();
@@ -52,29 +42,55 @@ export function ProblemDescriptionPage() {
     const [output, setOutput] = useState("");
     const [isConsoleCollapsed, setIsConsoleCollapsed] = useState(false);
     const [submissions, setSubmissions] = useState<Submission[]>([]);
-    const [selectedSubmission, setSelectedSubmission] =
-        useState<Submission | null>(null);
+
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
     const { fetchProblemById } = useAdminApi();
     const { getContestProblemById } = useUsersApi();
-    const { getSubmissionsByProblemId, getSubmissionById, createSubmission } =
-        useSubmissionApi();
+    const { createSubmission, getSubmissionsByProblemId } = useSubmissionApi();
     const { problems } = useProblemContext();
     const isDashboardPage = location.pathname.includes("/dashboard");
     const navigate = useNavigate();
-    const [contestEndTime] = useState(new Date(Date.now() + 2 * 60 * 60 * 1000)); // 2 hours from now
-    const [timeToEnd, setTimeToEnd] = useState<string>('');
+    const [contestEndTime] = useState(
+        new Date(Date.now() + 2 * 60 * 60 * 1000)
+    ); // 2 hours from now
+    const [timeToEnd, setTimeToEnd] = useState<string>("");
     const [consoleSize, setConsoleSize] = useState(30); // default size 30%
 
+    /**
+     *
+     * ------------------------------------------ Run code pooling ------------------------------------------------
+     *
+     */
+    const { submitTask, requestId, result, isLoading, error, reset } =
+        useLongRunningTask();
+
+    const {
+        submitTask: submitCode,
+        result: submissionResult,
+        isLoading: submissionIsLoading,
+    } = useSubmissionPool();
+
     useEffect(() => {
-        if (!problemId) {
+        if (submissionIsLoading == false && submissionResult != null) {
+            const updatedSubmissions = submissions.map((sub) => {
+                if (sub.id == submissionResult.id) {
+                    return submissionResult as Submission;
+                }
+                return sub;
+            });
+            setSubmissions(updatedSubmissions);
+        }
+    }, [submissionIsLoading, submissionResult]);
+
+    useEffect(() => {
+        if (!problemId || !contest_id) {
             toast.error("Problem ID not provided");
             return;
         }
 
         (async () => {
             try {
-                let fetched_problem, fetched_submissions;
+                let fetched_problem;
                 if (isDashboardPage) {
                     fetched_problem = await fetchProblemById(problemId);
                 } else {
@@ -82,13 +98,14 @@ export function ProblemDescriptionPage() {
                         contest_id as string,
                         problemId as string
                     );
-                    fetched_submissions = await getSubmissionsByProblemId(
+                    const fetched_submissions = await getSubmissionsByProblemId(
                         contest_id as string,
                         problemId as string
                     );
+
+                    setSubmissions(fetched_submissions);
+                    setProblem(fetched_problem);
                 }
-                setProblem(fetched_problem);
-                setSubmissions(fetched_submissions);
             } catch (error) {
                 console.log(error);
                 toast.error("Failed to fetch problem data");
@@ -100,35 +117,56 @@ export function ProblemDescriptionPage() {
         const interval = setInterval(() => {
             const now = new Date();
             if (now >= contestEndTime) {
-                setTimeToEnd('Contest Ended');
+                setTimeToEnd("Contest Ended");
                 clearInterval(interval);
                 return;
             }
 
-            const hours = Math.floor((contestEndTime.getTime() - now.getTime()) / (1000 * 60 * 60));
-            const minutes = Math.floor(((contestEndTime.getTime() - now.getTime()) % (1000 * 60 * 60)) / (1000 * 60));
-            const seconds = Math.floor(((contestEndTime.getTime() - now.getTime()) % (1000 * 60)) / 1000);
+            const hours = Math.floor(
+                (contestEndTime.getTime() - now.getTime()) / (1000 * 60 * 60)
+            );
+            const minutes = Math.floor(
+                ((contestEndTime.getTime() - now.getTime()) %
+                    (1000 * 60 * 60)) /
+                    (1000 * 60)
+            );
+            const seconds = Math.floor(
+                ((contestEndTime.getTime() - now.getTime()) % (1000 * 60)) /
+                    1000
+            );
 
-            setTimeToEnd(`${hours}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`);
+            setTimeToEnd(
+                `${hours}:${minutes.toString().padStart(2, "0")}:${seconds
+                    .toString()
+                    .padStart(2, "0")}`
+            );
         }, 1000);
 
         return () => clearInterval(interval);
     }, [contestEndTime]);
 
     const handleRun = () => {
-        // Handle running code
-        setOutput("Running code...");
+        submitTask({ code, language, input });
     };
 
     const handleSubmit = async () => {
+        if (!contest_id || !problemId) {
+            toast.error("INvalid contestId or problemId");
+            return;
+        }
+
         setOutput("Submitting solution...");
         try {
-            await createSubmission({
+            const createdSubmission = await submitCode({
                 code,
                 language,
-                problemId: problemId || "",
-                contestId: contest_id || "",
+                contestId: contest_id,
+                problemId,
             });
+
+            const new_submisisons = [createdSubmission!, ...submissions];
+            setSubmissions(new_submisisons);
+
             setOutput("Submission successful!");
             toast.success("Submission successful!");
         } catch (error) {
@@ -138,32 +176,11 @@ export function ProblemDescriptionPage() {
         }
     };
 
-    const verdictClass = useMemo(
-        () => ({
-            accepted: "text-green-500",
-            wrong_answer: "text-red-500",
-            time_limit_exceeded: "text-yellow-500",
-            memory_limit_exceeded: "text-purple-500",
-            default: "text-gray-500",
-        }),
-        []
-    );
-
     const handleProblemClick = (id: string) => {
         if (id !== problemId) {
             console.log("Problem ID Switched To:", id);
             navigate(`/contests/${contest_id}/problems/${id}/solve`);
             setIsSidebarOpen(false);
-        }
-    };
-
-    const handleSubmissionClick = async (submissionId: string) => {
-        try {
-            const submission = await getSubmissionById(submissionId);
-            setSelectedSubmission(submission);
-        } catch (error) {
-            console.log(error);
-            toast.error("Failed to fetch submission details");
         }
     };
 
@@ -173,7 +190,9 @@ export function ProblemDescriptionPage() {
         <div className="h-screen flex overflow-hidden">
             {/* Problems List Drawer - Floating */}
             <div
-                className={`fixed top-4 ${isSidebarOpen ? 'left-4' : 'left-0'} z-50 transition-transform duration-300 ease-in-out ${
+                className={`fixed top-4 ${
+                    isSidebarOpen ? "left-4" : "left-0"
+                } z-50 transition-transform duration-300 ease-in-out ${
                     isSidebarOpen ? "translate-x-0" : "-translate-x-full"
                 }`}
             >
@@ -236,7 +255,9 @@ export function ProblemDescriptionPage() {
                     {/* Contest Timer */}
                     <div className="flex items-center gap-2 bg-slate-100 px-4 py-2 rounded-full">
                         <Clock className="w-4 h-4 text-purple-600 animate-pulse" />
-                        <span className="font-medium text-slate-700">Ends in:</span>
+                        <span className="font-medium text-slate-700">
+                            Ends in:
+                        </span>
                         <span className="font-mono text-purple-600 font-bold">
                             {timeToEnd}
                         </span>
@@ -261,15 +282,25 @@ export function ProblemDescriptionPage() {
                             variant="outline"
                             onClick={handleRun}
                             className="gap-2 border-slate-200 hover:bg-slate-50"
+                            disabled={isLoading}
                         >
-                            <PlayCircle className="w-4 h-4" />
+                            {isLoading ? (
+                                <Loader className="animate-spin w-16 h-16" />
+                            ) : (
+                                <PlayCircle className="w-4 h-4" />
+                            )}
                             Run
                         </Button>
                         <Button
                             onClick={handleSubmit}
                             className="gap-2 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700"
+                            disabled={submissionIsLoading}
                         >
-                            <SendHorizonal className="w-4 h-4" />
+                            {submissionIsLoading ? (
+                                <Loader className="animate-spin w-16 h-16" />
+                            ) : (
+                                <SendHorizonal className="w-4 h-4" />
+                            )}
                             Submit
                         </Button>
                     </div>
@@ -277,7 +308,7 @@ export function ProblemDescriptionPage() {
 
                 {/* Main Split */}
                 <Split
-                    className="h-[calc(100vh-4rem)]"
+                    className={"h-[calc(100vh-4rem)]"}
                     initialPrimarySize="40%"
                     minPrimarySize="30%"
                     maxPrimarySize="70%"
@@ -322,54 +353,7 @@ export function ProblemDescriptionPage() {
                             </TabsContent>
 
                             <TabsContent value="submissions">
-                                <div className="space-y-4">
-                                    {submissions.length === 0 ? (
-                                        <p>No submissions yet</p>
-                                    ) : (
-                                        submissions.map((submission) => (
-                                            <div
-                                                key={submission.id}
-                                                className="p-4 border rounded-md cursor-pointer hover:bg-gray-100 transition"
-                                                onClick={() =>
-                                                    handleSubmissionClick(
-                                                        submission.id
-                                                    )
-                                                }
-                                            >
-                                                <div className="flex justify-between items-center">
-                                                    <div>
-                                                        <span className="font-medium">
-                                                            {new Date(
-                                                                submission.submitted_at
-                                                            ).toLocaleString()}
-                                                        </span>
-                                                        <div className="text-sm text-gray-500">
-                                                            {
-                                                                submission.language
-                                                            }
-                                                        </div>
-                                                    </div>
-                                                    <span
-                                                        className={classNames(
-                                                            verdictClass[
-                                                                submission.verdict ||
-                                                                    "default"
-                                                            ],
-                                                            "font-semibold"
-                                                        )}
-                                                    >
-                                                        {submission.verdict
-                                                            ? submission.verdict.replace(
-                                                                  /_/g,
-                                                                  " "
-                                                              )
-                                                            : "No Verdict"}
-                                                    </span>
-                                                </div>
-                                            </div>
-                                        ))
-                                    )}
-                                </div>
+                                <ContestSubmissions submissions={submissions} />
                             </TabsContent>
                         </Tabs>
                     </div>
@@ -379,12 +363,16 @@ export function ProblemDescriptionPage() {
                         className="h-full"
                         horizontal
                         initialPrimarySize={isConsoleCollapsed ? "92%" : "70%"}
-                        primarySize={isConsoleCollapsed ? "92%" : `${100 - consoleSize}%`}
+                        primarySize={
+                            isConsoleCollapsed ? "92%" : `${100 - consoleSize}%`
+                        }
                         minPrimarySize="60%"
                         maxPrimarySize="92%"
-                        onDragEnd={(e) => {
+                        onDragEnd={(e: any) => {
                             if (!isConsoleCollapsed) {
-                                setConsoleSize(100 - Number(e.toString().replace('%', '')));
+                                setConsoleSize(
+                                    100 - Number(e.toString().replace("%", ""))
+                                );
                             }
                         }}
                     >
@@ -411,142 +399,16 @@ export function ProblemDescriptionPage() {
                         </div>
 
                         {/* Console */}
-                        <div className="h-full bg-slate-900 text-white flex flex-col">
-                            <div
-                                className="flex items-center justify-between px-4 py-2 cursor-pointer bg-slate-800 select-none"
-                                onClick={() => setIsConsoleCollapsed(!isConsoleCollapsed)}
-                            >
-                                <div className="flex items-center gap-2">
-                                    <Terminal className="w-4 h-4" />
-                                    <span className="font-medium">Console</span>
-                                </div>
-                                <ChevronRight 
-                                    className={`w-5 h-5 transition-transform duration-300 ${
-                                        isConsoleCollapsed ? '-rotate-90' : 'rotate-90'
-                                    }`} 
-                                />
-                            </div>
-                            
-                            <div className={`flex-1 overflow-auto transition-all duration-300 ${
-                                isConsoleCollapsed ? 'hidden' : 'block'
-                            }`}>
-                                <div className="p-4 space-y-3">
-                                    <div>
-                                        <label className="text-sm text-slate-400">Input:</label>
-                                        <textarea
-                                            value={input}
-                                            onChange={(e) => setInput(e.target.value)}
-                                            className="w-full bg-slate-800 border-0 rounded-md p-2 text-sm font-mono resize-none"
-                                            rows={3}
-                                        />
-                                    </div>
-                                    <div>
-                                        <label className="text-sm text-slate-400">Output:</label>
-                                        <pre className="w-full bg-slate-800 rounded-md p-2 text-sm font-mono min-h-[60px] overflow-auto">
-                                            {output}
-                                        </pre>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
+                        <RunConsole
+                            setIsConsoleCollapsed={setIsConsoleCollapsed}
+                            isConsoleCollapsed={isConsoleCollapsed}
+                            input={input}
+                            setInput={setInput}
+                            result={result?.result}
+                        />
                     </Split>
                 </Split>
             </div>
-
-            {/* Submission Modal */}
-            <Dialog
-                isOpen={!!selectedSubmission}
-                onClose={() => setSelectedSubmission(null)}
-            >
-                <DialogOverlay className="backdrop-blur-sm" />
-                <DialogContent className="max-w-[90vw] w-[1000px]">
-                    <DialogHeader>
-                        <DialogTitle className="flex items-center gap-2">
-                            <FileCode className="w-5 h-5 text-purple-600" />
-                            Submission Details
-                        </DialogTitle>
-                        <DialogClose
-                            onClose={() => setSelectedSubmission(null)}
-                        />
-                    </DialogHeader>
-                    <DialogBody className="max-h-[80vh] overflow-y-auto">
-                        {selectedSubmission && (
-                            <div className="space-y-4">
-                                <div className="grid grid-cols-2 gap-4 p-4 bg-slate-50 rounded-lg">
-                                    <div className="space-y-1">
-                                        <label className="text-sm text-slate-500">
-                                            Status
-                                        </label>
-                                        <p
-                                            className={classNames(
-                                                "font-semibold",
-                                                verdictClass[
-                                                    selectedSubmission.verdict ||
-                                                        "default"
-                                                ]
-                                            )}
-                                        >
-                                            {selectedSubmission.verdict?.replace(
-                                                /_/g,
-                                                " "
-                                            ) || "Processing"}
-                                        </p>
-                                    </div>
-                                    <div className="space-y-1">
-                                        <label className="text-sm text-slate-500">
-                                            Language
-                                        </label>
-                                        <p className="font-semibold">
-                                            {selectedSubmission.language}
-                                        </p>
-                                    </div>
-                                    <div className="space-y-1">
-                                        <label className="text-sm text-slate-500">
-                                            <Clock className="w-4 h-4 inline mr-1" />
-                                            Execution Time
-                                        </label>
-                                        <p className="font-mono">
-                                            {selectedSubmission.execution_time}
-                                        </p>
-                                    </div>
-                                    <div className="space-y-1">
-                                        <label className="text-sm text-slate-500">
-                                            <Cpu className="w-4 h-4 inline mr-1" />
-                                            Memory Used
-                                        </label>
-                                        <p className="font-mono">
-                                            {selectedSubmission.memory_used}
-                                        </p>
-                                    </div>
-                                </div>
-
-                                <div className="space-y-2">
-                                    <div className="flex justify-between items-center">
-                                        <label className="text-sm font-medium flex items-center gap-2">
-                                            <AlignLeft className="w-4 h-4" />
-                                            Submitted Code
-                                        </label>
-                                        <CopyToClipboard
-                                            text={selectedSubmission.code}
-                                        >
-                                            <Button variant="outline" size="sm">
-                                                Copy Code
-                                            </Button>
-                                        </CopyToClipboard>
-                                    </div>
-                                    <div className="relative rounded-lg overflow-hidden">
-                                        <pre className="p-4 bg-slate-900 text-slate-50 overflow-x-auto max-h-[60vh]">
-                                            <code className="text-sm font-mono">
-                                                {selectedSubmission.code}
-                                            </code>
-                                        </pre>
-                                    </div>
-                                </div>
-                            </div>
-                        )}
-                    </DialogBody>
-                </DialogContent>
-            </Dialog>
         </div>
     );
 }
