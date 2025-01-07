@@ -172,6 +172,7 @@ class ContestSubmissionController {
             return res.json({
                 status: 'COMPLETED',
                 verdict: submission?.verdict || null,
+                language: submission?.language,
                 submitted_at: submission?.submitted_at,
                 execution_time: submission?.execution_time,
                 memory_used: submission?.memory_used
