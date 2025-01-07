@@ -7,7 +7,10 @@ const router = Router();
 const contestSubmissionController = new ContestSubmissionController();
 const contestController = new ContestController();
 
-router.post('/:contestId/problems/:problemId/submissions', asyncHandler(contestSubmissionController.createSubmission.bind(contestSubmissionController)));
+router.post('/:contestId/problems/:problemId/submit', asyncHandler(contestSubmissionController.createSubmission.bind(contestSubmissionController)));
+
+router.get('/submit/:submissionId/result', asyncHandler(contestSubmissionController.getSubmitCodeStatus.bind(contestSubmissionController)));
+
 
 router.get('/:contestId/problems/:problemId/submissions', asyncHandler(contestSubmissionController.getUserSubmissionsForContest.bind(contestSubmissionController)));
 
