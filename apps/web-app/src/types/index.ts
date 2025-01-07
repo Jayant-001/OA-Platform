@@ -81,15 +81,10 @@ export interface CreateProblem {
 
 export interface Submission {
     id: string;
-    user_id: string;
-    contest_id: string;
-    problem_id: string;
-    verdict: "accepted" | "wrong_answer" | "time_limit_exceeded" | "memory_limit_exceeded";
-    code: string;
+    verdict: "accepted" | "wrong_answer" | "time_limit_exceeded" | "memory_limit_exceeded" | null;
     language: string;
-    execution_time: number | null;
-    memory_used: number | null;
-    score: number | null;
-    submitted_at: string;
-    updated_at: string;
+    execution_time: string | null;
+    memory_used: string | null;
+    submitted_at: Date;
+    status: string;
 }

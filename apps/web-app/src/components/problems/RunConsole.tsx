@@ -1,17 +1,14 @@
 import { ChevronRight, Terminal } from "lucide-react";
-import { useState } from "react";
 
 type Props = {
     isConsoleCollapsed: boolean;
     setIsConsoleCollapsed: (status: boolean) => void;
     input: string;
     setInput: (input: string) => void;
+    result: string | undefined
 };
 
-
-
-const RunConsole = ({ isConsoleCollapsed, setIsConsoleCollapsed, input, setInput }: Props) => {
-    const [output, setOutput] = useState("");
+const RunConsole = ({ isConsoleCollapsed, setIsConsoleCollapsed, input, setInput, result }: Props) => {
 
     return (
         <div className="h-full bg-slate-900 text-white flex flex-col">
@@ -49,8 +46,8 @@ const RunConsole = ({ isConsoleCollapsed, setIsConsoleCollapsed, input, setInput
                         <label className="text-sm text-slate-400">
                             Output:
                         </label>
-                        <pre className="w-full bg-slate-800 rounded-md p-2 text-sm font-mono min-h-[70px] overflow-auto">
-                            {output}
+                        <pre className="w-full bg-slate-800 rounded-md p-2 text-sm font-mono min-h-[70px] overflow-auto max-h-[150px]">
+                            {result || ""}
                         </pre>
                     </div>
                 </div>

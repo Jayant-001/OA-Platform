@@ -9,4 +9,6 @@ export interface ContestSubmissions {
     execution_time?: number;
     memory_used?: number;
     submitted_at: Date;
+    score?: number
+    updated_at: Date;
 }

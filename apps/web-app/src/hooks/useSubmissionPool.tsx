@@ -1,38 +1,50 @@
 import { useCallback, useEffect, useState } from "react";
 import { useSubmissionApi } from "./useApi";
+import { Submission } from "@/types";
 
 interface TaskResult {
+    id: string;
     status: string;
-    result: string;
-    error?: string;
-    exetution_time?: string;
-    memory_used?: string;
+    verdict: string;
+    submitted_at: Date;
+    execution_time: string;
+    memory_used: string;
+    language: string;
+}
+
+interface SubmitTaskProp {
+    code: string;
+    language: string;
+    problemId: string;
+    contestId: string;
 }
 
 // Custom hook for handling long-running task polling
-export const useLongRunningTask = (maxPollingTime: number = 20 * 1000) => {
+export const useSubmissionPool = (maxPollingTime: number = 20 * 1000) => {
     // Default 20 seconds
     const [requestId, setRequestId] = useState<string | null>(null);
     const [result, setResult] = useState<TaskResult | null>(null);
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
-    const { runCode, getRunCodeResult} = useSubmissionApi();
+    const { createSubmission, getSubmissionResult} = useSubmissionApi();
 
     // Submit the long-running task
-    const submitTask = async (taskData: any) => {
+    const submitTask = async (taskData: SubmitTaskProp) : Promise<Submission | null> => {
         try {
             setIsLoading(true);
             setError(null);
 
             // Send task to backend
-            const {submission_id} = await runCode(taskData);
+            const submission = await createSubmission(taskData);
 
             // Store the request ID
-            setRequestId(submission_id);
+            setRequestId(submission.id);
+            return submission;
         } catch (err) {
             setError("Failed to submit task");
             setIsLoading(false);
+            return null;
         }
     };
 
@@ -41,7 +53,7 @@ export const useLongRunningTask = (maxPollingTime: number = 20 * 1000) => {
         if (!requestId) return;
 
         try {
-            const taskResult = await getRunCodeResult(requestId);
+            const taskResult = await getSubmissionResult(requestId);
 
             // Update result based on status
             if (taskResult.status === "COMPLETED") {
@@ -88,7 +100,7 @@ export const useLongRunningTask = (maxPollingTime: number = 20 * 1000) => {
         pollWithTimeout();
 
         // Start interval polling
-        intervalId = setInterval(pollWithTimeout, 2000); // Poll every 5 seconds
+        intervalId = setInterval(pollWithTimeout, 2000); // Poll every 2 seconds
 
         // Cleanup
         return () => {
