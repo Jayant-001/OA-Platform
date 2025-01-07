@@ -22,6 +22,10 @@ class ContestSubmissionController {
         return type === 'run' ? 'run:' : 'submit:';
     }
 
+    private getOutputKey(id: string): string {
+        return `output:${id}`;
+    }
+
     async createSubmission(req: Request, res: Response, next: NextFunction) {
         try {
             const { contestId, problemId } = req.params;
@@ -32,7 +36,7 @@ class ContestSubmissionController {
                 { status: 'PENDING' }
             );
 
-            let input = 100000000;
+            let input = 10;
             const job = {
                 id: submission.id,
                 language: submission.language,
@@ -43,8 +47,7 @@ class ContestSubmissionController {
             };
             await this.inputQueueService.addJob(job);
             res.status(201).json({
-                ...submission,
-                status: 'PENDING'
+                id: submission.id as string,
             });
         } catch (error) {
             next(error);
@@ -99,45 +102,83 @@ class ContestSubmissionController {
             };
             await this.inputQueueService.addJob(job);
             res.status(201).json({
-                submission_id,
-                status: 'PENDING'
+                submission_id
             });
         } catch (error) {
             next(error);
         }
     }
 
-    // New method to get submission status
-    async getSubmissionStatus(req: Request, res: Response, next: NextFunction) {
+    async getRunCodeStatus(req: Request, res: Response, next: NextFunction) {
         try {
-            const { submissionId, type = 'submit' } = req.params;
+            const { submissionId } = req.params;
             const status = await this.submissionCache.get(
-                this.getKeyPrefix(type as 'submit' | 'run') + submissionId
+                this.getKeyPrefix('run') + submissionId
             );
 
             if (!status) {
                 return res.status(404).json({ message: "Submission status not found" });
             }
 
-            res.json(status);
+            if (status.status !== 'COMPLETED') {
+                return res.json({
+                    status: 'PENDING',
+                    output: null,
+                    execution_time: null,
+                    memory_used: null
+                });
+            }
+
+            // If status is COMPLETED, get the output
+            const output = await this.submissionCache.get(
+                this.getOutputKey(submissionId)
+            );
+
+            return res.json({
+                status: 'COMPLETED',
+                output: output || null,
+                execution_time: null,
+                memory_used: null
+            });
         } catch (error) {
             next(error);
         }
     }
 
-    // Method to update submission status (called by output queue consumer)
-    async updateSubmissionStatus(
-        submissionId: string,
-        result: SubmissionStatus['result'],
-        type: 'submit' | 'run' = 'submit'
-    ): Promise<void> {
-        await this.submissionCache.set(
-            this.getKeyPrefix(type) + submissionId,
-            {
-                status: 'COMPLETED',
-                result
+    async getSubmitCodeStatus(req: Request, res: Response, next: NextFunction) {
+        try {
+            const { submissionId, type  } = req.params;
+            const status = await this.submissionCache.get(
+                this.getKeyPrefix('submit') + submissionId
+            );
+
+            if (!status) {
+                return res.status(404).json({ message: "Submission status not found" });
             }
-        );
+
+            if (status.status !== 'COMPLETED') {
+                return res.json({
+                    status: 'PENDING',
+                    verdict: null,
+                    submitted_at: null,
+                    execution_time: null,
+                    memory_used: null
+                });
+            }
+
+            const submission = await this.contestSubmissionService.getSubmissionById(submissionId);
+
+
+            return res.json({
+                status: 'COMPLETED',
+                verdict: submission?.verdict || null,
+                submitted_at: submission?.submitted_at,
+                execution_time: submission?.execution_time,
+                memory_used: submission?.memory_used
+            })
+        } catch (error) {
+            next(error);
+        }
     }
 }
 
