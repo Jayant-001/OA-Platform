@@ -34,13 +34,13 @@ import {
     SendHorizonal,
     XCircle,
     Clock,
-    Terminal,
     Cpu,
-    ChevronRight,
     FileCode,
     AlignLeft,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import RunConsole from "@/components/problems/RunConsole";
+import { useLongRunningTask } from "@/hooks/useRunCodePool";
 
 export function ProblemDescriptionPage() {
     const { problem_id: problemId, contest_id } = useParams();
@@ -62,9 +62,20 @@ export function ProblemDescriptionPage() {
     const { problems } = useProblemContext();
     const isDashboardPage = location.pathname.includes("/dashboard");
     const navigate = useNavigate();
-    const [contestEndTime] = useState(new Date(Date.now() + 2 * 60 * 60 * 1000)); // 2 hours from now
-    const [timeToEnd, setTimeToEnd] = useState<string>('');
+    const [contestEndTime] = useState(
+        new Date(Date.now() + 2 * 60 * 60 * 1000)
+    ); // 2 hours from now
+    const [timeToEnd, setTimeToEnd] = useState<string>("");
     const [consoleSize, setConsoleSize] = useState(30); // default size 30%
+
+    /**
+    *
+    * ------------------------------------------ Run code pooling ------------------------------------------------
+    *
+    */
+    const { submitTask, requestId, result, isLoading, error, reset } =
+        useLongRunningTask();
+
 
     useEffect(() => {
         if (!problemId) {
@@ -100,16 +111,29 @@ export function ProblemDescriptionPage() {
         const interval = setInterval(() => {
             const now = new Date();
             if (now >= contestEndTime) {
-                setTimeToEnd('Contest Ended');
+                setTimeToEnd("Contest Ended");
                 clearInterval(interval);
                 return;
             }
 
-            const hours = Math.floor((contestEndTime.getTime() - now.getTime()) / (1000 * 60 * 60));
-            const minutes = Math.floor(((contestEndTime.getTime() - now.getTime()) % (1000 * 60 * 60)) / (1000 * 60));
-            const seconds = Math.floor(((contestEndTime.getTime() - now.getTime()) % (1000 * 60)) / 1000);
+            const hours = Math.floor(
+                (contestEndTime.getTime() - now.getTime()) / (1000 * 60 * 60)
+            );
+            const minutes = Math.floor(
+                ((contestEndTime.getTime() - now.getTime()) %
+                    (1000 * 60 * 60)) /
+                    (1000 * 60)
+            );
+            const seconds = Math.floor(
+                ((contestEndTime.getTime() - now.getTime()) % (1000 * 60)) /
+                    1000
+            );
 
-            setTimeToEnd(`${hours}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`);
+            setTimeToEnd(
+                `${hours}:${minutes.toString().padStart(2, "0")}:${seconds
+                    .toString()
+                    .padStart(2, "0")}`
+            );
         }, 1000);
 
         return () => clearInterval(interval);
@@ -117,6 +141,7 @@ export function ProblemDescriptionPage() {
 
     const handleRun = () => {
         // Handle running code
+        console.log("Running code")
         setOutput("Running code...");
     };
 
@@ -173,7 +198,9 @@ export function ProblemDescriptionPage() {
         <div className="h-screen flex overflow-hidden">
             {/* Problems List Drawer - Floating */}
             <div
-                className={`fixed top-4 ${isSidebarOpen ? 'left-4' : 'left-0'} z-50 transition-transform duration-300 ease-in-out ${
+                className={`fixed top-4 ${
+                    isSidebarOpen ? "left-4" : "left-0"
+                } z-50 transition-transform duration-300 ease-in-out ${
                     isSidebarOpen ? "translate-x-0" : "-translate-x-full"
                 }`}
             >
@@ -236,7 +263,9 @@ export function ProblemDescriptionPage() {
                     {/* Contest Timer */}
                     <div className="flex items-center gap-2 bg-slate-100 px-4 py-2 rounded-full">
                         <Clock className="w-4 h-4 text-purple-600 animate-pulse" />
-                        <span className="font-medium text-slate-700">Ends in:</span>
+                        <span className="font-medium text-slate-700">
+                            Ends in:
+                        </span>
                         <span className="font-mono text-purple-600 font-bold">
                             {timeToEnd}
                         </span>
@@ -277,7 +306,7 @@ export function ProblemDescriptionPage() {
 
                 {/* Main Split */}
                 <Split
-                    className="h-[calc(100vh-4rem)]"
+                    className={"h-[calc(100vh-4rem)]"}
                     initialPrimarySize="40%"
                     minPrimarySize="30%"
                     maxPrimarySize="70%"
@@ -379,12 +408,16 @@ export function ProblemDescriptionPage() {
                         className="h-full"
                         horizontal
                         initialPrimarySize={isConsoleCollapsed ? "92%" : "70%"}
-                        primarySize={isConsoleCollapsed ? "92%" : `${100 - consoleSize}%`}
+                        primarySize={
+                            isConsoleCollapsed ? "92%" : `${100 - consoleSize}%`
+                        }
                         minPrimarySize="60%"
                         maxPrimarySize="92%"
                         onDragEnd={(e) => {
                             if (!isConsoleCollapsed) {
-                                setConsoleSize(100 - Number(e.toString().replace('%', '')));
+                                setConsoleSize(
+                                    100 - Number(e.toString().replace("%", ""))
+                                );
                             }
                         }}
                     >
@@ -411,44 +444,12 @@ export function ProblemDescriptionPage() {
                         </div>
 
                         {/* Console */}
-                        <div className="h-full bg-slate-900 text-white flex flex-col">
-                            <div
-                                className="flex items-center justify-between px-4 py-2 cursor-pointer bg-slate-800 select-none"
-                                onClick={() => setIsConsoleCollapsed(!isConsoleCollapsed)}
-                            >
-                                <div className="flex items-center gap-2">
-                                    <Terminal className="w-4 h-4" />
-                                    <span className="font-medium">Console</span>
-                                </div>
-                                <ChevronRight 
-                                    className={`w-5 h-5 transition-transform duration-300 ${
-                                        isConsoleCollapsed ? '-rotate-90' : 'rotate-90'
-                                    }`} 
-                                />
-                            </div>
-                            
-                            <div className={`flex-1 overflow-auto transition-all duration-300 ${
-                                isConsoleCollapsed ? 'hidden' : 'block'
-                            }`}>
-                                <div className="p-4 space-y-3">
-                                    <div>
-                                        <label className="text-sm text-slate-400">Input:</label>
-                                        <textarea
-                                            value={input}
-                                            onChange={(e) => setInput(e.target.value)}
-                                            className="w-full bg-slate-800 border-0 rounded-md p-2 text-sm font-mono resize-none"
-                                            rows={3}
-                                        />
-                                    </div>
-                                    <div>
-                                        <label className="text-sm text-slate-400">Output:</label>
-                                        <pre className="w-full bg-slate-800 rounded-md p-2 text-sm font-mono min-h-[60px] overflow-auto">
-                                            {output}
-                                        </pre>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
+                        <RunConsole
+                            setIsConsoleCollapsed={setIsConsoleCollapsed}
+                            isConsoleCollapsed={isConsoleCollapsed}
+                            input={input}
+                            setInput={setInput}
+                        />
                     </Split>
                 </Split>
             </div>
