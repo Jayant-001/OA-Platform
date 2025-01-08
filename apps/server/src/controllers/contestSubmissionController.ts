@@ -46,9 +46,9 @@ class ContestSubmissionController {
                 submissionType: "submit",
             };
             await this.inputQueueService.addJob(job);
-            res.status(201).json({
-                id: submission.id as string,
-            });
+
+            const {contest_id, problem_id, user_id, code, updated_at, score, ...data} = submission;
+            res.status(201).json(data);
         } catch (error) {
             next(error);
         }
@@ -59,8 +59,9 @@ class ContestSubmissionController {
             const { contestId, problemId } = req.params;
             const userId = req.user?.id as string;
             const submissions = await this.contestSubmissionService.getUserSubmissionsForProblem(contestId, problemId, userId);
+            // console.log(submissions)
             const filteredSubmissions = submissions.map(submission => {
-                const { code, execution_time, memory_used, ...rest } = submission;
+                const {contest_id, problem_id, user_id, code, updated_at, score, ...rest} = submission;
                 return rest;
             });
             res.json(filteredSubmissions);
@@ -136,7 +137,7 @@ class ContestSubmissionController {
 
             return res.json({
                 status: 'COMPLETED',
-                output: output || null,
+                result: output || null,
                 execution_time: null,
                 memory_used: null
             });
@@ -147,7 +148,7 @@ class ContestSubmissionController {
 
     async getSubmitCodeStatus(req: Request, res: Response, next: NextFunction) {
         try {
-            const { submissionId, type  } = req.params;
+            const { submissionId } = req.params;
             const status = await this.submissionCache.get(
                 this.getKeyPrefix('submit') + submissionId
             );
@@ -158,6 +159,7 @@ class ContestSubmissionController {
 
             if (status.status !== 'COMPLETED') {
                 return res.json({
+                    id: submissionId,
                     status: 'PENDING',
                     verdict: null,
                     submitted_at: null,
@@ -170,12 +172,13 @@ class ContestSubmissionController {
 
 
             return res.json({
+                id: submission?.id,
                 status: 'COMPLETED',
                 verdict: submission?.verdict || null,
                 language: submission?.language,
                 submitted_at: submission?.submitted_at,
                 execution_time: submission?.execution_time,
-                memory_used: submission?.memory_used
+                memory_used: submission?.memory_used,
             })
         } catch (error) {
             next(error);

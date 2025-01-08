@@ -1,5 +1,5 @@
 import apiService from "@/api/apiService";
-import { CreateProblem } from "@/types";
+import { AddTestCase, CreateProblem } from "@/types";
 
 export const useAdminApi = () => {
     /*
@@ -136,12 +136,34 @@ export const useSubmissionApi = () => {
     };
 
     const createSubmission = async ({ code, language, problemId, contestId }: { code: string, language: string, problemId: string, contestId: string }) => {
-        console.log("ContestId:", contestId);    
-        console.log("ProblemId:", problemId);
-        const url = `/api/users/contests/${contestId}/problems/${problemId}/submissions`;
-        console.log("Request URL:", url);
+        const url = `/api/users/contests/${contestId}/problems/${problemId}/submit`;
         return await apiService.post(url, { code, language });
     };
 
-    return { getSubmissionsByProblemId, getSubmissionById, createSubmission };
+    const getSubmissionResult = async (submission_id: string) => {
+        return await apiService.get(`/api/users/contests/submit/${submission_id}/result`);
+    }
+
+    const runCode = async (content: any) => {
+        return await apiService.post(`/api/run-code`, content);
+    }
+
+    const getRunCodeResult = async (submission_id: string) => {
+        return await apiService.get(`/api/run-code/${submission_id}/result`);
+    }
+
+    return { getSubmissionsByProblemId, getSubmissionById, createSubmission, getSubmissionResult, runCode, getRunCodeResult };
 };
+
+export const useTestCaseApi = () => {
+
+    const addBulkTestCases = async (problemId: string, testCases: AddTestCase[]) => {
+        return await apiService.post(`/api/admins/problems/${problemId}/test-cases/bulk`, testCases);
+    }
+
+    const getTestCasesByProblemId = async (problemId: string) => {
+        return await apiService.get(``)
+    }
+
+    return { addBulkTestCases, getTestCasesByProblemId };
+}
