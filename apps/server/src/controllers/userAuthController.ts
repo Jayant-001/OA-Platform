@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from "express";
 import AuthService from "../services/authService";
-import { HttpException } from "../middleware/errorHandler";
+import { CustomException } from "../errors/CustomException";
 
 class userAuthController {
     private authService = new AuthService();
@@ -14,7 +14,7 @@ class userAuthController {
             await this.authService.register(req.body);
             res.json({ message: "User created successfully" });
         } catch (error: any) {
-            next(new HttpException(400, "USER_CREATION_FAILED", error.message));
+            next(new CustomException(400, "USER_CREATION_FAILED", error.message));
         }
     }
 
@@ -37,7 +37,7 @@ class userAuthController {
             });
             res.status(200).json({ token });
         } catch (error: any) {
-            next(new HttpException(400, "LOGIN_FAILED", error.message));
+            next(new CustomException(400, "LOGIN_FAILED", error.message));
         }
     }
 }

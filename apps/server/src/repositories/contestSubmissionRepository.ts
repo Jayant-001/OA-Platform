@@ -1,6 +1,6 @@
 import db from "../config/database";
 import { ContestSubmissions } from "../models/contestSubmissions";
-import { HttpException } from "../middleware/errorHandler";
+import { CustomException } from "../errors/CustomException";
 
 export class ContestSubmissionRepository {
     async create(
@@ -16,7 +16,7 @@ export class ContestSubmissionRepository {
             );
 
             if (!contest) {
-                throw new HttpException(404, "CONTEST_NOT_FOUND", "Contest not found or user not registered");
+                throw new CustomException(404, "Contest not found or user not registered", "CONTEST_NOT_FOUND");
             }
 
             const currentTime = new Date(new Date().toISOString()); // Ensure current time is in UTC
@@ -29,7 +29,7 @@ export class ContestSubmissionRepository {
                 ));
 
             if (currentTime < startTime || currentTime > endTime) {
-                throw new HttpException(400, "SUBMISSION_NOT_ALLOWED", "Submission not allowed at this time");
+                throw new CustomException(400, "Submission not allowed at this time", "SUBMISSION_NOT_ALLOWED");
             }
 
             return t.one(

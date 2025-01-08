@@ -1,6 +1,5 @@
 import { UserRepository } from '../repositories/userRepository';
 import { Admin } from '../models/admin';
-import { HttpException } from '../middleware/errorHandler';
 
 export class AdminService {
     private userRepository = new UserRepository();

@@ -1,15 +1,58 @@
 import { Router } from 'express';
+import { asyncWrapper } from '../utils/asyncWrapper';
 import ProblemController from '../controllers/problemController';
-import asyncHandler from '../utils/asyncHandler';
 
 const router = Router();
 const problemController = new ProblemController();
 
-router.get('/', asyncHandler(problemController.getAllProblems.bind(problemController)));
-router.get('/:problemId', asyncHandler(problemController.getProblemById.bind(problemController)));
-router.post('/', asyncHandler(problemController.createProblem.bind(problemController)));
-router.put('/:problemId', asyncHandler(problemController.updateProblem.bind(problemController)));
-router.delete('/:problemId', asyncHandler(problemController.deleteProblem.bind(problemController)));
-router.post('/:problemId/submissions', asyncHandler(problemController.createSubmission.bind(problemController)));
+router.post(
+    '/',
+    asyncWrapper(problemController.createProblem.bind(problemController))
+);
+
+router.get(
+    '/',
+    asyncWrapper(problemController.getAllProblems.bind(problemController))
+);
+
+router.get(
+    '/:problemId',
+    asyncWrapper(problemController.getProblemById.bind(problemController))
+);
+
+router.put(
+    '/:problemId',
+    asyncWrapper(problemController.updateProblem.bind(problemController))
+);
+
+router.delete(
+    '/:problemId',
+    asyncWrapper(problemController.deleteProblem.bind(problemController))
+);
+
+router.post(
+    '/:problemId/test-cases',
+    asyncWrapper(problemController.addTestCase.bind(problemController))
+);
+
+router.get(
+    '/:problemId/test-cases',
+    asyncWrapper(problemController.getTestCases.bind(problemController))
+);
+
+router.post(
+    '/:problemId/test-cases/bulk',
+    asyncWrapper(problemController.addBulkTestCases.bind(problemController))
+);
+
+router.put(
+    '/:problemId/test-cases/:testCaseId',
+    asyncWrapper(problemController.updateTestCase.bind(problemController))
+);
+
+router.delete(
+    '/:problemId/test-cases/:testCaseId',
+    asyncWrapper(problemController.deleteTestCase.bind(problemController))
+);
 
 export default router;
