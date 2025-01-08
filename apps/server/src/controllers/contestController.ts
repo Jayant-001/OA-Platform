@@ -245,7 +245,8 @@ class ContestController {
 
     async getLeaderboard(req: Request, res: Response, next: NextFunction) {
         const { contestId } = req.params;
-        const leaderboard = this.leaderboardService.fetchLeaderboardData(contestId);
+        const leaderboard = await this.leaderboardService.fetchLeaderboardData(contestId);
+       // console.log(JSON.stringify(leaderboard));
         res.status(200).json(leaderboard);
     }
 }

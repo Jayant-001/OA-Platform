@@ -10,7 +10,7 @@ class LeaderboardService {
     private problemRepository = new ProblemRepository();
     private contestSubmissionRepository = new ContestSubmissionRepository();  
 
-    async fetchLeaderboardData(contestId: string) {
+    async fetchLeaderboardData(contestId: string): Promise<any[] | undefined> {
         // Step 1: Fetch required data
         const contestUsers = await this.contestRepository.findAllUsersOfContest(contestId);
         const problems = await this.problemRepository.findByContestId(contestId);
@@ -23,8 +23,8 @@ class LeaderboardService {
         const lastAcceptedSolutionMap = new Map<string, Date>(); // <userId, last accepted solution timestamp>
         const problemPoints = new Map<string, number>(); // <problemId, points>
 
-        problems.forEach((problem) => {
-            problemPoints.set(problem.id, problem.score || 0);
+        problems?.forEach((problem) => {
+            problemPoints.set(problem.id, problem.points || 0);
         });
 
         contestUsers?.forEach((user) => {
@@ -60,13 +60,16 @@ class LeaderboardService {
                 let problemSolved = false;
 
                 submissions.forEach((submission) => {
-                    noOfAttempts++;
-                    if (submission.verdict === "accepted") {
-                        problemSolved = true;
-                        userLastAcceptedTime = new Date(Math.max(userLastAcceptedTime.getTime(), submission.submitted_at.getTime()));
-                        return;
-                    } else {
-                        userIncorrectAttempts++;
+                    if (!problemSolved)
+                    {
+                        noOfAttempts++;
+                        if (submission.verdict === "accepted") {
+                            problemSolved = true;
+                            userLastAcceptedTime = new Date(Math.max(userLastAcceptedTime.getTime(), submission.submitted_at.getTime()));
+                            return;
+                        } else {
+                            userIncorrectAttempts++;
+                        }
                     }
                 });
 
@@ -90,7 +93,7 @@ class LeaderboardService {
 
             let totalPoints = 0;
             let finishTime = lastAcceptedSolutionMap.get(userId) || new Date(0);
-            const problems = [];
+            const problems: { problemId: string; verdict: string; noOfAttempts: number; }[] = [];
 
             userProblems?.forEach((status, problemId) => {
                 const problemScore = problemPoints.get(problemId) || 0;
@@ -101,7 +104,7 @@ class LeaderboardService {
 
                 problems.push({
                     problemId,
-                    verdict: status.verdict === "solved",
+                    verdict: status.verdict,
                     noOfAttempts: status.noOfAttempts,
                 });
             });
@@ -114,7 +117,7 @@ class LeaderboardService {
                 userId,
                 userName: user.name,
                 rank: 0, // Placeholder, will sort later
-                userProblems,
+                problems: problems,
                 totalPoints,
                 finishTime,
             };
@@ -135,6 +138,8 @@ class LeaderboardService {
                 entry.rank = index + 1; // Regular rank assignment
             }
         });
+
+        // console.log(leaderboard);
 
         return leaderboard;
     }

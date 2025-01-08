@@ -112,6 +112,6 @@ export class ContestSubmissionRepository {
             ORDER BY submitted_at ASC
         `;
         const result = await db.query(query, [contestId]);
-        return result.rows;
+        return result;
     }
 }
