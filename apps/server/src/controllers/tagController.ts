@@ -52,6 +52,14 @@ class TagController {
             next(error);
         }
     };
+
+    // async getTagsByProblemId (req: Request, res: Response, next: NextFunction) {
+    //     try {
+    //         const tags = this.tagService
+    //     } catch (error) {
+    //         next(error);
+    //     }
+    // }
 }
 
 export default TagController;

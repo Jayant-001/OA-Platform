@@ -88,3 +88,16 @@ export interface Submission {
     submitted_at: Date;
     status: string;
 }
+
+export interface AddTestCase {
+    input: string;
+    output: string;
+    isSample: boolean;
+}
+
+export interface TestCase {
+    id: string;
+    input: string;
+    output: string;
+    isSample: boolean;
+}

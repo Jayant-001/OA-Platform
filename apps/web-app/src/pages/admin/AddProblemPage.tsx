@@ -15,8 +15,9 @@ import TextEditor from "@/components/shared/TextEditor";
 import { useAdminApi } from "@/hooks/useApi";
 import { CreateProblem, Tag } from "@/types";
 import { Badge } from "@/components/ui/badge";
-import { X } from "lucide-react";
+import { X, Beaker } from "lucide-react";
 import toast from "react-hot-toast";
+import { TestCaseModal } from "@/components/problems/TestCaseModal";
 
 export function AddProblemPage() {
     const location = useLocation();
@@ -42,6 +43,7 @@ export function AddProblemPage() {
     const [selectedTags, setSelectedTags] = useState<string[]>([]);
     const { fetchProblemById } = useAdminApi();
     const isUpdatePage = location.pathname.includes("/update");
+    const [isTestCaseModalOpen, setIsTestCaseModalOpen] = useState(false);
 
     useEffect(() => {
         (async () => {
@@ -73,7 +75,7 @@ export function AddProblemPage() {
                     });
                     setProblemStatement(problem.problem_statement);
                     setExample(problem.example);
-                    setSelectedTags(problem.tags.map((tag: Tag) => tag.id));
+                    setSelectedTags(problem.tags.map((tag: Tag) => tag.tag_id));
                 } catch (error) {
                     console.log(error);
                     toast.error("Failed to fetch problem data");
@@ -309,9 +311,27 @@ export function AddProblemPage() {
                                 </div>
                             )}
 
-                            <Button type="submit" className="w-full">
-                                {isUpdatePage ? "Update" : "Add"} Problem
-                            </Button>
+                            <div className="space-y-4">
+                                <Button
+                                    type="button"
+                                    onClick={() => setIsTestCaseModalOpen(true)}
+                                    className="w-full bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700"
+                                >
+                                    <Beaker className="w-4 h-4 mr-2" />
+                                    Manage Test Cases
+                                </Button>
+
+                                <Button type="submit" className="w-full">
+                                    {isUpdatePage ? "Update" : "Add"} Problem
+                                </Button>
+
+                                <TestCaseModal
+                                    isOpen={isTestCaseModalOpen}
+                                    onClose={() => setIsTestCaseModalOpen(false)}
+                                    problemId={problem_id || ""}
+                                    existingTestCases={[]} // Pass your existing test cases here
+                                />
+                            </div>
                         </form>
                     </CardContent>
                 </Card>
