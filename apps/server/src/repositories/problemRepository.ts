@@ -11,7 +11,7 @@ export class ProblemRepository {
                 `SELECT t.* FROM tags t
                  JOIN problem_tags pt ON t.id = pt.tag_id
                  WHERE pt.problem_id = $1`,
-                [problem.id]
+                [problem.id]    
             );
             return { ...problem, tags };
         }));
@@ -22,6 +22,16 @@ export class ProblemRepository {
         const problem = await db.oneOrNone("SELECT * FROM problems WHERE id = $1", [id]);
         const tags = await db.any("SELECT * FROM problem_tags WHERE problem_id = $1", [id]);
         return {...problem, tags};
+    }
+
+    async findByContestId(contestId: string): Promise<Problem[]> {
+        const query = `
+            SELECT *
+            FROM contest_problems
+            JOIN problems ON contest_problems.problem_id = problems.id
+            WHERE contest_id = $1`;
+        const result = await db.query(query, [contestId]);
+        return result;
     }
 
     async createProblem(

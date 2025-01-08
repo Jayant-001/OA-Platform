@@ -1,10 +1,13 @@
 import { Request, Response, NextFunction } from "express";
 import ContestService from "../services/contestService";
 import ContestSubmissionService from "../services/contestSubmissionService";
+import LeaderboardService from "../services/leaderboardService";
+
 
 class ContestController {
     private contestService = new ContestService();
     private contestSubmissionService = new ContestSubmissionService();
+    private leaderboardService = new LeaderboardService();  
 
     async getAllContests(req: Request, res: Response, next: NextFunction) {
         try {
@@ -238,6 +241,13 @@ class ContestController {
         } catch (error) {
             next(error);
         }
+    }
+
+    async getLeaderboard(req: Request, res: Response, next: NextFunction) {
+        const { contestId } = req.params;
+        const leaderboard = await this.leaderboardService.fetchLeaderboardData(contestId);
+       // console.log(JSON.stringify(leaderboard));
+        res.status(200).json(leaderboard);
     }
 }
 
