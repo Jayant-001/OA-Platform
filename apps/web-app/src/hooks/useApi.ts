@@ -157,13 +157,21 @@ export const useSubmissionApi = () => {
 
 export const useTestCaseApi = () => {
 
+    const addTestCase = async (problemId: string, testCase: AddTestCase) => {
+        return await apiService.post(`/api/admins/problems/${problemId}/test-cases`, testCase)
+    }
+
     const addBulkTestCases = async (problemId: string, testCases: AddTestCase[]) => {
         return await apiService.post(`/api/admins/problems/${problemId}/test-cases/bulk`, testCases);
     }
 
-    const getTestCasesByProblemId = async (problemId: string) => {
-        return await apiService.get(``)
+    const updateTestCase = async (problemId: string, testCaseId: string, testCase: AddTestCase) => {
+        return await apiService.put(`/api/admins/problems/${problemId}/test-cases/${testCaseId}`, testCase)
     }
 
-    return { addBulkTestCases, getTestCasesByProblemId };
+    const getTestCasesByProblemId = async (problemId: string) => {
+        return await apiService.get(`/api/admins/problems/${problemId}/test-cases`)
+    }
+
+    return { addTestCase, addBulkTestCases, getTestCasesByProblemId, updateTestCase };
 }

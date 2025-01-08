@@ -15,7 +15,7 @@ import { Checkbox } from "../ui/checkbox";
 import { useTestCaseApi } from "@/hooks/useApi";
 
 interface TestCase {
-    id?: string;
+    id: string;
     input: string;
     output: string;
     is_sample: boolean;
@@ -25,41 +25,106 @@ interface TestCaseModalProps {
     isOpen: boolean;
     onClose: () => void;
     problemId: string;
-    existingTestCases?: TestCase[];
 }
 
 export function TestCaseModal({
     isOpen,
     onClose,
     problemId,
-    existingTestCases = [],
 }: TestCaseModalProps) {
-    const [testCases, setTestCases] = useState<TestCase[]>(existingTestCases);
+    const [testCases, setTestCases] = useState<TestCase[]>([]);
     const [input, setInput] = useState("");
     const [output, setOutput] = useState("");
     const [isSample, setIsSample] = useState(false);
-    const [editingIndex, setEditingIndex] = useState<number | null>(null);
+    const [editingIndex, setEditingIndex] = useState<string | null>(null);
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [isAdding, setIsAdding] = useState(false);
 
-    const { addBulkTestCases } = useTestCaseApi();
+    const { getTestCasesByProblemId, addTestCase, updateTestCase } =
+        useTestCaseApi();
 
     useEffect(() => {
-        setTestCases(existingTestCases);
-    }, [existingTestCases]);
+        if (!problemId) {
+            toast.error("Can't get problem id");
+            return;
+        }
 
-    const handleAddTestCase = () => {
+        (async () => {
+            const existingTestcases = await getTestCasesByProblemId(problemId);
+            const temp = existingTestcases.map((tc) => ({
+                id: tc.id,
+                input: tc.input,
+                output: tc.output,
+                is_sample: tc.is_sample,
+            }));
+            setTestCases(temp);
+        })();
+    }, []);
+
+    const handleAddTestCase = async () => {
         if (!input.trim() || !output.trim()) {
             toast.error("Both input and output are required");
             return;
         }
 
+        if (!problemId || problemId == "") {
+            toast.error("Problem id not found");
+            return;
+        }
+
         if (editingIndex !== null) {
-            const updatedTestCases = [...testCases];
-            updatedTestCases[editingIndex] = { input, output, isSample };
-            setTestCases(updatedTestCases);
-            setEditingIndex(null);
+            try {
+                setIsAdding(true);
+                const updatedTestCase = await updateTestCase(
+                    problemId,
+                    editingIndex,
+                    { input, output, is_sample: isSample }
+                );
+                setTestCases((prev) =>
+                    prev.map((tc) => {
+                        if (tc.id == editingIndex)
+                            return {
+                                id: editingIndex,
+                                input: updatedTestCase.input,
+                                output: updatedTestCase.output,
+                                is_sample: updatedTestCase.is_sample,
+                            };
+                        return tc;
+                    })
+                );
+                setEditingIndex(null);
+                toast.success("Test case updated");
+            } catch (error) {
+                toast.error("Failed to update testcase");
+            }
+            finally {
+                setIsAdding(false);
+            }
         } else {
-            setTestCases([...testCases, { input, output, isSample }]);
+            try {
+                setIsAdding(true);
+                const addedTestCase = await addTestCase(problemId, {
+                    input,
+                    output,
+                    is_sample: isSample,
+                });
+                console.log(addedTestCase);
+                setTestCases([
+                    ...testCases,
+                    {
+                        id: addedTestCase.id,
+                        input,
+                        output,
+                        is_sample: isSample,
+                    },
+                ]);
+                toast.success("Test case added");
+            } catch (error) {
+                toast.error("Failed to add test case");
+            }
+            finally {
+                setIsAdding(false);
+            }
         }
 
         setInput("");
@@ -67,12 +132,11 @@ export function TestCaseModal({
         setIsSample(false);
     };
 
-    const handleEdit = (index: number) => {
-        const testCase = testCases[index];
+    const handleEdit = (testCase: TestCase) => {
         setInput(testCase.input);
         setOutput(testCase.output);
-        setIsSample(testCase.isSample);
-        setEditingIndex(index);
+        setIsSample(testCase.is_sample);
+        setEditingIndex(testCase.id);
     };
 
     const handleDelete = (index: number) => {
@@ -85,19 +149,8 @@ export function TestCaseModal({
             return;
         }
 
-        if (!problemId || problemId == "") {
-            toast.error("Problem id not found");
-            return;
-        }
-
-        const addTestCases = testCases.map((tc) => {
-            const { id, ...rest } = tc;
-            return rest;
-        });
-
         try {
             setIsSubmitting(true);
-            await addBulkTestCases(problemId, addTestCases);
             toast.success("Test cases updated successfully");
             onClose();
         } catch (error) {
@@ -166,7 +219,7 @@ export function TestCaseModal({
                                                     variant="outline"
                                                     size="sm"
                                                     onClick={() =>
-                                                        handleEdit(index)
+                                                        handleEdit(testCase)
                                                     }
                                                 >
                                                     <Edit2 className="w-4 h-4" />
@@ -245,7 +298,11 @@ export function TestCaseModal({
                                     onClick={handleAddTestCase}
                                     className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700"
                                 >
-                                    <Plus className="w-4 h-4 mr-2" />
+                                    {isAdding ? (
+                                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                                    ) : (
+                                        <Plus className="w-4 h-4 mr-2" />
+                                    )}
                                     {editingIndex !== null
                                         ? "Update Test Case"
                                         : "Add Test Case"}

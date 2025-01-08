@@ -3,7 +3,7 @@ import { Tag } from "../models/tag";
 
 export class TagRepository {
     async findAll(): Promise<Tag[]> {
-        return db.any("SELECT * FROM tags");
+        return db.any("SELECT * FROM tags order by name");
     }
 
     async findById(id: string): Promise<Tag | null> {

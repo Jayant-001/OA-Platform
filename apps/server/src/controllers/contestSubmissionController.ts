@@ -4,8 +4,10 @@ import InputQueueService from "../services/inputQueueService";
 import { queueConfig } from "../config/queueConfig";
 import { CacheFactory } from "../services/redis-cache.service";
 import { CacheStrategy, SubmissionStatus } from "../types/cache.types";
+import TestCaseService from "../services/testCaseService";
 
 class ContestSubmissionController {
+    private testCaseService = new TestCaseService();
     private contestSubmissionService = new ContestSubmissionService();
     private inputQueueService = new InputQueueService();
     private submissionCache = CacheFactory.create<SubmissionStatus>(
@@ -36,14 +38,15 @@ class ContestSubmissionController {
                 { status: 'PENDING' }
             );
 
-            let input = 10;
+            const testCases = await this.testCaseService.getAllByProblemId(problemId);
+
             const job = {
                 id: submission.id,
                 language: submission.language,
                 code: submission.code,
-                input,
                 timeout: 5000,
                 submissionType: "submit",
+                testCases
             };
             await this.inputQueueService.addJob(job);
 
