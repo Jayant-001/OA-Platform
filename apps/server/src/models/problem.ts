@@ -14,6 +14,7 @@ export interface Problem {
     updated_at: Date;
     tagIds: string[];
     tags?: Tag[]; // Add tags property
+    score?: number;
 }
 
 export interface Tag {
