@@ -179,7 +179,6 @@ class ContestSubmissionController {
                 submitted_at: submission?.submitted_at,
                 execution_time: submission?.execution_time,
                 memory_used: submission?.memory_used,
-                language: submission?.language
             })
         } catch (error) {
             next(error);
