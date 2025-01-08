@@ -25,6 +25,16 @@ export class ProblemRepository {
         return {...problem, tags};
     }
 
+    async findByContestId(contestId: string): Promise<Problem[]> {
+        const query = `
+            SELECT *
+            FROM contest_problems
+            JOIN problems ON contest_problems.problem_id = problems.id
+            WHERE contest_id = $1`;
+        const result = await db.query(query, [contestId]);
+        return result;
+    }
+
     async createProblem(
         problem: Omit<Problem, "id" | "created_at" | "updated_at">
     ): Promise<Problem> {
