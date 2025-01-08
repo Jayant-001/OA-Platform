@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect } from "react";
 import { useLocation, useParams, useNavigate } from "react-router-dom";
 import { Split } from "@geoffcox/react-splitter";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -39,14 +39,13 @@ export function ProblemDescriptionPage() {
     const [language, setLanguage] = useState("javascript");
     const [code, setCode] = useState("");
     const [input, setInput] = useState("");
-    const [output, setOutput] = useState("");
     const [isConsoleCollapsed, setIsConsoleCollapsed] = useState(false);
     const [submissions, setSubmissions] = useState<Submission[]>([]);
 
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
     const { fetchProblemById } = useAdminApi();
     const { getContestProblemById } = useUsersApi();
-    const { createSubmission, getSubmissionsByProblemId } = useSubmissionApi();
+    const { getSubmissionsByProblemId } = useSubmissionApi();
     const { problems } = useProblemContext();
     const isDashboardPage = location.pathname.includes("/dashboard");
     const navigate = useNavigate();
@@ -57,9 +56,7 @@ export function ProblemDescriptionPage() {
     const [consoleSize, setConsoleSize] = useState(30); // default size 30%
 
     /**
-     *
      * ------------------------------------------ Run code pooling ------------------------------------------------
-     *
      */
     const { submitTask, requestId, result, isLoading, error, reset } =
         useLongRunningTask();
@@ -155,7 +152,6 @@ export function ProblemDescriptionPage() {
             return;
         }
 
-        setOutput("Submitting solution...");
         try {
             const createdSubmission = await submitCode({
                 code,
@@ -167,11 +163,9 @@ export function ProblemDescriptionPage() {
             const new_submisisons = [createdSubmission!, ...submissions];
             setSubmissions(new_submisisons);
 
-            setOutput("Submission successful!");
             toast.success("Submission successful!");
         } catch (error) {
             console.log(error);
-            setOutput("Submission failed.");
             toast.error("Submission failed.");
         }
     };

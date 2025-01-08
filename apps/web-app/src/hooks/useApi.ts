@@ -1,5 +1,5 @@
 import apiService from "@/api/apiService";
-import { CreateProblem } from "@/types";
+import { AddTestCase, CreateProblem } from "@/types";
 
 export const useAdminApi = () => {
     /*
@@ -154,3 +154,16 @@ export const useSubmissionApi = () => {
 
     return { getSubmissionsByProblemId, getSubmissionById, createSubmission, getSubmissionResult, runCode, getRunCodeResult };
 };
+
+export const useTestCaseApi = () => {
+
+    const addBulkTestCases = async (problemId: string, testCases: AddTestCase[]) => {
+        return await apiService.post(`/api/admins/problems/${problemId}/test-cases/bulk`, testCases);
+    }
+
+    const getTestCasesByProblemId = async (problemId: string) => {
+        return await apiService.get(``)
+    }
+
+    return { addBulkTestCases, getTestCasesByProblemId };
+}
