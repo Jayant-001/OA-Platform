@@ -5,12 +5,13 @@ import { TestCase } from "../models/testCase";
 
 export class ProblemRepository {
     async findAll(): Promise<Problem[]> {
-        const problems = await db.any("SELECT * FROM problems order by created_by");
+        const problems = await db.any("SELECT * FROM problems order by created_at desc");
         const problemsWithTags = await Promise.all(problems.map(async problem => {
             const tags = await db.any(
                 `SELECT t.* FROM tags t
                  JOIN problem_tags pt ON t.id = pt.tag_id
-                 WHERE pt.problem_id = $1`,
+                 WHERE pt.problem_id = $1
+                 order by name asc`,
                 [problem.id]
             );
             return { ...problem, tags };

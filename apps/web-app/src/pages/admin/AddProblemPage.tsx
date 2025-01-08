@@ -13,7 +13,7 @@ import {
 } from "@/components/ui/select";
 import TextEditor from "@/components/shared/TextEditor";
 import { useAdminApi } from "@/hooks/useApi";
-import { CreateProblem, Tag } from "@/types";
+import { Tag } from "@/types";
 import { Badge } from "@/components/ui/badge";
 import { X, Beaker } from "lucide-react";
 import toast from "react-hot-toast";
@@ -329,7 +329,6 @@ export function AddProblemPage() {
                                     isOpen={isTestCaseModalOpen}
                                     onClose={() => setIsTestCaseModalOpen(false)}
                                     problemId={problem_id || ""}
-                                    existingTestCases={[]} // Pass your existing test cases here
                                 />
                             </div>
                         </form>

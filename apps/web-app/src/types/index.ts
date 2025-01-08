@@ -92,12 +92,12 @@ export interface Submission {
 export interface AddTestCase {
     input: string;
     output: string;
-    isSample: boolean;
+    is_sample: boolean;
 }
 
 export interface TestCase {
     id: string;
     input: string;
     output: string;
-    isSample: boolean;
+    is_sample: boolean;
 }

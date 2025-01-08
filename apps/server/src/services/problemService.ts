@@ -114,7 +114,7 @@ class ProblemService {
     }
 
     async deleteTestCase(id: string): Promise<void> {
-        await this.problemRepository.deleteTestCase(id);
+        return await this.problemRepository.deleteTestCase(id);
     }
 
     async createBulkTestCases(problemId: string, testCases: Partial<TestCase>[]): Promise<TestCase[]> {
