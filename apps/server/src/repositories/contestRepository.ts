@@ -28,7 +28,7 @@ export class ContestRepository {
 
     async findAllUsersOfContest(id: string): Promise<UserDetails[] | null> {
 
-        const users = await db.any("SELECT * FROM contest_users JOIN user_details On contest_users.user_id=user_details.user_id JOIN users ON contest_users.user_id=id WHERE contest_id = $1", [id]);
+        const users = await db.any("SELECT * FROM contest_users JOIN user_details On contest_users.user_id=user_details.user_id JOIN users ON contest_users.user_id=users.id WHERE contest_id = $1", [id]);
         return users;
     }
 

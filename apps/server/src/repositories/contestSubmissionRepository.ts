@@ -103,4 +103,15 @@ export class ContestSubmissionRepository {
             ]
         );
     }
+
+    async findByContestId(contestId: string): Promise<ContestSubmissions[]> {
+        const query = `
+            SELECT *
+            FROM contest_submissions
+            WHERE contest_id = $1
+            ORDER BY submitted_at ASC
+        `;
+        const result = await db.query(query, [contestId]);
+        return result;
+    }
 }
