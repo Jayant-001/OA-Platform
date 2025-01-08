@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
 import ProblemService from "../services/problemService";
-import { HttpException } from "../middleware/errorHandler";
+import { CustomException } from "../errors/CustomException";
 
 class ProblemController {
     private problemService = new ProblemService();
@@ -12,11 +12,10 @@ class ProblemController {
 
     async getProblemById(req: Request, res: Response): Promise<void> {
         const problem = await this.problemService.getProblemById(req.params.problemId);
-        if (problem) {
-            res.json(problem);
-        } else {
-            throw new HttpException(404, "PROBLEM_NOT_FOUND", "Problem not found");
+        if (!problem) {
+            throw CustomException.notFound("Problem not found");
         }
+        res.json(problem);
     }
 
     async createProblem(req: Request, res: Response): Promise<void> {
@@ -39,10 +38,40 @@ class ProblemController {
 
     async createSubmission(req: Request, res: Response) {
         const submissionData = req.body;
-        submissionData.submitted_by = req.user?.id; 
+        submissionData.submitted_by = req.user?.id;
         submissionData.problem_id = req.params.problemId;
         const submission = await this.problemService.createSubmission(submissionData);
         res.status(201).json(submission);
+    }
+
+    async addTestCase(req: Request, res: Response) {
+        const { problemId } = req.params;
+        const testCase = await this.problemService.createTestCase(problemId, req.body);
+        res.status(201).json(testCase);
+    }
+
+    async getTestCases(req: Request, res: Response) {
+        const { problemId } = req.params;
+        const testCases = await this.problemService.getTestCasesByProblemId(problemId);
+        res.json(testCases);
+    }
+
+    async updateTestCase(req: Request, res: Response) {
+        const { testCaseId } = req.params;
+        const testCase = await this.problemService.updateTestCase(testCaseId, req.body);
+        res.json(testCase);
+    }
+
+    async deleteTestCase(req: Request, res: Response) {
+        const { testCaseId } = req.params;
+        await this.problemService.deleteTestCase(testCaseId);
+        res.status(204).send();
+    }
+
+    async addBulkTestCases(req: Request, res: Response) {
+        const { problemId } = req.params;
+        const testCases = await this.problemService.createBulkTestCases(problemId, req.body);
+        res.status(201).json(testCases);
     }
 }
 

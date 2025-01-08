@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from "express";
 import { UserService } from "../services/userService";
-import { HttpException } from "../middleware/errorHandler";
+import { CustomException } from "../errors/CustomException";
 
 export class UserController {
     private userService = new UserService();
@@ -20,7 +20,7 @@ export class UserController {
             if (user) {
                 res.json(user);
             } else {
-                throw new HttpException(404, "USER_NOT_FOUND", "User not found");
+                throw new CustomException(404, "USER_NOT_FOUND", "User not found");
             }
         } catch (error) {
             next(error);

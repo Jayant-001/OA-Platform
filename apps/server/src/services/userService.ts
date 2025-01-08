@@ -1,8 +1,8 @@
 import { UserRepository } from '../repositories/userRepository';
 import { User } from '../models/user';
-import { HttpException } from '../middleware/errorHandler';
-import { UserRequest } from '../models/user';; // Ensure this path is correct or adjust it to the correct location
-import { UserDetails } from '../models/user';;
+import { CustomException } from '../errors/CustomException';
+import { UserRequest } from '../models/user';
+import { UserDetails } from '../models/user';
 
 export class UserService {
   private userRepository = new UserRepository();
@@ -17,7 +17,7 @@ export class UserService {
 
   async createUser(user: Omit<UserRequest, 'id'>): Promise<void> {
     if (user.role !== 'user') {
-         throw new HttpException(401, "NOT_AUTHORIZED", "Not Authorized To Create User");
+      throw new CustomException(401, "Not Authorized To Create User", "NOT_AUTHORIZED");
     }
     return this.userRepository.createUser(user);
   }
@@ -26,7 +26,7 @@ export class UserService {
   async updateUser(userId: string, userData: Partial<Omit<User, "email" | "password">>): Promise<void> {
     // const isExists = await this.userRepository.findById(userId);
     // if (isExists === null) {
-    //   throw new HttpException(404, "USER_NOT_FOUND", "User not found");
+    //   throw new CustomException(404, "User not found", "USER_NOT_FOUND");
     // }
     // return this.userRepository.update(userId, userData);
   }
@@ -34,7 +34,7 @@ export class UserService {
   async deleteUser(userId: string): Promise<void> {
     // const isExists = await this.userRepository.findById(userId);
     // if (isExists === null) {
-    //   throw new HttpException(404, "USER_NOT_FOUND", "User not found");
+    //   throw new CustomException(404, "User not found", "USER_NOT_FOUND");
     // }
     // return this.userRepository.delete(userId);
   }
