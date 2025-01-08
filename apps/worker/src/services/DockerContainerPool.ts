@@ -5,6 +5,27 @@ import { ContainerPool } from "../types";
 
 const docker = new Docker();
 
+interface TestCase {
+    id: string;
+    input: string;
+    output: string;
+    problem_id: string;
+    is_sample: boolean;
+}
+
+interface TestResult {
+    testCaseId: string;
+    status:
+        | "accepted"
+        | "wrong_answer"
+        | "runtime_error"
+        | "time_limit_exceeded";
+    executionTime: number;
+    memoryUsed: number;
+    output?: string;
+    error?: string;
+}
+
 export class DockerContainerPool implements ContainerPool {
     private maxPoolSize: number;
     private imageType: string;
@@ -15,14 +36,12 @@ export class DockerContainerPool implements ContainerPool {
     private tempDir: string;
     private fileExtension: string;
 
-
     constructor(
         maxPoolSize = 5,
         imageType = "gcc:latest",
         command: string,
         executionTimeout = 10000,
-        fileExtension = ".cpp"  
-
+        fileExtension = ".cpp"
     ) {
         this.maxPoolSize = maxPoolSize;
         this.imageType = imageType;
@@ -32,7 +51,6 @@ export class DockerContainerPool implements ContainerPool {
         this.busyContainers = new Set();
         this.tempDir = path.join(process.cwd(), "temp");
         this.fileExtension = fileExtension;
-
     }
 
     async initialize(): Promise<void> {
@@ -40,26 +58,107 @@ export class DockerContainerPool implements ContainerPool {
         await this.initializePool();
     }
 
-    async processCode(content: string, input?: string): Promise<{ result: string; executionTimeMs: number }> {
+    async processRunCode(
+        content: string,
+        input?: string
+    ): Promise<{ result: string; executionTimeMs: number }> {
         const container = await this.acquireContainer();
         console.log("Container acquired -> ", container.id);
-        // const containerDir = path.join(this.tempDir, container.id);
 
         try {
-            const res = await this.createFilesInContainer(container, content, input);
-            const { output, executionTimeMs } = await this.executeCode(container);
+            const res = await this.createFilesInContainer(
+                container,
+                content,
+                input
+            );
+            const { output, executionTimeMs } = await this.executeCode(
+                container
+            );
 
             console.log("Execution time -> ", executionTimeMs);
             await this.releaseContainer(container);
-            //  await fs.rm(containerDir, { recursive: true, force: true });
 
             return { result: output, executionTimeMs }; // Return execution time
         } catch (error) {
             console.log("Error -> ", error);
             await this.releaseContainer(container);
-            // await fs
-            //     .rm(containerDir, { recursive: true, force: true })
-            //     .catch(console.error);
+            throw error;
+        }
+    }
+
+    async processSubmitCode(
+        code: string,
+        testCases: TestCase[]
+    ): Promise<{ result: string; executionTimeMs: number }> {
+        const container = await this.acquireContainer();
+        console.log("Container acquired for submission -> ", container.id);
+        const results: TestResult[] = [];
+        const startTime = performance.now();
+
+        try {
+            // First, create the code file
+            await this.createCodeFile(container, code);
+
+            // Process each test case sequentially
+            for (const testCase of testCases) {
+                try {
+                    // Create input file for this test case
+                    await this.createInputFile(container, testCase.input);
+
+                    // Execute the code
+                    const { output, executionTimeMs } = await this.executeCode(
+                        container
+                    );
+
+                    console.log(
+                        testCase.input,
+                        " ----->>>>> ",
+                        output,
+                        executionTimeMs
+                    );
+
+                    // Compare output with expected output
+                    const status = this.compareOutput(
+                        output.trim(),
+                        testCase.output.trim()
+                    )
+                        ? "accepted"
+                        : "wrong_answer";
+
+                    results.push({
+                        testCaseId: testCase.id,
+                        status,
+                        executionTime: executionTimeMs,
+                        memoryUsed: 0, // TODO: Implement memory tracking
+                        output: output.trim(),
+                    });
+                } catch (error) {
+                    results.push({
+                        testCaseId: testCase.id,
+                        status: "runtime_error",
+                        executionTime: 0,
+                        memoryUsed: 0,
+                        error:
+                            error instanceof Error
+                                ? error.message
+                                : "Unknown error",
+                    });
+                }
+
+                // Add a small delay between test cases to ensure file system operations complete
+                await new Promise((resolve) => setTimeout(resolve, 100));
+            }
+
+            console.log(results);
+
+            await this.releaseContainer(container);
+            return {
+                result: "results",
+                executionTimeMs: performance.now() - startTime,
+            };
+        } catch (error) {
+            console.error("Submission processing error:", error);
+            await this.releaseContainer(container);
             throw error;
         }
     }
@@ -98,8 +197,8 @@ export class DockerContainerPool implements ContainerPool {
                     MemorySwap: 512 * 1024 * 1024, // Disable swap
                     CpuPeriod: 100000,
                     CpuQuota: 50000, // Limit to 50% CPU
-                    NetworkMode: 'none' // Disable network access
-                }
+                    NetworkMode: "none", // Disable network access
+                },
                 // HostConfig: {
                 //     Binds: [`${this.tempDir}:/app`],
                 // },
@@ -112,7 +211,9 @@ export class DockerContainerPool implements ContainerPool {
         }
     }
 
-    async executeCode(container: Docker.Container): Promise<{ output: string; executionTimeMs: number }> {
+    async executeCode(
+        container: Docker.Container
+    ): Promise<{ output: string; executionTimeMs: number }> {
         const exec = await container.exec({
             Cmd: ["sh", "-c", `${this.command}`],
             AttachStdout: true,
@@ -174,14 +275,18 @@ export class DockerContainerPool implements ContainerPool {
         });
     }
 
-    async createFilesInContainer(container: Docker.Container, code: string, input?: string): Promise<void> {
-        let containerCodePath = '/app/main' + this.fileExtension;
-        if (this.fileExtension === '.java') {
+    async createFilesInContainer(
+        container: Docker.Container,
+        code: string,
+        input?: string
+    ): Promise<void> {
+        let containerCodePath = "/app/main" + this.fileExtension;
+        if (this.fileExtension === ".java") {
             const classNameMatch = code.match(/public\s+class\s+(\w+)/);
-            const className = classNameMatch ? classNameMatch[1] : 'Main';
+            const className = classNameMatch ? classNameMatch[1] : "Main";
             containerCodePath = `/app/${className}.java`;
         }
-        const containerInputPath = '/app/input.txt';
+        const containerInputPath = "/app/input.txt";
 
         // Escape code and input to prevent command injection and handle special characters
         // const escapedCode = code.replace(/'/g, "'\\''").replace(/"/g, '\\"');
@@ -222,12 +327,13 @@ export class DockerContainerPool implements ContainerPool {
                     });
 
                     stream.on("end", () => {
-                        const stderr = Buffer.concat(stderrChunks).toString("utf8");
+                        const stderr =
+                            Buffer.concat(stderrChunks).toString("utf8");
 
                         if (stderr) {
-                            reject(new Error(stderr));  // If there's an error, reject
+                            reject(new Error(stderr)); // If there's an error, reject
                         } else {
-                            resolve('Files created successfully.');
+                            resolve("Files created successfully.");
                         }
                     });
 
@@ -239,6 +345,72 @@ export class DockerContainerPool implements ContainerPool {
         } catch (error) {
             throw new Error(`Error in creating files: ${error}`);
         }
+    }
+
+    private async createCodeFile(
+        container: Docker.Container,
+        code: string
+    ): Promise<void> {
+        const containerCodePath = "/app/main" + this.fileExtension;
+        const createCodeCommand = `mkdir -p /app && echo '${code}' > ${containerCodePath}`;
+
+        await this.execCommand(container, createCodeCommand);
+    }
+
+    private async createInputFile(
+        container: Docker.Container,
+        input: string
+    ): Promise<void> {
+        const containerInputPath = "/app/input.txt";
+        const createInputCommand = `echo '${input}' > ${containerInputPath}`;
+
+        await this.execCommand(container, createInputCommand);
+    }
+
+    private async execCommand(
+        container: Docker.Container,
+        command: string
+    ): Promise<void> {
+        const exec = await container.exec({
+            Cmd: ["sh", "-c", command],
+            AttachStdout: true,
+            AttachStderr: true,
+        });
+
+        return new Promise((resolve, reject) => {
+            exec.start(
+                {
+                    Detach: false,
+                    Tty: false,
+                },
+                (err, stream) => {
+                    if (err) return reject(err);
+                    if (!stream) return reject(new Error("No stream"));
+
+                    let stderrChunks: Buffer[] = [];
+
+                    stream.on("data", (chunk: Buffer) => {
+                        if (chunk[0] === 2) {
+                            // stderr
+                            stderrChunks.push(chunk.slice(8));
+                        }
+                    });
+
+                    stream.on("end", () => {
+                        const stderr =
+                            Buffer.concat(stderrChunks).toString("utf8");
+                        if (stderr) reject(new Error(stderr));
+                        else resolve();
+                    });
+
+                    stream.on("error", reject);
+                }
+            );
+        });
+    }
+
+    private compareOutput(actual: string, expected: string): boolean {
+        return actual === expected;
     }
 
     private async releaseContainer(container: Docker.Container): Promise<void> {

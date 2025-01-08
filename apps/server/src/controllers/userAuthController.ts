@@ -10,12 +10,9 @@ class userAuthController {
         res: Response,
         next: NextFunction
     ): Promise<void> {
-        try {
             await this.authService.register(req.body);
             res.json({ message: "User created successfully" });
-        } catch (error: any) {
-            next(new CustomException(400, "USER_CREATION_FAILED", error.message));
-        }
+         
     }
 
     async login(
@@ -23,7 +20,6 @@ class userAuthController {
         res: Response,
         next: NextFunction
     ): Promise<void> {
-        try {
             const token = await this.authService.login(
                 req.body.email,
                 req.body.password
@@ -36,9 +32,7 @@ class userAuthController {
                 sameSite: "strict", // Optional: Controls the cross-site cookie behavior (could be 'Lax' or 'None' depending on your needs)
             });
             res.status(200).json({ token });
-        } catch (error: any) {
-            next(new CustomException(400, "LOGIN_FAILED", error.message));
-        }
+        
     }
 }
 

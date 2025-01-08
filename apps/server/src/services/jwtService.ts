@@ -7,11 +7,8 @@ export const generateToken = (payload: any) => {
 };
 
 export const verifyToken = (token: string) => {
-    try {
         return jwt.verify(token, secret);
-    } catch (error) {
-        throw new Error("Invalid token");
-    }
+    
 };
 
 class JwtService {
