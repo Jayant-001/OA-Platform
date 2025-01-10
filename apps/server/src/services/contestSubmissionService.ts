@@ -124,9 +124,9 @@ class ContestSubmissionService {
         const cacheKey = `contest:${contest_id}`;
         const cachedContest = await this.userContestCache.get(cacheKey);
 
-        // if (cachedContest) {
-        //     return cachedContest;
-        // }
+        if (cachedContest) {
+            return cachedContest;
+        }
 
         const contest = await this.contestRepository.findById(contest_id);
         if (!contest) {

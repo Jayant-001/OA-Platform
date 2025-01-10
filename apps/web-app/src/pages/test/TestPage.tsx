@@ -120,8 +120,8 @@ const TestPage = () => {
     const decryptedData = JSON.parse(
         decryptedBytes.toString(CryptoJS.enc.Utf8)
     );
-    
-    console.log(decryptedData.cipher)
+
+    console.log(decryptedData.cipher);
 
     return (
         <div className="min-h-screen bg-background p-4">
@@ -137,7 +137,7 @@ const TestPage = () => {
                         <h3 className="text-lg font-semibold mb-2">Preview:</h3>
                         <div
                             // className="prose max-w-none"
-                            className="prose"
+                            className="prose lg:prose-xl"
                             dangerouslySetInnerHTML={{ __html: content }}
                         />
                     </div>
