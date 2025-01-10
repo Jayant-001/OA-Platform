@@ -20,7 +20,6 @@ const userAuthMiddleware = async (
         return next(new CustomException(401, "No token provided", "NOT_AUTHORIZED"));
     }
 
-    try {
         const secret = process.env.JWT_SECRET || "your_jwt_secret";
         const decoded = jwt.verify(token, secret) as ReqUser;
         req.user = decoded;
@@ -31,9 +30,7 @@ const userAuthMiddleware = async (
         }
 
         next();
-    } catch (error) {
-        return next(new CustomException(401, "Invalid or expired token", "NOT_AUTHORIZED"));
-    }
+   
 };
 
 const adminAuthMiddleware = async (
@@ -48,7 +45,6 @@ const adminAuthMiddleware = async (
         return next(new CustomException(401, "No token provided", "NOT_AUTHORIZED"));
     }
 
-    try {
         const secret = process.env.JWT_SECRET || "your_jwt_secret";
         const decoded = jwt.verify(token, secret) as ReqUser;
         req.user = decoded;
@@ -63,13 +59,7 @@ const adminAuthMiddleware = async (
         }
 
         next();
-    } catch (error) {
-        if (error instanceof CustomException) {
-            return next(new CustomException(401, error.message, "NOT_AUTHORIZED"));
-        } else {
-            return next(new CustomException(401, "Invalid or expired token", "NOT_AUTHORIZED"));
-        }
-    }
+   
 };
 
 export { userAuthMiddleware, adminAuthMiddleware };

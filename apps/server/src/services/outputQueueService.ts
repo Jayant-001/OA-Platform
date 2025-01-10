@@ -47,7 +47,7 @@ class OutputQueueService {
                     concurrency: 1,
 
 
-                 }
+                }
             );
 
             worker.on('completed', async (job, data) => {
@@ -62,7 +62,7 @@ class OutputQueueService {
             });
 
             worker.on('failed', async (job, error) => {
-                
+
             });
         }
     }
@@ -101,7 +101,7 @@ class OutputQueueService {
                 memory_used: data.memory_used || 0
             });
         }
-       
+
 
         return {
             success: true,
