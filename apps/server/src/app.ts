@@ -1,4 +1,7 @@
 /// <reference path="./types/express.d.ts" />
+
+require('express-async-errors');
+
 import express from "express";
 import userRoutes from "./routes/userRoutes";
 import userAuthRoutes from "./routes/userAuthRoutes";
@@ -9,17 +12,16 @@ import adminContestRoutes from "./routes/adminContestRoutes";
 import adminProblemRoutes from "./routes/adminProblemRoutes";
 import tagRoutes from "./routes/tagRoutes";
 import { errorHandler } from "./middleware/errorHandler";
-import {
-    userAuthMiddleware,
-    adminAuthMiddleware,
-} from "./middleware/authMiddleware";
+import { userAuthorizationMiddleware } from "./middleware/userAuthorizationMiddleware";
+import { adminAuthorizationMiddleware } from "./middleware/adminAuthorizationMiddleware";
+import { authenticationMiddleware } from "./middleware/authenticationMiddleware";
 import cookieParser from 'cookie-parser';
 import cors from "cors";
 import dotenv from "dotenv";
 dotenv.config();
 import morgan from "morgan";
 import commonRoutes from "./routes/commonRoutes";
-import  OutputQueueService  from "./services/outputQueueService";
+import OutputQueueService from "./services/outputQueueService";
 
 
 const outputQueueService = new OutputQueueService();
@@ -34,7 +36,7 @@ const corsOptions = {
 app.use(cors(corsOptions));
 app.use(cookieParser());
 app.use(express.json());
- 
+
 const morganFormat = ":method :url :status :response-time ms";
 app.use(
     morgan(morganFormat, {
@@ -53,15 +55,15 @@ app.use(
 );
 
 app.use("/auth/users", userAuthRoutes); // User auth
-app.use("/api/users", userAuthMiddleware, userRoutes);
-app.use("/api/users/contests", userAuthMiddleware, userContestRoutes); // Contest routes for users
+app.use("/api/users", authenticationMiddleware, userAuthorizationMiddleware, userRoutes);
+app.use("/api/users/contests", authenticationMiddleware, userAuthorizationMiddleware, userContestRoutes); // Contest routes for users
 
-app.use("/auth/admins", adminAuthRoutes); 
-app.use("/api", commonRoutes);
-app.use("/api/admins/contests", adminAuthMiddleware, adminContestRoutes); // Contest routes for admins
-app.use("/api/admins/problems", adminAuthMiddleware, adminProblemRoutes); // Problem routes for admins
-app.use("/api/admins/tags", adminAuthMiddleware, tagRoutes); // Tag routes for admins
-app.use("/api/admins", adminAuthMiddleware, adminRoutes);
+app.use("/auth/admins", adminAuthRoutes);
+app.use("/api", authenticationMiddleware,commonRoutes);
+app.use("/api/admins/contests", authenticationMiddleware, adminAuthorizationMiddleware, adminContestRoutes); // Contest routes for admins
+app.use("/api/admins/problems", authenticationMiddleware, adminAuthorizationMiddleware, adminProblemRoutes); // Problem routes for admins
+app.use("/api/admins/tags", authenticationMiddleware, adminAuthorizationMiddleware, tagRoutes); // Tag routes for admins
+app.use("/api/admins", authenticationMiddleware, adminAuthorizationMiddleware, adminRoutes);
 
 app.get("/", (req, res) => {
     return res.send("hello world  ^_^");

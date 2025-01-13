@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction } from "express";
 import AdminService from "../services/adminService";
+import { CustomException } from "../errors/CustomException";
 
 
 class AdminController {
@@ -14,17 +15,20 @@ class AdminController {
         }
     }
 
-    async getAdminById(req: Request, res: Response, next: NextFunction) {
-        try {
-            const admin = await this.adminService.getAdminById(req.params.adminId);
-            if (!admin) {
-                res.status(404).json({ message: "Admin not found" });
-            } else {
-                res.json(admin);
-            }
-        } catch (error) {
-            next(error);
+    async getAdmin(req: Request, res: Response): Promise<void> {
+        const admin = await this.adminService.getAdminById(req.user?.id as string);
+
+        if (!admin) {
+            throw CustomException.notFound("Admin not found");
         }
+        const filteredAdmin = {
+            id: admin.id,
+            name: admin.name,
+            email: admin.email,
+            role: admin.role,
+        };
+
+        res.json(filteredAdmin);
     }
 
     // async updateAdmin(req: Request, res: Response, next: NextFunction) {

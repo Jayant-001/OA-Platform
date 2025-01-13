@@ -28,8 +28,7 @@ class ContestSubmissionController {
         return `output:${id}`;
     }
 
-    async createSubmission(req: Request, res: Response, next: NextFunction) {
-        try {
+    async createSubmission(req: Request, res: Response) {
             const { contestId, problemId } = req.params;
             const submission = await this.contestSubmissionService.createSubmission(contestId, problemId, req.body, req.user?.id as string);
 
@@ -52,13 +51,10 @@ class ContestSubmissionController {
 
             const {contest_id, problem_id, user_id, code, updated_at, score, ...data} = submission;
             res.status(201).json(data);
-        } catch (error) {
-            next(error);
-        }
+       
     }
 
-    async getUserSubmissionsForContest(req: Request, res: Response, next: NextFunction) {
-        try {
+    async getUserSubmissionsForContest(req: Request, res: Response) {
             const { contestId, problemId } = req.params;
             const userId = req.user?.id as string;
             const submissions = await this.contestSubmissionService.getUserSubmissionsForProblem(contestId, problemId, userId);
@@ -68,13 +64,10 @@ class ContestSubmissionController {
                 return rest;
             });
             res.json(filteredSubmissions);
-        } catch (error) {
-            next(error);
-        }
+       
     }
 
-    async getSubmissionById(req: Request, res: Response, next: NextFunction) {
-        try {
+    async getSubmissionById(req: Request, res: Response) {
             const { submissionId } = req.params;
             const submission = await this.contestSubmissionService.getSubmissionById(submissionId);
             if (!submission) {
@@ -82,13 +75,10 @@ class ContestSubmissionController {
             }
             const { code, execution_time, memory_used } = submission;
             res.json({ code, execution_time, memory_used });
-        } catch (error) {
-            next(error);
-        }
+        
     }
 
-    async runCode(req: Request, res: Response, next: NextFunction) {
-        try {
+    async runCode(req: Request, res: Response) {
             const submission_id = new Date().getTime().toString();
 
             await this.submissionCache.set(
@@ -108,13 +98,9 @@ class ContestSubmissionController {
             res.status(201).json({
                 submission_id
             });
-        } catch (error) {
-            next(error);
-        }
     }
 
-    async getRunCodeStatus(req: Request, res: Response, next: NextFunction) {
-        try {
+    async getRunCodeStatus(req: Request, res: Response) {
             const { submissionId } = req.params;
             const status = await this.submissionCache.get(
                 this.getKeyPrefix('run') + submissionId
@@ -144,13 +130,10 @@ class ContestSubmissionController {
                 execution_time: null,
                 memory_used: null
             });
-        } catch (error) {
-            next(error);
-        }
+       
     }
 
-    async getSubmitCodeStatus(req: Request, res: Response, next: NextFunction) {
-        try {
+    async getSubmitCodeStatus(req: Request, res: Response) {
             const { submissionId } = req.params;
             const status = await this.submissionCache.get(
                 this.getKeyPrefix('submit') + submissionId
@@ -183,9 +166,7 @@ class ContestSubmissionController {
                 execution_time: submission?.execution_time,
                 memory_used: submission?.memory_used,
             })
-        } catch (error) {
-            next(error);
-        }
+   
     }
 }
 
