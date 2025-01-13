@@ -50,11 +50,8 @@ export function CreateContestPage() {
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
 
-        console.log(formData);
-      //  return;
-
         try {
-            await createContest(formData);
+            await createContest({...formData, description});
             toast.success("Contest created successfully.");
             clearFormData();
         } catch (error) {

@@ -9,7 +9,7 @@ class AdminAuthController {
             if (req?.user?.role !== 'admin') {
                 return res.status(403).json({ message: "Not authorized to register an admin" });
             }
-            const admin = await this.authService.register(req.body);
+            const admin = await this.authService.register(req.body,'admin');
             res.status(201).json(admin);
        
     }

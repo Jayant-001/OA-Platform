@@ -15,12 +15,6 @@ export class UserService {
     return this.userRepository.findUserById(userId);
   }
 
-  async createUser(user: Omit<UserRequest, 'id'>): Promise<void> {
-    if (user.role !== 'user') {
-      throw new CustomException(401, "Not Authorized To Create User", "NOT_AUTHORIZED");
-    }
-    return this.userRepository.createUser(user);
-  }
 
   // TODO: Implement updateUser and deleteUser methods
   async updateUser(userId: string, userData: Partial<Omit<User, "email" | "password">>): Promise<void> {

@@ -59,8 +59,6 @@ export function UpdateContestPage() {
             (async () => {
                 try {
                     const contest = await fetchContestById(contest_id);
-                    const usersList = await fetchUsers();
-                    setUsers(usersList);
                     if (!contest) {
                         toast.error(
                             `Contest not found with code: ${contest_id}`
