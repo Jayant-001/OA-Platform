@@ -11,11 +11,11 @@ export class UserRepository {
         return db.any("SELECT * FROM users  where role='admin'");
     }
 
-    async findUserById(userId: string): Promise<UserDetails | null> {
+    async findUserById(userId: string): Promise<UserRequest | null> {
         return db.oneOrNone("SELECT * FROM user_details JOIN users On user_id=users.id where user_id=$1", [userId]);
     }
 
-    async findAdminById(userId: string): Promise<UserDetails | null> {
+    async findAdminById(userId: string): Promise<User | null> {
         return db.oneOrNone("SELECT * FROM users where id=$1", [userId]);
     }
 

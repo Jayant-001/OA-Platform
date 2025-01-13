@@ -10,7 +10,7 @@ class authService {
     private adminRepository = new AdminRepository();
     private jwtService = new JwtService();
 
-    async register(user: Omit<UserRequest, "id">): Promise<void> {
+    async register(user: Omit<UserRequest, "id">,role:string): Promise<void> {
         const existingUser = await this.userRepository.findByEmail(user.email);
 
         if (existingUser) {
@@ -19,6 +19,7 @@ class authService {
 
         const hashedPassword = await bcrypt.hash(user.password, 12);
         user.password = hashedPassword;
+        user.role = role;
         return this.userRepository.createUser({
             ...user,
             password: hashedPassword,

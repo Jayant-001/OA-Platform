@@ -311,13 +311,13 @@ export function ContestDetailPage() {
 
                     <CardContent className="space-y-8">
                         {/* Common Content */}
-                        <div className="prose prose-slate max-w-none">
+                        <div className="max-w-none">
                             <h3 className="text-xl font-semibold mb-2 flex items-center gap-2">
                                 <AlertCircle className="w-5 h-5 text-purple-600" />
                                 Description
                             </h3>
                             <div
-                                className="text-slate-600"
+                                className="prose lg:prose-xl"
                                 dangerouslySetInnerHTML={{
                                     __html: contest.description,
                                 }}

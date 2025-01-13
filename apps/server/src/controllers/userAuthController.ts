@@ -7,7 +7,7 @@ class userAuthController {
     async register(
         req: Request,
         res: Response): Promise<void> {
-            await this.authService.register(req.body);
+            await this.authService.register(req.body,'user');
             res.json({ message: "User created successfully" });
        
     }
