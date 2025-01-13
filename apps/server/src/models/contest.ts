@@ -5,7 +5,7 @@ export interface Contest {
     start_time: Date;
     duration: number;
     contest_code: string;
-    join_duration: number;
+    buffer_time: number;
     strict_time: boolean;
     created_by: string;
     created_at: Date;

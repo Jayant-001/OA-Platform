@@ -6,17 +6,20 @@ import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import TextEditor from "@/components/shared/TextEditor";
-import apiService from "@/api/apiService";
 import toast from "react-hot-toast";
+import { adminContestApi } from "@/hooks/useApi";
+
 
 export function CreateContestPage() {
     const navigate = useNavigate();
+    const { createContest }  = adminContestApi();
+    
     const [formData, setFormData] = useState({
         title: "",
         description: "",
         start_time: "",
         duration: "",
-        join_duration: "",
+        buffer_time: "",
         contest_code: "",
         strict_time: false,
     });
@@ -37,7 +40,7 @@ export function CreateContestPage() {
             description: "",
             start_time: "",
             duration: "",
-            join_duration: "",
+            buffer_time: "",
             contest_code: "",
             strict_time: false,
         });
@@ -48,13 +51,10 @@ export function CreateContestPage() {
         e.preventDefault();
 
         console.log(formData);
-        return;
+      //  return;
 
         try {
-            await apiService.post("/api/admins/contests", {
-                ...formData,
-                description,
-            });
+            await createContest(formData);
             toast.success("Contest created successfully.");
             clearFormData();
         } catch (error) {
@@ -138,14 +138,14 @@ export function CreateContestPage() {
                                     />
                                 </div>
                                 <div className="space-y-2">
-                                    <Label htmlFor="join_duration">
-                                        Join Duration (minutes)
+                                    <Label htmlFor="buffer_time">
+                                        Buffer Time (minutes)
                                     </Label>
                                     <Input
-                                        id="join_duration"
-                                        name="join_duration"
+                                        id="buffer_time"
+                                        name="buffer_time"
                                         type="number"
-                                        value={formData.join_duration}
+                                        value={formData.buffer_time}
                                         onChange={handleChange}
                                         required
                                     />

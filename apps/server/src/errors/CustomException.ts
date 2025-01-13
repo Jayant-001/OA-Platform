@@ -7,6 +7,8 @@ export class CustomException extends Error {
     this.statusCode = statusCode;
     this.errorCode = errorCode;
     this.name = 'CustomException';
+    Error.captureStackTrace(this, this.constructor);
+
   }
 
   static notFound(message = 'Resource not found') {

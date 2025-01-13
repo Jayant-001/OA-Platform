@@ -101,3 +101,17 @@ export interface TestCase {
     output: string;
     is_sample: boolean;
 }
+
+
+export interface CreateContest {
+    title: string;
+    description: string;
+    start_time: string;
+    duration: string;
+    buffer_time: string;
+    contest_code: string;
+    strict_time: boolean;
+   
+}
+
+

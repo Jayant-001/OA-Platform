@@ -1,5 +1,5 @@
 import apiService from "@/api/apiService";
-import { AddTestCase, CreateProblem } from "@/types";
+import { AddTestCase, CreateProblem, CreateContest } from "@/types";
 
 export const useAdminApi = () => {
     /*
@@ -174,4 +174,14 @@ export const useTestCaseApi = () => {
     }
 
     return { addTestCase, addBulkTestCases, getTestCasesByProblemId, updateTestCase };
+}
+
+export const adminContestApi = () => {
+
+
+
+    const createContest = async (contestData: CreateContest) => {
+        return await apiService.post("api/admins/contests", contestData);
+    }
+    return {createContest}
 }

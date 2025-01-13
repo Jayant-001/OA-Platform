@@ -1,24 +1,20 @@
 import { Request, Response, NextFunction } from "express";
 import AuthService from "../services/authService";
-import { CustomException } from "../errors/CustomException";
 
 class userAuthController {
     private authService = new AuthService();
 
     async register(
         req: Request,
-        res: Response,
-        next: NextFunction
-    ): Promise<void> {
+        res: Response): Promise<void> {
             await this.authService.register(req.body);
             res.json({ message: "User created successfully" });
-         
+       
     }
 
     async login(
         req: Request,
-        res: Response,
-        next: NextFunction
+        res: Response
     ): Promise<void> {
             const token = await this.authService.login(
                 req.body.email,
@@ -32,7 +28,7 @@ class userAuthController {
                 sameSite: "strict", // Optional: Controls the cross-site cookie behavior (could be 'Lax' or 'None' depending on your needs)
             });
             res.status(200).json({ token });
-        
+      
     }
 }
 
