@@ -1,6 +1,5 @@
 import { Router } from 'express';
 import ContestController from '../controllers/contestController';
-import ContestSubmissionController from '../controllers/contestSubmissionController';
 
 const router = Router();
 const contestController = new ContestController();

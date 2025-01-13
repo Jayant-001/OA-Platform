@@ -1,6 +1,5 @@
 import { Request, Response, NextFunction } from "express";
 import AuthService from "../services/authService";
-import { CustomException } from "../errors/CustomException";
 
 class userAuthController {
     private authService = new AuthService();
