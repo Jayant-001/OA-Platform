@@ -17,7 +17,9 @@ const userAuthMiddleware = async (
         req.headers.authorization?.split(" ")[1] || req.cookies?.auth_token;
 
     if (!token) {
-        return next(new CustomException(401, "No token provided", "NOT_AUTHORIZED"));
+        return next(
+            new CustomException(401, "No token provided", "NOT_AUTHORIZED")
+        );
     }
 
         const secret = process.env.JWT_SECRET || "your_jwt_secret";
@@ -25,8 +27,11 @@ const userAuthMiddleware = async (
         req.user = decoded;
 
         const exists = await userService.getUserById(req.user.id);
+        // console.log("user", exists);
         if (!exists || exists.role !== "user") {
-            return next(new CustomException(401, "User not found", "NOT_AUTHORIZED"));
+            return next(
+                new CustomException(401, "User not found", "NOT_AUTHORIZED")
+            );
         }
 
         next();
@@ -42,7 +47,9 @@ const adminAuthMiddleware = async (
         req.headers.authorization?.split(" ")[1] || req.cookies?.auth_token;
 
     if (!token) {
-        return next(new CustomException(401, "No token provided", "NOT_AUTHORIZED"));
+        return next(
+            new CustomException(401, "No token provided", "NOT_AUTHORIZED")
+        );
     }
 
         const secret = process.env.JWT_SECRET || "your_jwt_secret";
@@ -50,16 +57,24 @@ const adminAuthMiddleware = async (
         req.user = decoded;
 
         if (req?.user?.role !== "admin" && req?.user?.role !== "panel") {
-            return next(new CustomException(401, "User is not authorized to access this route", "NOT_AUTHORIZED"));
+            return next(
+                new CustomException(
+                    401,
+                    "User is not authorized to access this route",
+                    "NOT_AUTHORIZED"
+                )
+            );
         }
 
         const exists = await adminService.getAdminById(req.user.id);
         if (!exists) {
-            return next(new CustomException(401, "User not found", "NOT_AUTHORIZED"));
+            return next(
+                new CustomException(401, "User not found", "NOT_AUTHORIZED")
+            );
         }
 
         next();
-   
+
 };
 
 export { userAuthMiddleware, adminAuthMiddleware };
