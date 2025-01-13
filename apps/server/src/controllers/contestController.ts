@@ -109,8 +109,8 @@ class ContestController {
             const userId = req.user?.id as string; // Assuming user ID is available in the request object
             const upcomingContests = await this.contestService.getUpcomingContests(userId);
             const filteredContests = upcomingContests.map(contest => {
-                const { id, title, duration, start_time, join_duration, strict_time } = contest;
-                return { id, title, duration, start_time, join_duration, strict_time };
+                const { id, title, duration, start_time, buffer_time, strict_time } = contest;
+                return { id, title, duration, start_time, buffer_time, strict_time };
             });
             res.status(200).json(filteredContests);
         } catch (error) {

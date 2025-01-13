@@ -48,7 +48,7 @@ export class ContestRepository {
         contest: Omit<Contest, "id" | "created_at" | "updated_at">
     ): Promise<Contest> {
         return db.one(
-            `INSERT INTO contests (title, description, start_time,duration, contest_code, join_duration, strict_time, created_by) 
+            `INSERT INTO contests (title, description, start_time,duration, contest_code, buffer_time, strict_time, created_by) 
              VALUES ($1, $2, $3, $4, $5, $6, $7,$8) RETURNING *`,
             [
                 contest.title,
@@ -56,7 +56,7 @@ export class ContestRepository {
                 contest.start_time,
                 contest.duration,
                 contest.contest_code,
-                contest.join_duration,
+                contest.buffer_time,
                 contest.strict_time,
                 contest.created_by,
             ]

@@ -52,7 +52,6 @@ const adminAuthMiddleware = async (
         );
     }
 
-    
         const secret = process.env.JWT_SECRET || "your_jwt_secret";
         const decoded = jwt.verify(token, secret) as ReqUser;
         req.user = decoded;
@@ -75,7 +74,7 @@ const adminAuthMiddleware = async (
         }
 
         next();
-    
+
 };
 
 export { userAuthMiddleware, adminAuthMiddleware };
