@@ -21,7 +21,7 @@ class ProblemController {
     async createProblem(req: Request, res: Response): Promise<void> {
         const problem = await this.problemService.createProblem({
             ...req.body,
-            created_by: req.user?.id, // Access req.user here
+            created_by: req.user?.id, 
         });
         res.status(201).json(problem);
     }

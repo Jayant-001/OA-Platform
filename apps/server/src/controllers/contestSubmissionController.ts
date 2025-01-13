@@ -16,36 +16,28 @@ class ContestSubmissionController {
         {
             strategy: CacheStrategy.TTL,
             maxEntries: 10000,
-            ttl: 3600,
+            ttl: 3600
         }
     );
 
-    private getKeyPrefix(type: "submit" | "run" = "submit"): string {
-        return type === "run" ? "run:" : "submit:";
+    private getKeyPrefix(type: 'submit' | 'run' = 'submit'): string {
+        return type === 'run' ? 'run:' : 'submit:';
     }
 
     private getOutputKey(id: string): string {
         return `output:${id}`;
     }
 
-    async createSubmission(req: Request, res: Response, next: NextFunction) {
+    async createSubmission(req: Request, res: Response) {
             const { contestId, problemId } = req.params;
-            const submission =
-                await this.contestSubmissionService.createSubmission(
-                    contestId,
-                    problemId,
-                    req.body,
-                    req.user?.id as string
-                );
+            const submission = await this.contestSubmissionService.createSubmission(contestId, problemId, req.body, req.user?.id as string);
 
             await this.submissionCache.set(
-                this.getKeyPrefix("submit") + submission.id,
-                { status: "PENDING" }
+                this.getKeyPrefix('submit') + submission.id,
+                { status: 'PENDING' }
             );
 
-            const testCases = await this.testCaseService.findAllByProblemId(
-                problemId
-            );
+            const testCases = await this.testCaseService.findAllByProblemId(problemId);
 
             const job = {
                 id: submission.id,
@@ -53,81 +45,45 @@ class ContestSubmissionController {
                 code: submission.code,
                 timeout: 5000,
                 submissionType: "submit",
-                testCases,
+                testCases
             };
             await this.inputQueueService.addJob(job);
 
-            const {
-                contest_id,
-                problem_id,
-                user_id,
-                code,
-                updated_at,
-                score,
-                ...data
-            } = submission;
+            const {contest_id, problem_id, user_id, code, updated_at, score, ...data} = submission;
             res.status(201).json(data);
-
+  
     }
 
-    async getUserSubmissionsForContest(
-        req: Request,
-        res: Response,
-        next: NextFunction
-    ) {
-        try {
+    async getUserSubmissionsForContest(req: Request, res: Response) {
             const { contestId, problemId } = req.params;
             const userId = req.user?.id as string;
-            const submissions =
-                await this.contestSubmissionService.getUserSubmissionsForProblem(
-                    contestId,
-                    problemId,
-                    userId
-                );
+            const submissions = await this.contestSubmissionService.getUserSubmissionsForProblem(contestId, problemId, userId);
             // console.log(submissions)
-            const filteredSubmissions = submissions.map((submission) => {
-                const {
-                    contest_id,
-                    problem_id,
-                    user_id,
-                    code,
-                    updated_at,
-                    score,
-                    ...rest
-                } = submission;
+            const filteredSubmissions = submissions.map(submission => {
+                const {contest_id, problem_id, user_id, code, updated_at, score, ...rest} = submission;
                 return rest;
             });
             res.json(filteredSubmissions);
-        } catch (error) {
-            next(error);
-        }
+     
     }
 
-    async getSubmissionById(req: Request, res: Response, next: NextFunction) {
-        try {
+    async getSubmissionById(req: Request, res: Response) {
             const { submissionId } = req.params;
-            const submission =
-                await this.contestSubmissionService.getSubmissionById(
-                    submissionId
-                );
+            const submission = await this.contestSubmissionService.getSubmissionById(submissionId);
             if (!submission) {
-                return res
-                    .status(404)
-                    .json({ message: "Submission not found" });
+                return res.status(404).json({ message: "Submission not found" });
             }
             const { code, execution_time, memory_used } = submission;
             res.json({ code, execution_time, memory_used });
-        } catch (error) {
-            next(error);
-        }
+   
     }
 
-    async runCode(req: Request, res: Response, next: NextFunction) {
+    async runCode(req: Request, res: Response) {
             const submission_id = new Date().getTime().toString();
 
             await this.submissionCache.set(
-                this.getKeyPrefix("run") + submission_id,
-                { status: "PENDING" }
+                this.getKeyPrefix('run') + submission_id,
+                { status: 'PENDING' }
             );
 
             const job = {
@@ -140,30 +96,27 @@ class ContestSubmissionController {
             };
             await this.inputQueueService.addJob(job);
             res.status(201).json({
-                submission_id,
+                submission_id
             });
-        
+     
     }
 
-    async getRunCodeStatus(req: Request, res: Response, next: NextFunction) {
-        try {
+    async getRunCodeStatus(req: Request, res: Response) {
             const { submissionId } = req.params;
             const status = await this.submissionCache.get(
-                this.getKeyPrefix("run") + submissionId
+                this.getKeyPrefix('run') + submissionId
             );
 
             if (!status) {
-                return res
-                    .status(404)
-                    .json({ message: "Submission status not found" });
+                return res.status(404).json({ message: "Submission status not found" });
             }
 
-            if (status.status !== "COMPLETED") {
+            if (status.status !== 'COMPLETED') {
                 return res.json({
-                    status: "PENDING",
+                    status: 'PENDING',
                     output: null,
                     execution_time: null,
-                    memory_used: null,
+                    memory_used: null
                 });
             }
 
@@ -173,57 +126,48 @@ class ContestSubmissionController {
             );
 
             return res.json({
-                status: "COMPLETED",
+                status: 'COMPLETED',
                 result: output || null,
                 execution_time: null,
-                memory_used: null,
+                memory_used: null
             });
-        } catch (error) {
-            next(error);
-        }
+       
     }
 
-    async getSubmitCodeStatus(req: Request, res: Response, next: NextFunction) {
-        try {
+    async getSubmitCodeStatus(req: Request, res: Response) {
             const { submissionId } = req.params;
             const status = await this.submissionCache.get(
-                this.getKeyPrefix("submit") + submissionId
+                this.getKeyPrefix('submit') + submissionId
             );
 
             if (!status) {
-                return res
-                    .status(404)
-                    .json({ message: "Submission status not found" });
+                return res.status(404).json({ message: "Submission status not found" });
             }
 
-            if (status.status !== "COMPLETED") {
+            if (status.status !== 'COMPLETED') {
                 return res.json({
                     id: submissionId,
-                    status: "PENDING",
+                    status: 'PENDING',
                     verdict: null,
                     submitted_at: null,
                     execution_time: null,
-                    memory_used: null,
+                    memory_used: null
                 });
             }
 
-            const submission =
-                await this.contestSubmissionService.getSubmissionById(
-                    submissionId
-                );
+            const submission = await this.contestSubmissionService.getSubmissionById(submissionId);
+
 
             return res.json({
                 id: submission?.id,
-                status: "COMPLETED",
+                status: 'COMPLETED',
                 verdict: submission?.verdict || null,
                 language: submission?.language,
                 submitted_at: submission?.submitted_at,
                 execution_time: submission?.execution_time,
                 memory_used: submission?.memory_used,
-            });
-        } catch (error) {
-            next(error);
-        }
+            })
+       
     }
 }
 

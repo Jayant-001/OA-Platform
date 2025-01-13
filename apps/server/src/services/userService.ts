@@ -11,7 +11,7 @@ export class UserService {
     return this.userRepository.findAllUsers();
   }
 
-  async getUserById(userId: string): Promise<User | null> {
+  async getUserById(userId: string): Promise<UserRequest | null> {
     return this.userRepository.findUserById(userId);
   }
 

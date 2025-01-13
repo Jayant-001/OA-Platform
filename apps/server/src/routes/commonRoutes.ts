@@ -1,17 +1,25 @@
 import { Router } from 'express';
 import ContestSubmissionController from '../controllers/contestSubmissionController';
 import ContestController from '../controllers/contestController';
-import asyncHandler from '../utils/asyncHandler';
-import { asyncWrapper } from '../utils/asyncWrapper';
+import CommonController from '../controllers/commonController';
+
 
 const router = Router();
 const contestSubmissionController = new ContestSubmissionController();
 const contestController = new ContestController();
+const commonController = new CommonController();
 
-router.post('/run-code', asyncWrapper(contestSubmissionController.runCode.bind(contestSubmissionController)));
 
-router.get('/run-code/:submissionId/result', asyncWrapper(contestSubmissionController.getRunCodeStatus.bind(contestSubmissionController)));
+router.post('/run-code', (contestSubmissionController.runCode.bind(contestSubmissionController)));
 
-router.get('/leaderboard/:contestId', asyncWrapper(contestController.getLeaderboard.bind(contestController)));
+router.get('/run-code/:submissionId/result', (contestSubmissionController.getRunCodeStatus.bind(contestSubmissionController)));
+
+router.get('/leaderboard/:contestId', (contestController.getLeaderboard.bind(contestController)));
+
+router.get('/get-user', (contestController.getLeaderboard.bind(contestController)));
+
+router.get('/me', (commonController.getUser.bind(commonController)));
+
+
 
 export default router;
