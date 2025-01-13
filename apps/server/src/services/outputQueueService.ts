@@ -39,6 +39,7 @@ class OutputQueueService {
             const worker = new Worker(
                 queueConfig.queues.output,
                 async (job) => {
+                    console.log(job.data);
                     const result = await this.processJob(job.data);
                     return result;
                 },

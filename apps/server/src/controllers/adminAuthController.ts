@@ -21,7 +21,7 @@ class AdminAuthController {
                 httpOnly: true,  // Ensures the cookie is not accessible via JavaScript (for security)
                 secure: process.env.NODE_ENV === 'production',  // Ensure the cookie is sent over HTTPS in production
                 maxAge: 24 * 60 * 60 * 1000,  // Optional: Set cookie expiration time (e.g., 1 day)
-                sameSite: 'strict'  // Optional: Controls the cross-site cookie behavior (could be 'Lax' or 'None' depending on your needs)
+                sameSite: 'strict'  // Optiona: Controls the cross-site cookie behavior (could be 'Lax' or 'None' depending on your needs)
             });
             res.json({ token });
         

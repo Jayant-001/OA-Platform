@@ -127,7 +127,6 @@ export class ContestRepository {
 
     async addUsersToContest(contest_id: string, user_ids: string[]): Promise<void> {
 
-        console.log(user_ids);
         // Begin the transaction
         await db.query('BEGIN');
 

@@ -64,7 +64,7 @@ export class WorkerService {
         console.log(`Started ${config.workers} workers`);
     }
 
-    private async processJob(job: CodeExecutionJob): Promise<ExecutionResult> {
+    private async processJob(job: any): Promise<ExecutionResult> {
         const startTime = Date.now();
         try {
             const pool = this.poolManager.getPool(job.language);
@@ -72,7 +72,13 @@ export class WorkerService {
                 throw new Error(`Unsupported language: ${job.language}`);
             }
 
-            const output = await pool.processCode(job.code, job.input);
+            let output;
+            if (job.submissionType == 'run') {
+                output = await pool.processRunCode(job.code, job.input);
+            } else {
+                output = await pool.processSubmitCode(job.code, job.testCases);
+            }
+
             return {
                 jobId: job.id,
                 success: true,

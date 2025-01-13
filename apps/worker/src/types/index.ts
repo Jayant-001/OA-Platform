@@ -18,8 +18,9 @@ export interface ExecutionResult {
 
 export interface ContainerPool {
     initialize(): Promise<void>;
-    processCode(content: string, input?: string): Promise<{ result: string; executionTimeMs: number }>;
+    processRunCode(content: string, input?: string): Promise<{ result: string; executionTimeMs: number }>;
     shutdown(): Promise<void>;
+    processSubmitCode(code: string, testCases: any[]): Promise<{ result: string; executionTimeMs: number }>;
 }
 
 export class ExecutionTimeoutError extends Error {
