@@ -21,12 +21,7 @@ export class UserController {
     
     }
 
-    async createUser(req: Request, res: Response): Promise<void> {
-            const user = await this.userService.createUser(req.body);
-            res.status(201).json(user);
-        
-    }
-
+   
     async getUser(req: Request, res: Response): Promise<void> {
         const user = await this.userService.getUserById(req.user?.id as string);
         if (!user) {
