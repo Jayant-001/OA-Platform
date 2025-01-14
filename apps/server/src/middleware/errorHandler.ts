@@ -15,6 +15,8 @@ export const errorHandler = (
         });
     }
 
+    console.log(err);
+
     // Handle unhandled errors
     const internalError = CustomException.internal();
     return res.status(internalError.statusCode).json({

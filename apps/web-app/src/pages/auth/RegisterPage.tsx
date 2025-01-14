@@ -54,6 +54,7 @@ export function RegisterPage() {
             console.log(data);
             navigate(ROUTES.LOGIN);
         } catch (error: any) {
+            console.log(error);
             setError("Registration failed. Please try again.");
         }
     };

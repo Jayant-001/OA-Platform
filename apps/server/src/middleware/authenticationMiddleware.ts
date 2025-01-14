@@ -12,7 +12,7 @@ const authenticationMiddleware = (
         req.headers.authorization?.split(" ")[1] || req.cookies?.auth_token;
 
     if (!token) {
-        return next(new CustomException(401, "NOT_AUTHORIZED","No token provided"));
+        return next(new CustomException(401, "NOT_AUTHORIZED", "No token provided"));
     }
 
     const secret = process.env.JWT_SECRET || "your_jwt_secret";

@@ -21,6 +21,8 @@ import { UpdateContestPage } from "./pages/dashboard/UpdateContestPage";
 import { AdminLoginPage } from "./pages/admin/AdminLoginPage";
 import { AdminRegisterPage } from "./pages/admin/AdminRegisterPage";
 import { Toaster } from "react-hot-toast";
+import ActivityMonitor from "./context/ActivityMonitor";
+import SocketProvider from "./context/SocketContext";
 
 function App() {
     return (
@@ -44,11 +46,20 @@ function App() {
                             element={<AdminRegisterPage />}
                         />
 
-                        <Route path="/test" element={<TestPage />} />
+                        <Route
+                            path="/test"
+                            element={
+                                <ProtectedRoute>
+                                    <SocketProvider>
+                                        <TestPage />
+                                    </SocketProvider>
+                                </ProtectedRoute>
+                            }
+                        />
                         <Route
                             path="/test2"
                             element={
-                                <TestPage2 content={""} setContent={() => { }} />
+                                <TestPage2 content={""} setContent={() => {}} />
                             }
                         />
 
@@ -73,9 +84,13 @@ function App() {
                             path={ROUTES.CONTEST.PROBLEMS}
                             element={
                                 // <ProtectedRoute>
-                                 <ProblemProvider>
-                                    <ContestProblemsPage />
-                                </ProblemProvider>
+                                <SocketProvider>
+                                    <ProblemProvider>
+                                        <ActivityMonitor>
+                                            <ContestProblemsPage />
+                                        </ActivityMonitor>
+                                    </ProblemProvider>
+                                </SocketProvider>
                                 // </ProtectedRoute>
                             }
                         />
@@ -84,9 +99,13 @@ function App() {
                             path={ROUTES.CONTEST.SOLVE_PROBLEMS}
                             element={
                                 // <ProtectedRoute>
-                                <ProblemProvider>   
-                                    <ProblemDescriptionPage />
-                                </ProblemProvider>
+                                <SocketProvider>
+                                    <ProblemProvider>
+                                        <ActivityMonitor>
+                                            <ProblemDescriptionPage />
+                                        </ActivityMonitor>
+                                    </ProblemProvider>
+                                </SocketProvider>
                                 // </ProtectedRoute>
                             }
                         />
@@ -132,10 +151,9 @@ function App() {
                         <Route
                             path="/problems/:id"
                             element={
-
                                 // <ProtectedRoute>
-                                <ProblemProvider>
 
+                                <ProblemProvider>
                                     <ProblemDescriptionPage />
                                 </ProblemProvider>
 
@@ -147,7 +165,9 @@ function App() {
                             path={ROUTES.DASHBOARD.LEADERBOARD_CONTEST}
                             element={
                                 // <ProtectedRoute>
-                                <ContestLeaderboardPage />
+                                <>
+                                    <ContestLeaderboardPage />
+                                </>
                                 // </ProtectedRoute>
                             }
                         />

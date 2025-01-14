@@ -33,6 +33,7 @@ import {
     Play,
     Shield,
 } from "lucide-react";
+import { LeaderboardCard } from "@/components/LeaderboardCard";
 
 const dummyProblems: Problem[] = [
     {
@@ -83,6 +84,14 @@ export function ContestDetailPage() {
     const { fetchContestById, deleteContestById } = useAdminApi();
     const { fetchContestById: fetchUserContestById, registerToContest } =
         useUsersApi();
+
+    const mockLeaderboardUsers = [
+        { id: "1", name: "Alex Johnson", score: 300, finishTime: "1:45:30", rank: 1 },
+        { id: "2", name: "Sarah Smith", score: 275, finishTime: "1:50:20", rank: 2 },
+        { id: "3", name: "Michael Brown", score: 250, finishTime: "2:00:15", rank: 3 },
+        { id: "4", name: "Emily Davis", score: 225, finishTime: "2:15:45", rank: 4 },
+        { id: "5", name: "David Wilson", score: 200, finishTime: "2:30:00", rank: 5 },
+    ];
 
     useEffect(() => {
         if (contest_id) {
@@ -418,27 +427,20 @@ export function ContestDetailPage() {
                                     </h3>
                                     <div className="grid md:grid-cols-2 gap-4 p-4 bg-slate-50 rounded-lg">
                                         <div className="space-y-1">
-                                            <h4 className="text-sm text-slate-500">
-                                                Created By
-                                            </h4>
-                                            <p className="text-slate-700">
-                                                {contest.created_by}
-                                            </p>
+                                            <h4 className="text-sm text-slate-500">Created By</h4>
+                                            <p className="text-slate-700">{contest.created_by}</p>
                                         </div>
                                         <div className="space-y-1">
-                                            <h4 className="text-sm text-slate-500">
-                                                Created At
-                                            </h4>
+                                            <h4 className="text-sm text-slate-500">Created At</h4>
                                             <p className="text-slate-700">
-                                                {format(
-                                                    new Date(
-                                                        contest.created_at
-                                                    ),
-                                                    "PPp"
-                                                )}
+                                                {format(new Date(contest.created_at), "PPp")}
                                             </p>
                                         </div>
                                     </div>
+                                </div>
+
+                                <div className="space-y-4">
+                                    <LeaderboardCard leaderboardUsers={mockLeaderboardUsers} />
                                 </div>
 
                                 {/* Problems Table - existing admin table code */}

@@ -1,5 +1,4 @@
 import { Navigate, useLocation } from "react-router-dom";
-import { useEffect } from "react";
 import { useUser } from "@/context/UserContext";
 
 interface ProtectedRouteProps {
