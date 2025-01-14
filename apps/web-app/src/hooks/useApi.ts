@@ -273,3 +273,16 @@ export const useCommonApi = () => {
 
     return { fetchProfile, logout };
 };
+
+export const useActivityApi = () => {
+
+    const fetchContestActivities = async (contestId: string) => {
+        return await apiService.get(`/api/admins/contests/${contestId}/activities`)
+    }
+
+    const fetchContestUserActivities = async (contestId: string, userId: string) => {
+        return await apiService.get(`/api/admins/contests/${contestId}/activities/${userId}`)
+    }
+
+    return { fetchContestActivities, fetchContestUserActivities }
+}

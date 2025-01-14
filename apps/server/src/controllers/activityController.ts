@@ -18,7 +18,7 @@ class ActivityController {
         const activities = await this.activityService.getContestActivtiesSummary(
             contest_id
         );
-        return res.json({ activities });
+        return res.json(activities);
     }
 
     async getUserActivities(req: Request, res: Response) {
@@ -27,7 +27,7 @@ class ActivityController {
             contest_id,
             user_id
         );
-        res.json({ activities });
+        res.json(activities);
     }
 }
 
