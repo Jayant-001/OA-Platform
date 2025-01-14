@@ -11,7 +11,6 @@ const userAuthorizationMiddleware = async (
 ) => {
 
     const exists = await userService.getUserById(req.user?.id as string);
-    console.log(exists)
     if (!exists || exists.role !== "user") {
         return next(new CustomException(403, "FORBIDDEN","User not authorized" ));
     }

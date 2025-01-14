@@ -53,7 +53,7 @@ router.get(
 );
 
 router.get(
-    "/contests/:contest_id/activities/:user_id",
+    "/:contest_id/activities/:user_id",
     activityController.getUserActivities.bind(activityController)
 );
 
