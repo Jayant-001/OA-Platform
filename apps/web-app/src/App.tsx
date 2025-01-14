@@ -23,6 +23,7 @@ import { AdminRegisterPage } from "./pages/admin/AdminRegisterPage";
 import { Toaster } from "react-hot-toast";
 import ActivityMonitor from "./context/ActivityMonitor";
 import SocketProvider from "./context/SocketContext";
+import { ContestActivityPage } from "./pages/ContestActivityPage";
 
 function App() {
     return (
@@ -170,6 +171,11 @@ function App() {
                                 </>
                                 // </ProtectedRoute>
                             }
+                        />
+
+                        <Route
+                            path={ROUTES.DASHBOARD.CONTEST_ACTIVITIES}
+                            element={<ContestActivityPage />}
                         />
 
                         {/* Admin routes */}

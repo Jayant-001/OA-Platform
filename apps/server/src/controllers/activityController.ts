@@ -15,7 +15,7 @@ class ActivityController {
 
     async getContestActivities(req: Request, res: Response) {
         const { contest_id } = req.params;
-        const activities = await this.activityService.getContestActivties(
+        const activities = await this.activityService.getContestActivtiesSummary(
             contest_id
         );
         return res.json({ activities });

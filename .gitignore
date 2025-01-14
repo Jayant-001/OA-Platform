@@ -39,3 +39,6 @@ yarn-error.log*
 *.pem
 
 *.log
+
+# SQL Server files
+*.wal
