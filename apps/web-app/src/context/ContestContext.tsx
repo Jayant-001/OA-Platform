@@ -1,5 +1,5 @@
-import React, { createContext, useState, useContext, useEffect } from 'react';
-import { ContestProblems } from '@/types';
+import React, { createContext, useState, useContext, useEffect } from "react";
+import { ContestProblems } from "@/types";
 import { leaderboardApi, useUsersApi } from "@/hooks/useApi";
 import toast from "react-hot-toast";
 import { useParams } from "react-router-dom";
@@ -20,20 +20,22 @@ interface LeaderboardUser {
     problems: LeaderboardProblem[];
 }
 
-interface ProblemContextType {
+interface ContestContextType {
     problems: ContestProblems[];
     setProblems: React.Dispatch<React.SetStateAction<ContestProblems[]>>;
     loading: boolean;
     leaderboard: LeaderboardUser[];
 }
 
-const ProblemContext = createContext<ProblemContextType | undefined>(undefined);
+const ContestContext = createContext<ContestContextType | undefined>(undefined);
 
-export const ProblemProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+export const ContestProvider: React.FC<{ children: React.ReactNode }> = ({
+    children,
+}) => {
     const [problems, setProblems] = useState<ContestProblems[]>([]);
-    const [leaderboard, setLeaderboard] = useState<LeaderboardUser[] | []>([]);
+    const [leaderboard, setLeaderboard] = useState<LeaderboardUser | []>([]);
     const { getContestProblems } = useUsersApi();
-    const {getContestLeaderboard} = leaderboardApi();
+    const { getContestLeaderboard } = leaderboardApi();
     const { contest_id } = useParams();
     const [loading, setLoading] = useState(true);
 
@@ -66,17 +68,23 @@ export const ProblemProvider: React.FC<{ children: React.ReactNode }> = ({ child
         fetchLeaderboard(contest_id as string);
     }, [contest_id]);
 
+    useEffect(() => {
+        console.log(leaderboard);
+    }, [leaderboard]);
+
     return (
-        <ProblemContext.Provider value={{ problems, setProblems, loading, leaderboard, setLeaderboard }}>
+        <ContestContext.Provider value={{ problems, setProblems, loading }}>
             {children}
-        </ProblemContext.Provider>
+        </ContestContext.Provider>
     );
 };
 
-export const useProblemContext = () => {
-    const context = useContext(ProblemContext);
+export const useContestContext = () => {
+    const context = useContext(ContestContext);
     if (!context) {
-        throw new Error('useProblemContext must be used within a ProblemProvider');
+        throw new Error(
+            "useContestContext must be used within a ProblemProvider"
+        );
     }
     return context;
 };

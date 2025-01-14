@@ -1,8 +1,10 @@
 import { Router } from 'express';
 import ContestController from '../controllers/contestController';
+import ActivityController from '../controllers/activityController';
 
 const router = Router();
 const contestController = new ContestController();
+const activityController = new ActivityController();
 
 router.get(
     '/',
@@ -43,6 +45,16 @@ router.put(
 router.put(
     '/:contestId/problems',
     contestController.addProblemsToContest.bind(contestController)
+);
+
+router.get(
+    "/:contest_id/activities",
+    activityController.getContestActivities.bind(activityController)
+);
+
+router.get(
+    "/contests/:contest_id/activities/:user_id",
+    activityController.getUserActivities.bind(activityController)
 );
 
 export default router;

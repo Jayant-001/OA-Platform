@@ -18,8 +18,8 @@ router.get('/leaderboard/:contestId', (contestController.getLeaderboard.bind(con
 
 router.get('/get-user', (contestController.getLeaderboard.bind(contestController)));
 
-router.get('/me', (commonController.getUser.bind(commonController)));
+router.get('/me', commonController.getUser.bind(commonController));
 
-
+router.post('/logout', commonController.logout.bind(commonController));
 
 export default router;

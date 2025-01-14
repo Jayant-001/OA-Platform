@@ -32,6 +32,8 @@ import {
     ArrowUpRight,
 } from "lucide-react";
 import { users, problems } from "@/data";
+import { leaderboardApi } from "@/hooks/useApi";
+import toast from "react-hot-toast";
 
 interface Submission {
     id: string;
@@ -74,7 +76,7 @@ const mockSubmissions: Submission[] = [
 ];
 
 export function ContestLeaderboardPage() {
-    const { id: contestId } = useParams();
+    const { contest_id: contestId } = useParams();
     const [currentPage, setCurrentPage] = useState(1);
     const [usersPerPage] = useState(5);
     const [submissionsPerPage] = useState(10);
@@ -83,7 +85,28 @@ export function ContestLeaderboardPage() {
         null
     );
     const [isModalOpen, setIsModalOpen] = useState(false);
-    const [paginatedUsers, setPaginatedUsers] = useState(users.slice(0, usersPerPage));
+    const [paginatedUsers, setPaginatedUsers] = useState(
+        users.slice(0, usersPerPage)
+    );
+    const [leaderboardData, setLeaderboardData] = useState([]);
+    const { getContestLeaderboard } = leaderboardApi();
+
+    const fetchLeaderboard = async (contestId: string) => {
+        try {
+            const leaderboard = await getContestLeaderboard(contestId);
+            console.log(leaderboard);
+        } catch (error) {
+            console.log(error);
+            toast.error("Failed to fetch leaderboard");
+        }
+    };
+
+    useEffect(() => {
+        if(contestId) {
+
+            fetchLeaderboard(contestId as string);
+        }
+    }, [contestId]);
 
     useEffect(() => {
         // Simulate API call for pagination
@@ -137,7 +160,8 @@ export function ContestLeaderboardPage() {
                         Contest Leaderboard
                     </h1>
                     <p className="text-slate-600 max-w-2xl mx-auto">
-                        Track real-time rankings and performance metrics of all participants
+                        Track real-time rankings and performance metrics of all
+                        participants
                     </p>
                 </div>
 
@@ -158,14 +182,21 @@ export function ContestLeaderboardPage() {
                                             Username
                                         </span>
                                     </TableHead>
-                                    {problems.slice(0, 4).map((problem, index) => (
-                                        <TableHead key={problem.id} className="text-center">
-                                            <span className="flex items-center gap-1 justify-center">
-                                                {String.fromCharCode(65 + index)}
-                                                <ArrowUpRight className="w-3 h-3" />
-                                            </span>
-                                        </TableHead>
-                                    ))}
+                                    {problems
+                                        .slice(0, 4)
+                                        .map((problem, index) => (
+                                            <TableHead
+                                                key={problem.id}
+                                                className="text-center"
+                                            >
+                                                <span className="flex items-center gap-1 justify-center">
+                                                    {String.fromCharCode(
+                                                        65 + index
+                                                    )}
+                                                    <ArrowUpRight className="w-3 h-3" />
+                                                </span>
+                                            </TableHead>
+                                        ))}
                                     <TableHead className="text-right">
                                         <span className="flex items-center gap-2 justify-end">
                                             <Trophy className="w-4 h-4 text-purple-600" />
@@ -185,41 +216,71 @@ export function ContestLeaderboardPage() {
                                     let totalScore = 0;
                                     let finishTime = "";
                                     return (
-                                        <TableRow key={user.id} className="hover:bg-slate-50/50">
+                                        <TableRow
+                                            key={user.id}
+                                            className="hover:bg-slate-50/50"
+                                        >
                                             <TableCell className="font-medium">
-                                                {(currentPage - 1) * usersPerPage + index + 1}
+                                                {(currentPage - 1) *
+                                                    usersPerPage +
+                                                    index +
+                                                    1}
                                             </TableCell>
                                             <TableCell>{user.name}</TableCell>
-                                            {problems.slice(0, 4).map((problem) => {
-                                                const userSubmissions = mockSubmissions.filter(
-                                                    (s) => s.userId === user.id && s.questionId === problem.id
-                                                );
-                                                const solved = userSubmissions.some((s) => s.verdict === "Accepted");
-                                                if (solved) {
-                                                    totalScore += problem.points;
-                                                    finishTime = userSubmissions.find(
-                                                        (s) => s.verdict === "Accepted"
-                                                    )?.timestamp || "";
-                                                }
-                                                return (
-                                                    <TableCell
-                                                        key={problem.id}
-                                                        className="text-center cursor-pointer hover:bg-slate-100 transition-colors"
-                                                        onClick={() => handleCellClick(user.id, problem.id)}
-                                                    >
-                                                        <div className="flex items-center justify-center gap-1">
-                                                            <span className="text-slate-600">
-                                                                {userSubmissions.length}
-                                                            </span>
-                                                            {solved ? (
-                                                                <CheckCircle2 className="w-4 h-4 text-green-500" />
-                                                            ) : userSubmissions.length > 0 ? (
-                                                                <XCircle className="w-4 h-4 text-red-500" />
-                                                            ) : null}
-                                                        </div>
-                                                    </TableCell>
-                                                );
-                                            })}
+                                            {problems
+                                                .slice(0, 4)
+                                                .map((problem) => {
+                                                    const userSubmissions =
+                                                        mockSubmissions.filter(
+                                                            (s) =>
+                                                                s.userId ===
+                                                                    user.id &&
+                                                                s.questionId ===
+                                                                    problem.id
+                                                        );
+                                                    const solved =
+                                                        userSubmissions.some(
+                                                            (s) =>
+                                                                s.verdict ===
+                                                                "Accepted"
+                                                        );
+                                                    if (solved) {
+                                                        totalScore +=
+                                                            problem.points;
+                                                        finishTime =
+                                                            userSubmissions.find(
+                                                                (s) =>
+                                                                    s.verdict ===
+                                                                    "Accepted"
+                                                            )?.timestamp || "";
+                                                    }
+                                                    return (
+                                                        <TableCell
+                                                            key={problem.id}
+                                                            className="text-center cursor-pointer hover:bg-slate-100 transition-colors"
+                                                            onClick={() =>
+                                                                handleCellClick(
+                                                                    user.id,
+                                                                    problem.id
+                                                                )
+                                                            }
+                                                        >
+                                                            <div className="flex items-center justify-center gap-1">
+                                                                <span className="text-slate-600">
+                                                                    {
+                                                                        userSubmissions.length
+                                                                    }
+                                                                </span>
+                                                                {solved ? (
+                                                                    <CheckCircle2 className="w-4 h-4 text-green-500" />
+                                                                ) : userSubmissions.length >
+                                                                  0 ? (
+                                                                    <XCircle className="w-4 h-4 text-red-500" />
+                                                                ) : null}
+                                                            </div>
+                                                        </TableCell>
+                                                    );
+                                                })}
                                             <TableCell className="text-right font-semibold">
                                                 {totalScore}
                                             </TableCell>
@@ -255,33 +316,47 @@ export function ContestLeaderboardPage() {
                         <DialogBody>
                             <div className="space-y-4">
                                 {currentSubmissions.map((submission) => (
-                                    <Card key={submission.id} className="overflow-hidden">
+                                    <Card
+                                        key={submission.id}
+                                        className="overflow-hidden"
+                                    >
                                         <div className="p-4 flex justify-between items-center gap-4">
                                             <div className="space-y-1">
                                                 <div className="flex items-center gap-2">
-                                                    {submission.verdict === "Accepted" ? (
+                                                    {submission.verdict ===
+                                                    "Accepted" ? (
                                                         <CheckCircle2 className="w-4 h-4 text-green-500" />
-                                                    ) : submission.verdict === "Wrong Answer" ? (
+                                                    ) : submission.verdict ===
+                                                      "Wrong Answer" ? (
                                                         <XCircle className="w-4 h-4 text-red-500" />
                                                     ) : (
                                                         <AlertTriangle className="w-4 h-4 text-yellow-500" />
                                                     )}
-                                                    <span className={`font-medium ${
-                                                        submission.verdict === "Accepted"
-                                                            ? "text-green-600"
-                                                            : submission.verdict === "Wrong Answer"
-                                                            ? "text-red-600"
-                                                            : "text-yellow-600"
-                                                    }`}>
+                                                    <span
+                                                        className={`font-medium ${
+                                                            submission.verdict ===
+                                                            "Accepted"
+                                                                ? "text-green-600"
+                                                                : submission.verdict ===
+                                                                  "Wrong Answer"
+                                                                ? "text-red-600"
+                                                                : "text-yellow-600"
+                                                        }`}
+                                                    >
                                                         {submission.verdict}
                                                     </span>
                                                 </div>
                                                 <div className="flex items-center gap-2 text-sm text-slate-500">
                                                     <Clock className="w-4 h-4" />
-                                                    <span>{submission.timestamp}</span>
+                                                    <span>
+                                                        {submission.timestamp}
+                                                    </span>
                                                 </div>
                                             </div>
-                                            <Badge variant="outline" className="bg-slate-50">
+                                            <Badge
+                                                variant="outline"
+                                                className="bg-slate-50"
+                                            >
                                                 {submission.questionId}
                                             </Badge>
                                         </div>

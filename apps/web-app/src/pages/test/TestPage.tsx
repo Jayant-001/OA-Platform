@@ -2,9 +2,12 @@ import { useState, useEffect, useCallback } from "react";
 import { useQuill } from "react-quilljs";
 import "quill/dist/quill.snow.css";
 import CryptoJS from "crypto-js";
+import { useSocket } from "@/context/SocketContext";
+import { IActivityLog } from "@/types";
 
 const TestPage = () => {
     const [content, setContent] = useState("");
+    const {sendActivity} = useSocket();
 
     const modules = {
         toolbar: [
@@ -121,6 +124,17 @@ const TestPage = () => {
         decryptedBytes.toString(CryptoJS.enc.Utf8)
     );
 
+    const handleClick = async () => {
+        const activity: IActivityLog = {
+            activityType: "joined", 
+            roomId: "lkjsdf",
+            socketId: "lkjds",
+            timestamp : new Date(),
+            username: "lkjsdf"
+        }
+        sendActivity(activity)
+    }
+
     console.log(decryptedData.cipher);
 
     return (
@@ -153,6 +167,7 @@ const TestPage = () => {
                 <div>{JSON.stringify({ feb: encryptedData })}</div>
                 <div>{JSON.stringify(decryptedData)}</div>
             </div>
+            <button onClick={handleClick}>Click </button>
         </div>
     );
 };

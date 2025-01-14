@@ -22,7 +22,11 @@ dotenv.config();
 import morgan from "morgan";
 import commonRoutes from "./routes/commonRoutes";
 import OutputQueueService from "./services/outputQueueService";
-
+import { Server } from 'socket.io';
+import { createServer } from 'http';
+import { SocketController } from './controllers/socketController';
+import activityRoutes from './routes/activityRoutes'
+import { testController } from "./controllers/testController";
 
 const outputQueueService = new OutputQueueService();
 outputQueueService.start();
@@ -54,12 +58,28 @@ app.use(
     })
 );
 
+const httpServer = createServer(app);
+const io = new Server(httpServer, {
+    cors: {
+        origin: "http://localhost:5173",
+        methods: ["GET", "POST"],
+        credentials: true
+    }
+});
+
+// Initialize socket controller
+const socketController = new SocketController(io);
+
+// Make socketController available to routes
+app.set('socketController', socketController);
+
 app.use("/auth/users", userAuthRoutes); // User auth
 app.use("/api/users", authenticationMiddleware, userAuthorizationMiddleware, userRoutes);
 app.use("/api/users/contests", authenticationMiddleware, userAuthorizationMiddleware, userContestRoutes); // Contest routes for users
 
 app.use("/auth/admins", adminAuthRoutes);
-app.use("/api", authenticationMiddleware,commonRoutes);
+app.use("/api", authenticationMiddleware, commonRoutes);
+app.use('/api/activities', authenticationMiddleware, adminAuthorizationMiddleware, activityRoutes);
 app.use("/api/admins/contests", authenticationMiddleware, adminAuthorizationMiddleware, adminContestRoutes); // Contest routes for admins
 app.use("/api/admins/problems", authenticationMiddleware, adminAuthorizationMiddleware, adminProblemRoutes); // Problem routes for admins
 app.use("/api/admins/tags", authenticationMiddleware, adminAuthorizationMiddleware, tagRoutes); // Tag routes for admins
@@ -69,12 +89,15 @@ app.get("/", (req, res) => {
     return res.send("hello world  ^_^");
 });
 
+app.use('/api/test', testController)
+
 // Global error handling middleware
 app.use(errorHandler);
 
-app.listen(PORT, () =>
+// Change app.listen to httpServer.listen
+httpServer.listen(PORT, () =>
     console.log(`🚀 Server is running on http://localhost:${PORT}`)
 );
 
-
+export { socketController };
 export default app;
