@@ -20,6 +20,7 @@ export const ROUTES = {
         CONTEST: "/dashboard/contests/:contest_id",
         UPDATE_CONTEST: "/dashboard/contests/:contest_id/update",
         LEADERBOARD_CONTEST: "/dashboard/contests/:contest_id/leaderboard",
+        CONTEST_ACTIVITIES: "/dashboard/contests/:contest_id/activities",
 
         PROBLEMS: "/dashboard/problems",
         ADD_PROBLEM: "/dashboard/problems/add",
