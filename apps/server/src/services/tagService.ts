@@ -22,6 +22,11 @@ export class TagService {
         return tag;
     }
 
+    async findByProblemIds(problemIds: string[]): Promise<any[]>{
+        const tags = await this.tagRepository.findByProblemIds(problemIds);
+        return tags;
+    }
+
     async updateTag(id: string, tagData: Partial<Omit<Tag, "id" | "created_at" | "updated_at">>): Promise<void> {
         const tag = await this.tagRepository.findById(id);
         if (!tag) {
