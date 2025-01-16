@@ -325,4 +325,15 @@ export class ContestRepository {
         `;
         return await db.any(query, [userId, contestId]);
     }
+
+
+    async getProblemsByContestId(contestId: string): Promise<any[]>{
+        const problemsQuery = `
+                    SELECT p.id, p.title, cp.points, p.level
+                    FROM contest_problems cp
+                    JOIN problems p ON cp.problem_id = p.id 
+                    WHERE cp.contest_id = $1
+                `;
+        return db.any(problemsQuery, [contestId]);
+    }
 }

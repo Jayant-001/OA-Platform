@@ -72,9 +72,6 @@ router.get(
     (contestSubmissionController.getSubmissionById.bind(contestSubmissionController))
 );
 
-router.get(
-    '/:contestId/problems/:problemId/leaderboard-submissions',
-    (contestSubmissionController.getLeaderboardSubmissions.bind(contestSubmissionController))
-);
+
 
 export default router;

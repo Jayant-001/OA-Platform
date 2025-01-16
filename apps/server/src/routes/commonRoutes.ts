@@ -22,4 +22,9 @@ router.get('/me', commonController.getUser.bind(commonController));
 
 router.post('/logout', commonController.logout.bind(commonController));
 
+router.get(
+    '/leaderboard/contests/:contestId/problems/:problemId/users/:userId/submissions',
+    (contestSubmissionController.getLeaderboardSubmissions.bind(contestSubmissionController))
+);
+
 export default router;

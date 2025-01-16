@@ -286,6 +286,15 @@ class ContestController {
         // console.log(JSON.stringify(leaderboard));
         res.status(200).json(leaderboard);
     }
+
+
+    async getContestProblemsById(req: Request, res: Response) {
+        const { contestId } = req.params;
+        const problems = await this.contestService.getContestProblemsForAdmin(
+            contestId
+        );
+        res.json({ problems });
+    }
 }
 
 export default ContestController;

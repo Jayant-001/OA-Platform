@@ -2,10 +2,12 @@ import { ContestRepository } from "../repositories/contestRepository";
 import { ProblemRepository } from "../repositories/problemRepository";
 import { Contest, ContestProblem } from "../models/contest";
 import { CustomException } from "../errors/CustomException";  // Updated import path
+import { TagService } from "./tagService";
 
 class ContestService {
     private contestRepository = new ContestRepository();
     private problemRepository = new ProblemRepository();
+    private tagService = new TagService();
 
     async getAllContests(): Promise<Contest[]> {
         return this.contestRepository.findAll();
@@ -171,6 +173,35 @@ class ContestService {
     async isUserRegistered(userId: string, contestId: string): Promise<boolean> {
         return this.contestRepository.isUserRegistered(userId, contestId);
     }
+
+    async getContestProblemsForAdmin(contestId: string): Promise<{ id: string, name: string, title: string, tags: { id: string, name: string, code: string }[] }[]> {
+        const problems = await this.contestRepository.getProblemsByContestId(contestId);
+
+        const problemIds = problems.map(problem => problem.id);
+
+        // Check if problemIds is empty and handle appropriately
+        if (problemIds.length === 0) {
+            return problems.map(problem => ({
+                ...problem,
+                tags: [] // Return an empty tags array if no problem IDs
+            }));
+        }
+
+        const tags = await this.tagService.findByProblemIds(problemIds);
+
+        const problemsWithTags = problems.map(problem => ({
+            ...problem,
+            tags: tags.filter(tag => tag.problem_id === problem.id).map(tag => ({
+                id: tag.id,
+                name: tag.name,
+                code: tag.code
+            })), 
+        }));
+
+        return problemsWithTags;
+    }
+
+
 }
 
 export default ContestService;
