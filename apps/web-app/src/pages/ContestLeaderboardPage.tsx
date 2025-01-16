@@ -31,7 +31,7 @@ import {
     Timer,
     ArrowUpRight,
 } from "lucide-react";
-import { users, problems } from "@/data";
+import { users } from "@/data";
 import { leaderboardApi } from "@/hooks/useApi";
 import toast from "react-hot-toast";
 
@@ -41,6 +41,22 @@ interface Submission {
     userId: string;
     verdict: "Accepted" | "Wrong Answer" | "Time Limit Exceeded";
     timestamp: string;
+}
+
+interface SubmissionProblem {
+    problemId: string;
+    verdict: 'solved' | 'unSolved' | 'notAttempted';
+    noOfAttempts: number;
+    acceptedTime: string | null;
+}
+
+interface UserSubmission {
+    userId: string;
+    userName: string;
+    rank: number;
+    problems: SubmissionProblem[];
+    totalPoints: number;
+    finishTime: string;
 }
 
 const mockSubmissions: Submission[] = [
@@ -88,16 +104,16 @@ export function ContestLeaderboardPage() {
     const [paginatedUsers, setPaginatedUsers] = useState(
         users.slice(0, usersPerPage)
     );
-    const [leaderboardData, setLeaderboardData] = useState([]);
+    const [leaderboardData, setLeaderboardData] = useState<UserSubmission[]>([]);
     const { getContestLeaderboard } = leaderboardApi();
 
     const fetchLeaderboard = async (contestId: string) => {
         try {
             const leaderboard = await getContestLeaderboard(contestId);
-            console.log(leaderboard);
+            setLeaderboardData(leaderboard);
         } catch (error) {
             console.log(error);
-            toast.error("Failed to fetch leaderboard");
+            toast.error("Failed to fetch leaderboard data");
         }
     };
 
@@ -150,6 +166,30 @@ export function ContestLeaderboardPage() {
         return name.length > 15 ? `${name.slice(0, 15)}...` : name;
     };
 
+    // Helper function to get problem verdict display
+    const getProblemVerdict = (problem: SubmissionProblem) => {
+        if (problem.verdict === 'solved') {
+            return (
+                <div className="flex items-center justify-center gap-1">
+                    <span className="text-slate-600">{problem.noOfAttempts}</span>
+                    <CheckCircle2 className="w-4 h-4 text-green-500" />
+                </div>
+            );
+        }
+        if (problem.verdict === 'unSolved' && problem.noOfAttempts > 0) {
+            return (
+                <div className="flex items-center justify-center gap-1">
+                    <span className="text-slate-600">{problem.noOfAttempts}</span>
+                    <XCircle className="w-4 h-4 text-red-500" />
+                </div>
+            );
+        }
+        return null;
+    };
+
+    // Get total number of problems from first submission
+    const totalProblems = leaderboardData[0]?.problems.length || 0;
+
     return (
         <div className="min-h-screen bg-gradient-to-b from-slate-50 to-slate-100">
             <Navbar />
@@ -179,24 +219,17 @@ export function ContestLeaderboardPage() {
                                     <TableHead>
                                         <span className="flex items-center gap-2">
                                             <Users className="w-4 h-4 text-purple-600" />
-                                            Username
+                                            Name
                                         </span>
                                     </TableHead>
-                                    {problems
-                                        .slice(0, 4)
-                                        .map((problem, index) => (
-                                            <TableHead
-                                                key={problem.id}
-                                                className="text-center"
-                                            >
-                                                <span className="flex items-center gap-1 justify-center">
-                                                    {String.fromCharCode(
-                                                        65 + index
-                                                    )}
-                                                    <ArrowUpRight className="w-3 h-3" />
-                                                </span>
-                                            </TableHead>
-                                        ))}
+                                    {Array.from({ length: totalProblems }, (_, index) => (
+                                        <TableHead key={index} className="text-center w-24">
+                                            <span className="flex items-center gap-1 justify-center">
+                                                {String.fromCharCode(65 + index)}
+                                                <ArrowUpRight className="w-3 h-3" />
+                                            </span>
+                                        </TableHead>
+                                    ))}
                                     <TableHead className="text-right">
                                         <span className="flex items-center gap-2 justify-end">
                                             <Trophy className="w-4 h-4 text-purple-600" />
@@ -212,84 +245,29 @@ export function ContestLeaderboardPage() {
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
-                                {paginatedUsers.map((user, index) => {
-                                    let totalScore = 0;
-                                    let finishTime = "";
-                                    return (
-                                        <TableRow
-                                            key={user.id}
-                                            className="hover:bg-slate-50/50"
-                                        >
-                                            <TableCell className="font-medium">
-                                                {(currentPage - 1) *
-                                                    usersPerPage +
-                                                    index +
-                                                    1}
+                                {leaderboardData.map((user, index) => (
+                                    <TableRow key={user.userId} className="hover:bg-slate-50/50">
+                                        <TableCell className="font-medium">
+                                            {user.rank}
+                                        </TableCell>
+                                        <TableCell>{user.userName}</TableCell>
+                                        {user.problems.map((problem, problemIndex) => (
+                                            <TableCell
+                                                key={problem.problemId}
+                                                className="text-center cursor-pointer hover:bg-slate-100 transition-colors"
+                                                onClick={() => handleCellClick(user.userId, problem.problemId)}
+                                            >
+                                                {getProblemVerdict(problem)}
                                             </TableCell>
-                                            <TableCell>{user.name}</TableCell>
-                                            {problems
-                                                .slice(0, 4)
-                                                .map((problem) => {
-                                                    const userSubmissions =
-                                                        mockSubmissions.filter(
-                                                            (s) =>
-                                                                s.userId ===
-                                                                    user.id &&
-                                                                s.questionId ===
-                                                                    problem.id
-                                                        );
-                                                    const solved =
-                                                        userSubmissions.some(
-                                                            (s) =>
-                                                                s.verdict ===
-                                                                "Accepted"
-                                                        );
-                                                    if (solved) {
-                                                        totalScore +=
-                                                            problem.points;
-                                                        finishTime =
-                                                            userSubmissions.find(
-                                                                (s) =>
-                                                                    s.verdict ===
-                                                                    "Accepted"
-                                                            )?.timestamp || "";
-                                                    }
-                                                    return (
-                                                        <TableCell
-                                                            key={problem.id}
-                                                            className="text-center cursor-pointer hover:bg-slate-100 transition-colors"
-                                                            onClick={() =>
-                                                                handleCellClick(
-                                                                    user.id,
-                                                                    problem.id
-                                                                )
-                                                            }
-                                                        >
-                                                            <div className="flex items-center justify-center gap-1">
-                                                                <span className="text-slate-600">
-                                                                    {
-                                                                        userSubmissions.length
-                                                                    }
-                                                                </span>
-                                                                {solved ? (
-                                                                    <CheckCircle2 className="w-4 h-4 text-green-500" />
-                                                                ) : userSubmissions.length >
-                                                                  0 ? (
-                                                                    <XCircle className="w-4 h-4 text-red-500" />
-                                                                ) : null}
-                                                            </div>
-                                                        </TableCell>
-                                                    );
-                                                })}
-                                            <TableCell className="text-right font-semibold">
-                                                {totalScore}
-                                            </TableCell>
-                                            <TableCell className="text-right font-mono">
-                                                {finishTime}
-                                            </TableCell>
-                                        </TableRow>
-                                    );
-                                })}
+                                        ))}
+                                        <TableCell className="text-right font-semibold">
+                                            {user.totalPoints}
+                                        </TableCell>
+                                        <TableCell className="text-right font-mono">
+                                            {user.finishTime}
+                                        </TableCell>
+                                    </TableRow>
+                                ))}
                             </TableBody>
                         </Table>
                     </div>

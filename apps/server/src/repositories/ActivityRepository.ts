@@ -150,6 +150,7 @@ class ActivityRepository {
             LEFT JOIN latest_activity l ON u.user_id = l.user_id
             ORDER BY u.user_id;
         `;
+        
         await duckDbClient.connect();
         if(duckDbClient.db) {
             const prepared = await duckDbClient.db.prepare(query);
