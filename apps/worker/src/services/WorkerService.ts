@@ -79,12 +79,15 @@ export class WorkerService {
                 output = await pool.processSubmitCode(job.code, job.testCases);
             }
 
+            console.log("Output: ", output);
+
             return {
                 jobId: job.id,
                 success: true,
-                output: output.result,
+                result: output.result,
                 executionTime: output.executionTimeMs,
-                submissionType: job.submissionType
+                submissionType: job.submissionType,
+                error: output?.error !== undefined ? output.error : null
             };
         } catch (error: unknown) {
             const errorMessage = error instanceof Error 

@@ -58,7 +58,7 @@ export const config: Config = {
             fileExtension: '.java'
         },
         javascript: {
-            image: process.env.NODE_IMAGE || 'node:16',
+            image: process.env.NODE_IMAGE || 'node:22',
             poolSize: parseInt(process.env.NODE_POOL_SIZE || '5'),
             command: 'node /app/main.js < /app/input.txt',
             timeout: parseInt(process.env.NODE_TIMEOUT || '10000'),

@@ -10,17 +10,17 @@ export interface CodeExecutionJob {
 export interface ExecutionResult {
     jobId: string;
     success: boolean;
-    output?: string;
-    error?: string;
+    result?: string;
+    error?: string | null;
     executionTime?: number;
     submissionType?: string;
 }
 
 export interface ContainerPool {
     initialize(): Promise<void>;
-    processRunCode(content: string, input?: string): Promise<{ result: string; executionTimeMs: number }>;
+    processRunCode(content: string, input?: string): Promise<{ result: string; executionTimeMs: number, error:string | null }>;
     shutdown(): Promise<void>;
-    processSubmitCode(code: string, testCases: any[]): Promise<{ result: string; executionTimeMs: number }>;
+    processSubmitCode(code: string, testCases: any): Promise<{ result: string; executionTimeMs: number,error:string | null }>;
 }
 
 export class ExecutionTimeoutError extends Error {
