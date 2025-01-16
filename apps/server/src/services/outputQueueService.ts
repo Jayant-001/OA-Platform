@@ -79,27 +79,36 @@ class OutputQueueService {
             }
         );
 
+       
+
         if (submissionType === 'run') {
             await this.cache.set(
                 this.getOutputKey(jobId),
-                data.output
+                {
+                    result: data.result,
+                    error: data.error || null // Include error if available
+                }
             );
         } else {
             // Generate random verdict for now
-            const verdicts = ['accepted', 'wrong_answer'];
-            const randomVerdict = verdicts[Math.floor(Math.random() * verdicts.length)];
 
+            console.log("Result: ", data.result);
+            console.log("Data: ", data);
+          
             // Update cache with verdict
             await this.cache.set(
                 this.getStatusKey(jobId, submissionType),
-                randomVerdict
+                {
+                    result: data.result,
+                    error: data.error || null // Include error if available
+                }
             );
 
             // Update submission in database using jobId instead of id
             await this.contestSubmissionService.updateSubmission(jobId, {  // <-- Change this to use jobId
-                verdict: randomVerdict,
-                execution_time: data.execution_time || 0,
-                memory_used: data.memory_used || 0
+                verdict: data.result,
+                execution_time: data.executionTime || 0,
+                memory_used: data.memoryUsed || 0
             });
         }
 

@@ -14,12 +14,11 @@ interface TestCase {
 }
 
 interface TestResult {
-    testCaseId: string;
     status:
-        | "accepted"
-        | "wrong_answer"
-        | "runtime_error"
-        | "time_limit_exceeded";
+    | "accepted"
+    | "wrong_answer"
+    | "runtime_error"
+    | "time_limit_exceeded";
     executionTime: number;
     memoryUsed: number;
     output?: string;
@@ -61,7 +60,7 @@ export class DockerContainerPool implements ContainerPool {
     async processRunCode(
         content: string,
         input?: string
-    ): Promise<{ result: string; executionTimeMs: number }> {
+    ): Promise<{ result: string; executionTimeMs: number, error: string | null }> {
         const container = await this.acquireContainer();
         console.log("Container acquired -> ", container.id);
 
@@ -74,92 +73,95 @@ export class DockerContainerPool implements ContainerPool {
             const { output, executionTimeMs } = await this.executeCode(
                 container
             );
-
             console.log("Execution time -> ", executionTimeMs);
             await this.releaseContainer(container);
 
-            return { result: output, executionTimeMs }; // Return execution time
+            return { result: output.trim(), executionTimeMs, error: null }; // Return execution time
         } catch (error) {
-            console.log("Error -> ", error);
+            console.log(error);
             await this.releaseContainer(container);
-            throw error;
+            return {
+                result: error instanceof Error
+                    ? error.message
+                    : "Unknown error",
+                executionTimeMs: 0,
+                error:"runtime_error",
+            }; 
         }
     }
 
     async processSubmitCode(
         code: string,
-        testCases: TestCase[]
-    ): Promise<{ result: string; executionTimeMs: number }> {
+        testCase: TestCase
+    ): Promise<{ result: string; executionTimeMs: number; error: string | null }> {
         const container = await this.acquireContainer();
         console.log("Container acquired for submission -> ", container.id);
-        const results: TestResult[] = [];
+        let result: TestResult;
         const startTime = performance.now();
 
         try {
             // First, create the code file
             await this.createCodeFile(container, code);
 
-            // Process each test case sequentially
-            for (const testCase of testCases) {
-                try {
-                    // Create input file for this test case
-                    await this.createInputFile(container, testCase.input);
+            try {
+                // Create input file for this test case
+                await this.createInputFile(container, testCase.input);
 
-                    // Execute the code
-                    const { output, executionTimeMs } = await this.executeCode(
-                        container
-                    );
+                // Execute the code
+                const { output, executionTimeMs } = await this.executeCode(
+                    container
+                );
 
-                    console.log(
-                        testCase.input,
-                        " ----->>>>> ",
-                        output,
-                        executionTimeMs
-                    );
 
-                    // Compare output with expected output
-                    const status = this.compareOutput(
-                        output.trim(),
-                        testCase.output.trim()
-                    )
-                        ? "accepted"
-                        : "wrong_answer";
 
-                    results.push({
-                        testCaseId: testCase.id,
-                        status,
-                        executionTime: executionTimeMs,
-                        memoryUsed: 0, // TODO: Implement memory tracking
-                        output: output.trim(),
-                    });
-                } catch (error) {
-                    results.push({
-                        testCaseId: testCase.id,
-                        status: "runtime_error",
-                        executionTime: 0,
-                        memoryUsed: 0,
-                        error:
-                            error instanceof Error
-                                ? error.message
-                                : "Unknown error",
-                    });
-                }
+                // Compare output with expected output
+                const status = this.compareOutput(
+                    output.trim(),
+                    testCase.output.trim()
+                )
+                    ? "accepted"
+                    : "wrong_answer";
 
-                // Add a small delay between test cases to ensure file system operations complete
-                await new Promise((resolve) => setTimeout(resolve, 100));
+                result = {
+                    status,
+                    executionTime: executionTimeMs,
+                    memoryUsed: 0, // TODO: Implement memory tracking
+                    output: output.trim(),
+                };
+            } catch (error) {
+                await this.releaseContainer(container);
+                return {
+                    result: "runtime_error",
+                    executionTimeMs: 0,
+                    error:
+                        error instanceof Error
+                            ? error.message
+                            : "Unknown error",
+                };
             }
 
-            console.log(results);
+            // Add a small delay between test cases to ensure file system operations complete
+
+
 
             await this.releaseContainer(container);
             return {
-                result: "results",
-                executionTimeMs: performance.now() - startTime,
+                result: result.status,
+                executionTimeMs: result.executionTime,
+                error: result?.error !== undefined ? result.error : null
             };
         } catch (error) {
             console.error("Submission processing error:", error);
             await this.releaseContainer(container);
-            throw error;
+            await this.releaseContainer(container);
+            return {
+                result: "unknown_error",
+                executionTimeMs: 0,
+                error:
+                    error instanceof Error
+                        ? error.message
+                        : "Unknown error",
+            };
         }
     }
 

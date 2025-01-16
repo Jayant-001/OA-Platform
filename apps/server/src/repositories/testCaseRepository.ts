@@ -6,8 +6,11 @@ class TestCaseRepository {
         return db.any("SELECT * FROM test_cases");
     }
 
-    async findAllByProblemId(problem_id: string): Promise<TestCase[]> {
-        return db.any(`select * from test_cases where problem_id = $1`, [problem_id])
+    async findOneByProblemId(problem_id: string): Promise<TestCase> {
+        return db.one(
+            `SELECT * FROM test_cases WHERE problem_id = $1 LIMIT 1`,
+            [problem_id]
+        );
     }
 
 }
