@@ -67,6 +67,35 @@ class ContestSubmissionController {
      
     }
 
+
+    async getLeaderboardSubmissions(req: Request, res: Response) {
+        const { contestId, problemId } = req.params;
+        const userId = req.user?.id as string;
+
+        const submissions = await this.contestSubmissionService.getUserSubmissionsForProblem(contestId, problemId, userId);
+
+        if (!submissions || submissions.length === 0) {
+            return res.json([]);
+        }
+
+        submissions.sort((a, b) => new Date(a.submitted_at).getTime() - new Date(b.submitted_at).getTime());
+
+        const firstAccepted = submissions.find(submission => submission.verdict === 'accepted');
+
+        let selectedSubmission;
+
+        if (firstAccepted) {
+            selectedSubmission = firstAccepted;
+        } else {
+            selectedSubmission = submissions[submissions.length - 1];
+        }
+
+        const { contest_id, problem_id, user_id, code, updated_at, score, ...rest } = selectedSubmission;
+
+        res.json(rest);
+    }
+
+
     async getSubmissionById(req: Request, res: Response) {
             const { submissionId } = req.params;
             const submission = await this.contestSubmissionService.getSubmissionById(submissionId);
@@ -124,12 +153,16 @@ class ContestSubmissionController {
             const output = await this.submissionCache.get(
                 this.getOutputKey(submissionId)
             );
+            
+        console.log("Output: ", output);
 
             return res.json({
                 status: 'COMPLETED',
-                result: output || null,
+                result: output?.result || null,
                 execution_time: null,
-                memory_used: null
+                memory_used: null,
+                error: output?.error || null
+        
             });
        
     }
@@ -167,7 +200,6 @@ class ContestSubmissionController {
                 execution_time: submission?.execution_time,
                 memory_used: submission?.memory_used,
             })
-       
     }
 }
 

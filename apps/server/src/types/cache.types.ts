@@ -21,10 +21,8 @@ export interface CacheAdapter<T> {
 
 export interface SubmissionStatus {
     status: 'PENDING' | 'COMPLETED' | 'ERROR';
-    result?: {
-        output?: string;
-        error?: string;
-        execution_time?: number;
-        memory_used?: number;
-    };
+    result?: string,
+    error?: string;
+    execution_time?: string;
+    memory_used?: string;
 }
