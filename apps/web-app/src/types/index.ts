@@ -114,4 +114,17 @@ export interface CreateContest {
    
 }
 
+export interface LeaderboardUser {
+    id: string;
+    name: string;
+    score: number;
+    finishTime: string;
+    rank: number;
+}
 
+export interface IActivityLog {
+    userId: string;
+    contestId: string;
+    activityType: "came online" | "went offline" | "joined" | "leaved";
+    timestamp: Date;
+}

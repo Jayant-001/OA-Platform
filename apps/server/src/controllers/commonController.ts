@@ -27,8 +27,6 @@ class CommonController {
             };
 
             res.json(filteredUser);
-            res.json(user);
-
         }
         else
         {
@@ -43,14 +41,14 @@ class CommonController {
                 role: user.role
             };
 
-            res.json(filteredUser);
-            res.json(user);
-            
+            res.json(filteredUser);            
         }
-
     }
 
-
+    async logout(req: Request, res: Response): Promise<void> {
+        res.clearCookie('auth_token');
+        res.status(200).json({ message: 'Logged out successfully' });
+    }
     
 }
 

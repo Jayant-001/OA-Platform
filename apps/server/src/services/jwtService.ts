@@ -7,8 +7,7 @@ export const generateToken = (payload: any) => {
 };
 
 export const verifyToken = (token: string) => {
-        return jwt.verify(token, secret);
-    
+    return jwt.verify(token, secret);
 };
 
 class JwtService {

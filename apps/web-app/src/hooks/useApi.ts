@@ -15,7 +15,10 @@ export const useAdminApi = () => {
     };
 
     const updateContestById = async (contest_id: string, contestData: any) => {
-        return await apiService.put(`/api/admins/contests/${contest_id}`, contestData);
+        return await apiService.put(
+            `/api/admins/contests/${contest_id}`,
+            contestData
+        );
     };
 
     const updateContestProblems = async (
@@ -96,16 +99,21 @@ export const useUsersApi = () => {
     */
 
     const searchContestByCode = async (code: string) => {
-        return await apiService.get(`/api/users/contests/search?contestCode=${code}`);
-    }
+        return await apiService.get(
+            `/api/users/contests/search?contestCode=${code}`
+        );
+    };
 
     const fetchAllRegisteredContests = async () => {
         return await apiService.get(`/api/users/contests`);
-    }
+    };
 
     const registerToContest = async (contestId: string) => {
-        return await apiService.post(`/api/users/contests/${contestId}/register`, {})
-    }
+        return await apiService.post(
+            `/api/users/contests/${contestId}/register`,
+            {}
+        );
+    };
 
     const fetchUpcomingContests = async () => {
         return await apiService.get("/api/users/contests/upcoming-contests");
@@ -116,72 +124,152 @@ export const useUsersApi = () => {
     };
 
     const getContestProblems = async (contest_id: string) => {
-        return await apiService.get(`/api/users/contests/${contest_id}/problems`);
-    }
+        return await apiService.get(
+            `/api/users/contests/${contest_id}/problems`
+        );
+    };
 
-    const getContestProblemById = async (contest_id: string, problem_id: string) => {
-        return await apiService.get(`/api/users/contests/${contest_id}/problems/${problem_id}`);
-    }
+    const getContestProblemById = async (
+        contest_id: string,
+        problem_id: string
+    ) => {
+        return await apiService.get(
+            `/api/users/contests/${contest_id}/problems/${problem_id}`
+        );
+    };
 
-    return { fetchUpcomingContests, fetchContestById, getContestProblems, getContestProblemById, searchContestByCode, fetchAllRegisteredContests, registerToContest };
+    return {
+        fetchUpcomingContests,
+        fetchContestById,
+        getContestProblems,
+        getContestProblemById,
+        searchContestByCode,
+        fetchAllRegisteredContests,
+        registerToContest,
+    };
 };
 
 export const useSubmissionApi = () => {
-    const getSubmissionsByProblemId = async (contestId: string, problemId: string) => {
-        return await apiService.get(`/api/users/contests/${contestId}/problems/${problemId}/submissions`);
+    const getSubmissionsByProblemId = async (
+        contestId: string,
+        problemId: string
+    ) => {
+        return await apiService.get(
+            `/api/users/contests/${contestId}/problems/${problemId}/submissions`
+        );
     };
 
     const getSubmissionById = async (submissionId: string) => {
-        return await apiService.get(`/api/users/contests/submissions/${submissionId}`);
+        return await apiService.get(
+            `/api/users/contests/submissions/${submissionId}`
+        );
     };
 
-    const createSubmission = async ({ code, language, problemId, contestId }: { code: string, language: string, problemId: string, contestId: string }) => {
+    const createSubmission = async ({
+        code,
+        language,
+        problemId,
+        contestId,
+    }: {
+        code: string;
+        language: string;
+        problemId: string;
+        contestId: string;
+    }) => {
         const url = `/api/users/contests/${contestId}/problems/${problemId}/submit`;
         return await apiService.post(url, { code, language });
     };
 
     const getSubmissionResult = async (submission_id: string) => {
-        return await apiService.get(`/api/users/contests/submit/${submission_id}/result`);
-    }
+        return await apiService.get(
+            `/api/users/contests/submit/${submission_id}/result`
+        );
+    };
 
     const runCode = async (content: any) => {
         return await apiService.post(`/api/run-code`, content);
-    }
+    };
 
     const getRunCodeResult = async (submission_id: string) => {
         return await apiService.get(`/api/run-code/${submission_id}/result`);
-    }
+    };
 
-    return { getSubmissionsByProblemId, getSubmissionById, createSubmission, getSubmissionResult, runCode, getRunCodeResult };
+    return {
+        getSubmissionsByProblemId,
+        getSubmissionById,
+        createSubmission,
+        getSubmissionResult,
+        runCode,
+        getRunCodeResult,
+    };
 };
 
 export const useTestCaseApi = () => {
-
     const addTestCase = async (problemId: string, testCase: AddTestCase) => {
-        return await apiService.post(`/api/admins/problems/${problemId}/test-cases`, testCase)
-    }
+        return await apiService.post(
+            `/api/admins/problems/${problemId}/test-cases`,
+            testCase
+        );
+    };
 
-    const addBulkTestCases = async (problemId: string, testCases: AddTestCase[]) => {
-        return await apiService.post(`/api/admins/problems/${problemId}/test-cases/bulk`, testCases);
-    }
+    const addBulkTestCases = async (
+        problemId: string,
+        testCases: AddTestCase[]
+    ) => {
+        return await apiService.post(
+            `/api/admins/problems/${problemId}/test-cases/bulk`,
+            testCases
+        );
+    };
 
-    const updateTestCase = async (problemId: string, testCaseId: string, testCase: AddTestCase) => {
-        return await apiService.put(`/api/admins/problems/${problemId}/test-cases/${testCaseId}`, testCase)
-    }
+    const updateTestCase = async (
+        problemId: string,
+        testCaseId: string,
+        testCase: AddTestCase
+    ) => {
+        return await apiService.put(
+            `/api/admins/problems/${problemId}/test-cases/${testCaseId}`,
+            testCase
+        );
+    };
 
     const getTestCasesByProblemId = async (problemId: string) => {
-        return await apiService.get(`/api/admins/problems/${problemId}/test-cases`)
-    }
+        return await apiService.get(
+            `/api/admins/problems/${problemId}/test-cases`
+        );
+    };
 
-    return { addTestCase, addBulkTestCases, getTestCasesByProblemId, updateTestCase };
-}
+    return {
+        addTestCase,
+        addBulkTestCases,
+        getTestCasesByProblemId,
+        updateTestCase,
+    };
+};
 
 export const adminContestApi = () => {
-
-
-
     const createContest = async (contestData: CreateContest) => {
         return await apiService.post("api/admins/contests", contestData);
+    };
+    return { createContest };
+};
+
+export const leaderboardApi = () => {
+    const getContestLeaderboard = async (contestId: string) => {
+        return await apiService.get(`/api/leaderboard/${contestId}`);
+    };
+
+    return { getContestLeaderboard };
+};
+
+export const useCommonApi = () => {
+    const fetchProfile = async () => {
+        return await apiService.get(`/api/me`);
+    };
+
+    const logout = async () => {
+        return await apiService.post('/api/logout', {});
     }
-    return {createContest}
-}
+
+    return { fetchProfile, logout };
+};

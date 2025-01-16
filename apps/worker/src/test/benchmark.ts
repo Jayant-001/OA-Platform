@@ -79,7 +79,7 @@ const sampleCodes: LanguageSamples = {
                 cout << countAndSay(n) << endl;
                 return 0;
             }
-        `
+        `,
     },
     python: {
         fibonacci: `
@@ -116,7 +116,7 @@ def countAndSay(n):
 
 n = int(input())
 print(countAndSay(n))
-        `
+        `,
     },
     java: {
         fibonacci: `
@@ -177,7 +177,7 @@ public class Main {
         System.out.println(countAndSay(n));
     }
 }
-        `
+        `,
     },
     javascript: {
         fibonacci: `
@@ -212,10 +212,9 @@ readline.question('', n => {
         `,
         countAndSay: `
 console.log(100);
-        `
-    }
+        `,
+    },
 };
-
 
 interface BenchmarkOptions {
     language: keyof typeof sampleCodes;
@@ -231,7 +230,7 @@ class BenchmarkTester {
     private startTime: number = 0;
     private completedJobs: number;
     private totalJobs: number;
-    private times: number[] = [];  // Add this to track individual job times
+    private times: number[] = []; // Add this to track individual job times
 
     constructor() {
         this.inputQueue = new Queue(config.queues.input, {
@@ -298,18 +297,23 @@ class BenchmarkTester {
     private handleResult(result: ExecutionResult) {
         this.results.set(result.jobId, result);
         this.completedJobs++;
-        
+
         if (result.executionTime) {
             this.times.push(result.executionTime);
         }
 
         console.log(`Job ${result.jobId} completed:`);
-        console.log(`  Status: ${result.success ? 'Success' : 'Failed'}`);
+        console.log(`  Status: ${result.success ? "Success" : "Failed"}`);
         console.log(`  Execution Time: ${result.executionTime}ms`);
         if (result.error) {
             console.log(`  Error: ${result.error}`);
         }
-        console.log(`  Progress: ${this.completedJobs}/${this.totalJobs} (${((this.completedJobs/this.totalJobs)*100).toFixed(2)}%)`);
+        console.log(
+            `  Progress: ${this.completedJobs}/${this.totalJobs} (${(
+                (this.completedJobs / this.totalJobs) *
+                100
+            ).toFixed(2)}%)`
+        );
     }
 
     private async waitForCompletion(): Promise<void> {
@@ -335,39 +339,70 @@ class BenchmarkTester {
 
         const minTime = Math.min(...this.times);
         const maxTime = Math.max(...this.times);
-        const medianTime = this.times.sort((a,b) => a-b)[Math.floor(this.times.length/2)];
+        const medianTime = this.times.sort((a, b) => a - b)[
+            Math.floor(this.times.length / 2)
+        ];
 
-        console.log('\nDetailed Benchmark Results:');
-        console.log('-------------------------');
+        console.log("\nDetailed Benchmark Results:");
+        console.log("-------------------------");
         console.log(`Total jobs: ${this.totalJobs}`);
         console.log(`Total wall clock time: ${totalTime.toFixed(2)}ms`);
-        console.log(`Average time per job (wall clock): ${avgTime.toFixed(2)}ms`);
-        console.log(`Throughput: ${(this.totalJobs / (totalTime / 1000)).toFixed(2)} jobs/second`);
-        
-        console.log('\nExecution Time Statistics:');
+        console.log(
+            `Average time per job (wall clock): ${avgTime.toFixed(2)}ms`
+        );
+        console.log(
+            `Throughput: ${(this.totalJobs / (totalTime / 1000)).toFixed(
+                2
+            )} jobs/second`
+        );
+
+        console.log("\nExecution Time Statistics:");
         console.log(`  Minimum: ${minTime.toFixed(2)}ms`);
         console.log(`  Maximum: ${maxTime.toFixed(2)}ms`);
         console.log(`  Median: ${medianTime.toFixed(2)}ms`);
-        console.log(`  Average: ${(this.times.reduce((a,b) => a+b, 0) / this.times.length).toFixed(2)}ms`);
+        console.log(
+            `  Average: ${(
+                this.times.reduce((a, b) => a + b, 0) / this.times.length
+            ).toFixed(2)}ms`
+        );
 
-        const successfulJobs = Array.from(this.results.values()).filter(r => r.success).length;
+        const successfulJobs = Array.from(this.results.values()).filter(
+            (r) => r.success
+        ).length;
         const failedJobs = this.totalJobs - successfulJobs;
-        
-        console.log('\nSuccess/Failure Statistics:');
-        console.log(`  Successful: ${successfulJobs} (${((successfulJobs/this.totalJobs)*100).toFixed(2)}%)`);
-        console.log(`  Failed: ${failedJobs} (${((failedJobs/this.totalJobs)*100).toFixed(2)}%)`);
+
+        console.log("\nSuccess/Failure Statistics:");
+        console.log(
+            `  Successful: ${successfulJobs} (${(
+                (successfulJobs / this.totalJobs) *
+                100
+            ).toFixed(2)}%)`
+        );
+        console.log(
+            `  Failed: ${failedJobs} (${(
+                (failedJobs / this.totalJobs) *
+                100
+            ).toFixed(2)}%)`
+        );
 
         if (failedJobs > 0) {
-            console.log('\nFailure Analysis:');
-            const failures = Array.from(this.results.values()).filter(r => !r.success);
+            console.log("\nFailure Analysis:");
+            const failures = Array.from(this.results.values()).filter(
+                (r) => !r.success
+            );
             const errorGroups = failures.reduce((acc, curr) => {
-                const error = curr.error || 'Unknown error';
+                const error = curr.error || "Unknown error";
                 acc[error] = (acc[error] || 0) + 1;
                 return acc;
             }, {} as Record<string, number>);
 
             Object.entries(errorGroups).forEach(([error, count]) => {
-                console.log(`  ${error}: ${count} occurrences (${((count/failedJobs)*100).toFixed(2)}%)`);
+                console.log(
+                    `  ${error}: ${count} occurrences (${(
+                        (count / failedJobs) *
+                        100
+                    ).toFixed(2)}%)`
+                );
             });
         }
     }
@@ -375,8 +410,14 @@ class BenchmarkTester {
 
 async function main() {
     const tester = new BenchmarkTester();
-    const languages = ['javascript', 'cpp', 'python', 'java', 'javascript'] as const;
-    const testTypes = ['countAndSay', 'sort', 'countAndSay'] as const;
+    const languages = [
+        "cpp",
+        "cpp",
+        "python",
+        "java",
+        "javascript",
+    ] as const;
+    const testTypes = ["countAndSay", "sort", "countAndSay"] as const;
 
     // Test each language with each type
     for (const language of languages) {
@@ -386,8 +427,8 @@ async function main() {
             await tester.runBenchmark({
                 language,
                 concurrency: 5,
-                totalJobs: 5,
-                codeType: testType
+                totalJobs: 100,
+                codeType: testType,
             });
         }
     }

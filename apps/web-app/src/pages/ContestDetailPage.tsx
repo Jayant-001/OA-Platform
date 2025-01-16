@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useParams, useLocation, useNavigate } from "react-router-dom";
+import { useParams, useLocation, useNavigate, Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -33,6 +33,7 @@ import {
     Play,
     Shield,
 } from "lucide-react";
+import { LeaderboardCard } from "@/components/LeaderboardCard";
 
 const dummyProblems: Problem[] = [
     {
@@ -83,6 +84,44 @@ export function ContestDetailPage() {
     const { fetchContestById, deleteContestById } = useAdminApi();
     const { fetchContestById: fetchUserContestById, registerToContest } =
         useUsersApi();
+
+    const mockLeaderboardUsers = [
+        {
+            id: "1",
+            name: "Alex Johnson",
+            score: 300,
+            finishTime: "1:45:30",
+            rank: 1,
+        },
+        {
+            id: "2",
+            name: "Sarah Smith",
+            score: 275,
+            finishTime: "1:50:20",
+            rank: 2,
+        },
+        {
+            id: "3",
+            name: "Michael Brown",
+            score: 250,
+            finishTime: "2:00:15",
+            rank: 3,
+        },
+        {
+            id: "4",
+            name: "Emily Davis",
+            score: 225,
+            finishTime: "2:15:45",
+            rank: 4,
+        },
+        {
+            id: "5",
+            name: "David Wilson",
+            score: 200,
+            finishTime: "2:30:00",
+            rank: 5,
+        },
+    ];
 
     useEffect(() => {
         if (contest_id) {
@@ -440,6 +479,19 @@ export function ContestDetailPage() {
                                         </div>
                                     </div>
                                 </div>
+
+                                <div className="space-y-4">
+                                    <LeaderboardCard
+                                        leaderboardUsers={mockLeaderboardUsers}
+                                    />
+                                </div>
+
+                                <Button
+                                    onClick={() => navigate(`activities`)}
+                                    className="w-full bg-gradient-to-r from-purple-600 to-pink-600"
+                                >
+                                    Monitor User's Activities
+                                </Button>
 
                                 {/* Problems Table - existing admin table code */}
                                 <div>

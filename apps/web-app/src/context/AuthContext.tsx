@@ -1,6 +1,8 @@
-import React, { createContext, useState } from "react";
+import React, { createContext, useContext, useEffect, useState } from "react";
 import { User } from "@/types";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
+import { useCommonApi } from "@/hooks/useApi";
+import toast from "react-hot-toast";
 
 interface AuthContextType {
     user: User | null;
@@ -9,13 +11,39 @@ interface AuthContextType {
     logout: () => void;
 }
 
-export const AuthContext = createContext<AuthContextType | undefined>(
+const AuthContext = createContext<AuthContextType | undefined>(
     undefined
 );
+
+export const useAuthContext = (): AuthContextType => {
+    const context = useContext(AuthContext);
+    if (!context) {
+        throw new Error("useSocket must be used within a SocketProvider");
+    }
+    return context;
+};
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
     const [user, setUser] = useState<User | null>(null);
     const navigate = useNavigate();
+    const { fetchProfile, logout: logoutApi } = useCommonApi();
+    const location = useLocation();
+
+    useEffect(() => {
+        if(user) return;
+        (async () => {
+            try {
+                const { id, email, name, role } = await fetchProfile();
+                setUser({ id, email, name, role });
+    
+                if (role == "admin") navigate("/dashboard");
+                else if (role == user) navigate("/");
+                
+            } catch (error) {
+                navigate('/login')
+            }
+        })();
+    }, []);
 
     const login = async (email: string, password: string) => {
         // Implement API call
@@ -42,7 +70,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     };
 
     const logout = () => {
-        setUser(null);
+        (async () => {
+            try {
+                const res = await logoutApi();
+                toast.success(res.message)
+                setUser(null);
+                navigate('/login')
+            } catch (error) {
+                console.log(error);
+            }
+        })();
     };
 
     return (
