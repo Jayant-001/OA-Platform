@@ -5,6 +5,8 @@ import { queueConfig } from "../config/queueConfig";
 import { CacheFactory } from "../services/redis-cache.service";
 import { CacheStrategy, SubmissionStatus } from "../types/cache.types";
 import TestCaseService from "../services/testCaseService";
+import { v4 as uuidv4 } from 'uuid';
+
 
 class ContestSubmissionController {
     private testCaseService = new TestCaseService();
@@ -69,8 +71,7 @@ class ContestSubmissionController {
 
 
     async getLeaderboardSubmissions(req: Request, res: Response) {
-        const { contestId, problemId } = req.params;
-        const userId = req.user?.id as string;
+        const { contestId, problemId,userId } = req.params;
 
         const submissions = await this.contestSubmissionService.getUserSubmissionsForProblem(contestId, problemId, userId);
 
@@ -90,7 +91,7 @@ class ContestSubmissionController {
             selectedSubmission = submissions[submissions.length - 1];
         }
 
-        const { contest_id, problem_id, user_id, code, updated_at, score, ...rest } = selectedSubmission;
+        const { contest_id, problem_id, user_id, updated_at, score, ...rest } = selectedSubmission;
 
         res.json(rest);
     }
@@ -102,13 +103,13 @@ class ContestSubmissionController {
             if (!submission) {
                 return res.status(404).json({ message: "Submission not found" });
             }
-            const { code, execution_time, memory_used } = submission;
-            res.json({ code, execution_time, memory_used });
+            const { verdict, submitted_at, language,code, execution_time, memory_used, } = submission;
+            res.json({ verdict, submitted_at, language,code, execution_time, memory_used });
    
     }
 
     async runCode(req: Request, res: Response) {
-            const submission_id = new Date().getTime().toString();
+            const submission_id = uuidv4();
 
             await this.submissionCache.set(
                 this.getKeyPrefix('run') + submission_id,

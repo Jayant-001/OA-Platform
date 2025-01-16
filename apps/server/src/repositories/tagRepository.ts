@@ -10,6 +10,16 @@ export class TagRepository {
         return db.oneOrNone("SELECT * FROM tags WHERE id = $1", [id]);
     }
 
+    async findByProblemIds(problemIds: string[]): Promise<any[]> {
+        return db.any(
+            `SELECT tags.id, tags.name, tags.code, problem_id 
+         FROM tags 
+         JOIN problem_tags ON tag_id = tags.id 
+         WHERE problem_id IN ($1:csv)`,
+            [problemIds]
+        );
+    }
+
     async create(tagName: string, tagCode: string): Promise<Tag> {
         return db.one(
             `INSERT INTO tags (name, code) 

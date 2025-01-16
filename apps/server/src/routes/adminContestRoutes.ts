@@ -57,4 +57,9 @@ router.get(
     activityController.getUserActivities.bind(activityController)
 );
 
+router.get(
+    '/:contestId/problems',
+    contestController.getContestProblemsById.bind(contestController)
+);
+
 export default router;

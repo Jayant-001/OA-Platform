@@ -29,6 +29,8 @@ class ActivityController {
         );
         res.json({ activities });
     }
+
+ 
 }
 
 export default ActivityController;
