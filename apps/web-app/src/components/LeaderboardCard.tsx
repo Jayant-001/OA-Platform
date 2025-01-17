@@ -1,11 +1,14 @@
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Trophy, Medal, Timer, Hash } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate, useParams } from "react-router-dom";
 import { LeaderboardUser } from "@/types";
 
 export function LeaderboardCard({leaderboardUsers}: {leaderboardUsers: LeaderboardUser[]}) {
     const navigate = useNavigate();
+    const location = useLocation();
+    const isDashboard = location.pathname.includes('/dashboard')
+    const { contest_id } = useParams();
 
     return (
         <Card className="backdrop-blur-sm bg-white/90 border-slate-200">
@@ -61,7 +64,7 @@ export function LeaderboardCard({leaderboardUsers}: {leaderboardUsers: Leaderboa
                 <Button
                     variant="outline"
                     className="w-full mt-4"
-                    onClick={() => navigate("leaderboard")}
+                    onClick={() => navigate(`${isDashboard ? 'leaderboard' : `/contests/${contest_id}/leaderboard` }`)}
                 >
                     View Full Leaderboard
                 </Button>

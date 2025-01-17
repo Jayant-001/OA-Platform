@@ -18,6 +18,7 @@ import { Badge } from "@/components/ui/badge";
 import { X, Beaker } from "lucide-react";
 import toast from "react-hot-toast";
 import { TestCaseModal } from "@/components/problems/TestCaseModal";
+import { LoadingPage } from "@/components/LoadingPage";
 
 export function AddProblemPage() {
     const location = useLocation();
@@ -44,6 +45,7 @@ export function AddProblemPage() {
     const { fetchProblemById } = useAdminApi();
     const isUpdatePage = location.pathname.includes("/update");
     const [isTestCaseModalOpen, setIsTestCaseModalOpen] = useState(false);
+    const [loading, setLoading] = useState<boolean>(false);
 
     useEffect(() => {
         (async () => {
@@ -55,6 +57,7 @@ export function AddProblemPage() {
     useEffect(() => {
         if (isUpdatePage && problem_id) {
             (async () => {
+                setLoading(true);
                 try {
                     const problem = await fetchProblemById(problem_id);
                     if (!problem) {
@@ -80,10 +83,12 @@ export function AddProblemPage() {
                     console.log(error);
                     toast.error("Failed to fetch problem data");
                     navigate(-1);
+                } finally {
+                    setLoading(false);
                 }
             })();
         }
-    }, [problem_id,]);
+    }, [problem_id]);
 
     const handleChange = (
         e: React.ChangeEvent<
@@ -133,6 +138,8 @@ export function AddProblemPage() {
             setError("Failed to add problem. Please try again.");
         }
     };
+
+    if (loading) return <LoadingPage />;
 
     return (
         <div className="min-h-screen bg-background p-4">
@@ -312,14 +319,18 @@ export function AddProblemPage() {
                             )}
 
                             <div className="space-y-4">
-                                <Button
-                                    type="button"
-                                    onClick={() => setIsTestCaseModalOpen(true)}
-                                    className="w-full bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700"
-                                >
-                                    <Beaker className="w-4 h-4 mr-2" />
-                                    Manage Test Cases
-                                </Button>
+                                {problem_id && (
+                                    <Button
+                                        type="button"
+                                        onClick={() =>
+                                            setIsTestCaseModalOpen(true)
+                                        }
+                                        className="w-full bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700"
+                                    >
+                                        <Beaker className="w-4 h-4 mr-2" />
+                                        Manage Test Cases
+                                    </Button>
+                                )}
 
                                 <Button type="submit" className="w-full">
                                     {isUpdatePage ? "Update" : "Add"} Problem
@@ -327,7 +338,9 @@ export function AddProblemPage() {
 
                                 <TestCaseModal
                                     isOpen={isTestCaseModalOpen}
-                                    onClose={() => setIsTestCaseModalOpen(false)}
+                                    onClose={() =>
+                                        setIsTestCaseModalOpen(false)
+                                    }
                                     problemId={problem_id || ""}
                                 />
                             </div>

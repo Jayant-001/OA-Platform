@@ -32,6 +32,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     useEffect(() => {
         if(user) return;
         (async () => {
+            setLoadingProfile(true);
             try {
                 const { id, email, name, role } = await fetchProfile();
                 setUser({ id, email, name, role });
@@ -41,6 +42,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                 
             } catch (error) {
                 navigate('/login')
+            }
+            finally {
+                setLoadingProfile(false);
             }
         })();
     }, []);

@@ -51,17 +51,17 @@ import classNames from "classnames";
 
 interface Submission {
     id: string;
-    verdict: 'solved' | 'unSolved' | 'notAttempted' | null;
+    verdict: "solved" | "unSolved" | "notAttempted" | null;
     code: string;
     language: string;
     execution_time: number;
     memory_used: number;
     submitted_at: string; // ISO 8601 date string
-  }
+}
 
 interface SubmissionProblem {
     problemId: string;
-    verdict: 'solved' | 'unSolved' | 'notAttempted' | null;
+    verdict: "solved" | "unSolved" | "notAttempted" | null;
     noOfAttempts: number;
     acceptedTime: string | null;
 }
@@ -120,10 +120,14 @@ export function ContestLeaderboardPage() {
     const [paginatedUsers, setPaginatedUsers] = useState(
         users.slice(0, usersPerPage)
     );
-    const [leaderboardData, setLeaderboardData] = useState<UserSubmission[]>([]);
+    const [leaderboardData, setLeaderboardData] = useState<UserSubmission[]>(
+        []
+    );
     const [isLoading, setIsLoading] = useState<boolean>(false);
-    const { getContestLeaderboard, getUserSubmissionForLeaderboard } = leaderboardApi();
-    const [selectedSubmission, setSelectedSubmission] = useState<Submission | null> (null);
+    const { getContestLeaderboard, getUserSubmissionForLeaderboard } =
+        leaderboardApi();
+    const [selectedSubmission, setSelectedSubmission] =
+        useState<Submission | null>(null);
 
     const fetchLeaderboard = async (contestId: string) => {
         try {
@@ -133,17 +137,13 @@ export function ContestLeaderboardPage() {
         } catch (error) {
             console.log(error);
             toast.error("Failed to fetch leaderboard data");
-        }
-        finally {
+        } finally {
             setIsLoading(false);
         }
     };
 
-    
-
     useEffect(() => {
-        if(contestId) {
-
+        if (contestId) {
             fetchLeaderboard(contestId as string);
         }
     }, [contestId]);
@@ -163,11 +163,15 @@ export function ContestLeaderboardPage() {
         // console.log(userId, questionId);
         // return;
         try {
-            const data = await getUserSubmissionForLeaderboard(contestId as string, questionId, userId);
+            const data = await getUserSubmissionForLeaderboard(
+                contestId as string,
+                questionId,
+                userId
+            );
             setSelectedSubmission(data);
         } catch (error) {
             console.log(error);
-            toast.error("Failed to fetch user's submission")
+            toast.error("Failed to fetch user's submission");
         }
         // setSelectedUser(userId);
         // setSelectedQuestion(questionId);
@@ -175,21 +179,21 @@ export function ContestLeaderboardPage() {
     };
 
     const verdictClass = useMemo(
-            () => ({
-                solved: "text-green-500",
-                unsolved: "text-red-500",
-                notAttempted: "text-amber-600",
-                Unknown: "text-gray-500",
-            }),
-            []
-        );
+        () => ({
+            solved: "text-green-500",
+            unSolved: "text-red-500",
+            notAttempted: "text-amber-600",
+            Unknown: "text-gray-500",
+        }),
+        []
+    );
 
     const handleCloseModal = () => {
         setIsModalOpen(false);
         setSelectedUser(null);
         setSelectedQuestion(null);
     };
-    
+
     const filteredSubmissions = mockSubmissions.filter(
         (submission) =>
             submission.userId === selectedUser &&
@@ -211,18 +215,22 @@ export function ContestLeaderboardPage() {
 
     // Helper function to get problem verdict display
     const getProblemVerdict = (problem: SubmissionProblem) => {
-        if (problem.verdict === 'solved') {
+        if (problem.verdict === "solved") {
             return (
                 <div className="flex items-center justify-center gap-1">
-                    <span className="text-slate-600">{problem.noOfAttempts}</span>
+                    <span className="text-slate-600">
+                        {problem.noOfAttempts}
+                    </span>
                     <CheckCircle2 className="w-4 h-4 text-green-500" />
                 </div>
             );
         }
-        if (problem.verdict === 'unSolved' && problem.noOfAttempts > 0) {
+        if (problem.verdict === "unSolved" && problem.noOfAttempts > 0) {
             return (
                 <div className="flex items-center justify-center gap-1">
-                    <span className="text-slate-600">{problem.noOfAttempts}</span>
+                    <span className="text-slate-600">
+                        {problem.noOfAttempts}
+                    </span>
                     <XCircle className="w-4 h-4 text-red-500" />
                 </div>
             );
@@ -265,14 +273,22 @@ export function ContestLeaderboardPage() {
                                             Name
                                         </span>
                                     </TableHead>
-                                    {Array.from({ length: totalProblems }, (_, index) => (
-                                        <TableHead key={index} className="text-center w-24">
-                                            <span className="flex items-center gap-1 justify-center">
-                                                {String.fromCharCode(65 + index)}
-                                                <ArrowUpRight className="w-3 h-3" />
-                                            </span>
-                                        </TableHead>
-                                    ))}
+                                    {Array.from(
+                                        { length: totalProblems },
+                                        (_, index) => (
+                                            <TableHead
+                                                key={index}
+                                                className="text-center w-24"
+                                            >
+                                                <span className="flex items-center gap-1 justify-center">
+                                                    {String.fromCharCode(
+                                                        65 + index
+                                                    )}
+                                                    <ArrowUpRight className="w-3 h-3" />
+                                                </span>
+                                            </TableHead>
+                                        )
+                                    )}
                                     <TableHead className="text-right">
                                         <span className="flex items-center gap-2 justify-end">
                                             <Trophy className="w-4 h-4 text-purple-600" />
@@ -288,29 +304,47 @@ export function ContestLeaderboardPage() {
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
-                                {isLoading ? <TableSkeleton /> : leaderboardData.map((user, index) => (
-                                    <TableRow key={user.userId} className="hover:bg-slate-50/50">
-                                        <TableCell className="font-medium">
-                                            {user.rank}
-                                        </TableCell>
-                                        <TableCell>{user.userName}</TableCell>
-                                        {user.problems.map((problem, problemIndex) => (
-                                            <TableCell
-                                                key={problem.problemId}
-                                                className="text-center cursor-pointer hover:bg-slate-100 transition-colors"
-                                                onClick={() => handleCellClick(user.userId, problem.problemId)}
-                                            >
-                                                {getProblemVerdict(problem)}
+                                {isLoading ? (
+                                    <TableSkeleton />
+                                ) : (
+                                    leaderboardData.map((user, index) => (
+                                        <TableRow
+                                            key={user.userId}
+                                            className="hover:bg-slate-50/50"
+                                        >
+                                            <TableCell className="font-medium">
+                                                {user.rank}
                                             </TableCell>
-                                        ))}
-                                        <TableCell className="text-right font-semibold">
-                                            {user.totalPoints}
-                                        </TableCell>
-                                        <TableCell className="text-right font-mono">
-                                            {user.finishTime}
-                                        </TableCell>
-                                    </TableRow>
-                                ))}
+                                            <TableCell>
+                                                {user.userName}
+                                            </TableCell>
+                                            {user.problems.map(
+                                                (problem, problemIndex) => (
+                                                    <TableCell
+                                                        key={problem.problemId}
+                                                        className="text-center cursor-pointer hover:bg-slate-100 transition-colors"
+                                                        onClick={() =>
+                                                            handleCellClick(
+                                                                user.userId,
+                                                                problem.problemId
+                                                            )
+                                                        }
+                                                    >
+                                                        {getProblemVerdict(
+                                                            problem
+                                                        )}
+                                                    </TableCell>
+                                                )
+                                            )}
+                                            <TableCell className="text-right font-semibold">
+                                                {user.totalPoints}
+                                            </TableCell>
+                                            <TableCell className="text-right font-mono">
+                                                {user.finishTime}
+                                            </TableCell>
+                                        </TableRow>
+                                    ))
+                                )}
                             </TableBody>
                         </Table>
                     </div>
@@ -336,7 +370,7 @@ export function ContestLeaderboardPage() {
                         </DialogHeader>
                         <DialogBody>
                             <div className="space-y-4">
-                                {selectedSubmission && 
+                                {selectedSubmission && (
                                     // <Card
                                     //     key={selectedSubmission.id}
                                     //     className="overflow-hidden"
@@ -383,78 +417,107 @@ export function ContestLeaderboardPage() {
                                     //     </div>
                                     // </Card>
                                     <div className="space-y-4">
-                                <div className="grid grid-cols-2 gap-4 p-4 bg-slate-50 rounded-lg">
-                                    <div className="space-y-1">
-                                        <label className="text-sm text-slate-500">
-                                            Status
-                                        </label>
-                                        <p
-                                            className={classNames(
-                                                "font-semibold",
-                                                verdictClass[
-                                                    selectedSubmission.verdict ||
-                                                        "Unknown"
-                                                ]
-                                            )}
-                                        >
-                                            {selectedSubmission.verdict?.replace(
-                                                /_/g,
-                                                " "
-                                            ).replace(/\b\w/g, char => char.toUpperCase()) || "Unknown"}
-                                        </p>
-                                    </div>
-                                    <div className="space-y-1">
-                                        <label className="text-sm text-slate-500">
-                                            Language
-                                        </label>
-                                        <p className="font-semibold">
-                                            {selectedSubmission.language?.replace(/\b\w/g, char => char.toUpperCase())}
-                                        </p>
-                                    </div>
-                                    <div className="space-y-1">
-                                        <label className="text-sm text-slate-500">
-                                            <Clock className="w-4 h-4 inline mr-1" />
-                                            Execution Time
-                                        </label>
-                                        <p className="font-mono">
-                                            {selectedSubmission.execution_time}
-                                        </p>
-                                    </div>
-                                    <div className="space-y-1">
-                                        <label className="text-sm text-slate-500">
-                                            <Cpu className="w-4 h-4 inline mr-1" />
-                                            Memory Used
-                                        </label>
-                                        <p className="font-mono">
-                                            {selectedSubmission.memory_used}
-                                        </p>
-                                    </div>
-                                </div>
+                                        <div className="grid grid-cols-2 gap-4 p-4 bg-slate-50 rounded-lg">
+                                            <div className="space-y-1">
+                                                <label className="text-sm text-slate-500">
+                                                    Status
+                                                </label>
+                                                <p
+                                                    className={classNames(
+                                                        "font-semibold",
+                                                        verdictClass[
+                                                            selectedSubmission.verdict ||
+                                                                "Unknown"
+                                                        ]
+                                                    )}
+                                                >
+                                                    {selectedSubmission.verdict
+                                                        ?.replace(/_/g, " ")
+                                                        .replace(
+                                                            /\b\w/g,
+                                                            (char) =>
+                                                                char.toUpperCase()
+                                                        ) || "Unknown"}
+                                                </p>
+                                            </div>
+                                            <div className="space-y-1">
+                                                <label className="text-sm text-slate-500">
+                                                    Language
+                                                </label>
+                                                <p className="font-semibold">
+                                                    {selectedSubmission.language?.replace(
+                                                        /\b\w/g,
+                                                        (char) =>
+                                                            char.toUpperCase()
+                                                    )}
+                                                </p>
+                                            </div>
+                                            <div className="space-y-1">
+                                                <label className="text-sm text-slate-500">
+                                                    <Clock className="w-4 h-4 inline mr-1" />
+                                                    Execution Time
+                                                </label>
+                                                <p className="font-mono">
+                                                    {
+                                                        selectedSubmission.execution_time
+                                                    }
+                                                </p>
+                                            </div>
+                                            <div className="space-y-1">
+                                                <label className="text-sm text-slate-500">
+                                                    <Cpu className="w-4 h-4 inline mr-1" />
+                                                    Memory Used
+                                                </label>
+                                                <p className="font-mono">
+                                                    {
+                                                        selectedSubmission.memory_used
+                                                    }
+                                                </p>
+                                            </div>
+                                            <div className="space-y-1">
+                                                <label className="text-sm text-slate-500">
+                                                    <Cpu className="w-4 h-4 inline mr-1" />
+                                                    Submitted At
+                                                </label>
+                                                <p className="font-mono">
+                                                    {new Date(
+                                                        selectedSubmission.submitted_at
+                                                    ).toLocaleString()}
+                                                </p>
+                                            </div>
+                                        </div>
 
-                                <div className="space-y-2">
-                                    <div className="flex justify-between items-center">
-                                        <label className="text-sm font-medium flex items-center gap-2">
-                                            <AlignLeft className="w-4 h-4" />
-                                            Submitted Code
-                                        </label>
-                                        <CopyToClipboard
-                                            text={selectedSubmission.code}
-                                        >
-                                            <Button variant="outline" size="sm">
-                                                Copy Code
-                                            </Button>
-                                        </CopyToClipboard>
+                                        <div className="space-y-2">
+                                            <div className="flex justify-between items-center">
+                                                <label className="text-sm font-medium flex items-center gap-2">
+                                                    <AlignLeft className="w-4 h-4" />
+                                                    Submitted Code
+                                                </label>
+                                                <CopyToClipboard
+                                                    text={
+                                                        selectedSubmission.code
+                                                    }
+                                                >
+                                                    <Button
+                                                        variant="outline"
+                                                        size="sm"
+                                                    >
+                                                        Copy Code
+                                                    </Button>
+                                                </CopyToClipboard>
+                                            </div>
+                                            <div className="relative rounded-lg overflow-hidden">
+                                                <pre className="p-4 bg-slate-900 text-slate-50 overflow-x-auto max-h-[60vh]">
+                                                    <code className="text-sm font-mono">
+                                                        {
+                                                            selectedSubmission.code
+                                                        }
+                                                    </code>
+                                                </pre>
+                                            </div>
+                                        </div>
                                     </div>
-                                    <div className="relative rounded-lg overflow-hidden">
-                                        <pre className="p-4 bg-slate-900 text-slate-50 overflow-x-auto max-h-[60vh]">
-                                            <code className="text-sm font-mono">
-                                                {selectedSubmission.code}
-                                            </code>
-                                        </pre>
-                                    </div>
-                                </div>
-                            </div>
-                                }
+                                )}
                             </div>
 
                             <div className="mt-4">
@@ -473,52 +536,56 @@ export function ContestLeaderboardPage() {
     );
 }
 
-
 const TableSkeleton = () => {
     const totalProblems = 10;
     return (
-    //     <div className="space-y-4">
-    //     {/* Loop for skeleton loaders */}
-    //     {Array(5).fill(0).map((_, index) => (
-    //       <Card key={index} className="overflow-hidden animate-pulse">
-    //         <div className="p-4 flex justify-between items-center gap-4">
-    //           <div className="space-y-1">
-    //             <div className="flex items-center gap-2">
-    //               <div className="w-4 h-4 bg-gray-300 rounded-full"></div>
-    //               <div className="w-24 h-4 bg-gray-300 rounded"></div>
-    //             </div>
-    //             <div className="flex items-center gap-2 text-sm text-slate-500">
-    //               <div className="w-4 h-4 bg-gray-300 rounded-full"></div>
-    //               <div className="w-16 h-4 bg-gray-300 rounded"></div>
-    //             </div>
-    //           </div>
-    //           <div className="w-24 h-8 bg-gray-300 rounded-md"></div>
-    //         </div>
-    //       </Card>
-    //     ))}
-    //   </div>
+        //     <div className="space-y-4">
+        //     {/* Loop for skeleton loaders */}
+        //     {Array(5).fill(0).map((_, index) => (
+        //       <Card key={index} className="overflow-hidden animate-pulse">
+        //         <div className="p-4 flex justify-between items-center gap-4">
+        //           <div className="space-y-1">
+        //             <div className="flex items-center gap-2">
+        //               <div className="w-4 h-4 bg-gray-300 rounded-full"></div>
+        //               <div className="w-24 h-4 bg-gray-300 rounded"></div>
+        //             </div>
+        //             <div className="flex items-center gap-2 text-sm text-slate-500">
+        //               <div className="w-4 h-4 bg-gray-300 rounded-full"></div>
+        //               <div className="w-16 h-4 bg-gray-300 rounded"></div>
+        //             </div>
+        //           </div>
+        //           <div className="w-24 h-8 bg-gray-300 rounded-md"></div>
+        //         </div>
+        //       </Card>
+        //     ))}
+        //   </div>
         <>
-        {Array.from({ length: 10 }).map((_, index) => (
-          <TableRow key={index} className="hover:bg-slate-50/50">
-            <TableCell className="font-medium">
-              <Skeleton className="h-4 w-8" />
-            </TableCell>
-            <TableCell>
-              <Skeleton className="h-4 w-3" />
-            </TableCell>
-            {Array.from({ length: totalProblems }).map((_, problemIndex) => (
-              <TableCell key={problemIndex} className="text-center">
-                <Skeleton className="h-4 w-8 mx-auto" />
-              </TableCell>
+            {Array.from({ length: 10 }).map((_, index) => (
+                <TableRow key={index} className="hover:bg-slate-50/50">
+                    <TableCell className="font-medium">
+                        <Skeleton className="h-4 w-8" />
+                    </TableCell>
+                    <TableCell>
+                        <Skeleton className="h-4 w-3" />
+                    </TableCell>
+                    {Array.from({ length: totalProblems }).map(
+                        (_, problemIndex) => (
+                            <TableCell
+                                key={problemIndex}
+                                className="text-center"
+                            >
+                                <Skeleton className="h-4 w-8 mx-auto" />
+                            </TableCell>
+                        )
+                    )}
+                    <TableCell className="text-right">
+                        <Skeleton className="h-4 w-1 ml-auto" />
+                    </TableCell>
+                    <TableCell className="text-right">
+                        <Skeleton className="h-4 w-2 ml-auto" />
+                    </TableCell>
+                </TableRow>
             ))}
-            <TableCell className="text-right">
-              <Skeleton className="h-4 w-1 ml-auto" />
-            </TableCell>
-            <TableCell className="text-right">
-              <Skeleton className="h-4 w-2 ml-auto" />
-            </TableCell>
-          </TableRow>
-        ))}
-      </>
+        </>
     );
-  };
+};
