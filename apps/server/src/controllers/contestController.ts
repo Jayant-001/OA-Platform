@@ -280,11 +280,19 @@ class ContestController {
 
     async getLeaderboard(req: Request, res: Response, next: NextFunction) {
         const { contestId } = req.params;
-        const leaderboard = await this.leaderboardService.fetchLeaderboardData(
-            contestId
+        let page_size =  parseInt(req.query.pageSize as string) || 10;
+        let page_number = parseInt(req.query.page as string) || 1;
+
+        if (page_size <= 0) page_size = 10;
+        if (page_number <= 0) page_number = 1;
+
+        const { leaderboard, pagination } = await this.leaderboardService.fetchLeaderboardData(
+            contestId,
+            page_size,
+            page_number
         );
-        // console.log(JSON.stringify(leaderboard));
-        res.status(200).json(leaderboard);
+
+        res.status(200).json({ data:leaderboard, pagination });
     }
 
 

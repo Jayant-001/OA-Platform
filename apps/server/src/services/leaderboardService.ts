@@ -10,7 +10,7 @@ class LeaderboardService {
     private problemRepository = new ProblemRepository();
     private contestSubmissionRepository = new ContestSubmissionRepository();  
 
-    async fetchLeaderboardData(contestId: string): Promise<any[] | undefined> {
+    async fetchLeaderboardData(contestId: string, page_size: number, page_number: number): Promise<{ leaderboard: any[]; pagination: any }> {
         // Step 1: Fetch required data
         const contestData = await this.contestRepository.findById(contestId);
         const contestUsers = await this.contestRepository.findAllUsersOfContest(contestId);
@@ -176,9 +176,32 @@ class LeaderboardService {
         });
 
 
-        // console.log(leaderboard);
+    const total_records = leaderboard?.length || 0;
 
-        return leaderboard;
+    const total_pages = Math.ceil(total_records / page_size);
+
+    if (page_number > total_pages) page_number = total_pages;
+
+    const start_index = (page_number - 1) * page_size;
+    const end_index = start_index + page_size;
+
+        const paginatedLeaderboard = leaderboard?.slice(start_index, end_index) || [];
+
+        // Pagination Metadata
+        const pagination = {
+            total_records,
+            page_number,
+            page_size,
+            total_pages,
+            next_page: page_number < total_pages ? page_number + 1 : null,
+            prev_page: page_number > 1 ? page_number - 1 : null,
+        };
+
+        return {
+            leaderboard: paginatedLeaderboard,
+            pagination,
+        };
+
     }
 
 }
