@@ -45,7 +45,6 @@ export function TestCaseModal({
 
     useEffect(() => {
         if (!problemId) {
-            toast.error("Can't get problem id");
             return;
         }
 

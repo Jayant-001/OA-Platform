@@ -98,6 +98,12 @@ function App() {
                         />
 
                         <Route
+                        path={ROUTES.CONTEST.LEADERBOARD}
+                        element={
+                            <ContestLeaderboardPage />
+                        } />
+
+                        <Route
                             path={ROUTES.CONTEST.SOLVE_PROBLEMS}
                             element={
                                 // <ProtectedRoute>

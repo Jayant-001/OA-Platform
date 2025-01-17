@@ -16,7 +16,6 @@ import {
 import { LeaderboardCard } from "@/components/LeaderboardCard";
 import { useEffect, useState } from "react";
 import { LeaderboardUser } from "@/types";
-import { LoadingPage } from "@/components/LoadingPage";
 import LoadingPageWithNavbar from "@/components/LoadingPageWithNavbar";
 
 export function ContestProblemsPage() {
