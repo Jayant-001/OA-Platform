@@ -4,14 +4,6 @@ import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import { LeaderboardUser } from "@/types";
 
-const mockUsers: LeaderboardUser[] = [
-    { id: "1", name: "Alex Johnson", score: 300, finishTime: "1:45:30", rank: 3 },
-    { id: "2", name: "Sarah Smith", score: 275, finishTime: "1:50:20", rank: 3 },
-    { id: "3", name: "Michael Brown", score: 250, finishTime: "2:00:15", rank: 3 },
-    { id: "4", name: "Emily Davis", score: 225, finishTime: "2:15:45", rank: 3 },
-    { id: "5", name: "David Wilson", score: 200, finishTime: "2:30:00", rank: 3 },
-];
-
 export function LeaderboardCard({leaderboardUsers}: {leaderboardUsers: LeaderboardUser[]}) {
     const navigate = useNavigate();
 
@@ -60,7 +52,7 @@ export function LeaderboardCard({leaderboardUsers}: {leaderboardUsers: Leaderboa
                             </div>
                             <div className="col-span-3 flex items-center justify-end gap-1 text-sm text-slate-500">
                                 <Timer className="w-3 h-3" />
-                                <span>{user.finishTime.substring(0, 4)}</span>
+                                <span>{user.finishTime}</span>
                             </div>
                         </div>
                     ))}

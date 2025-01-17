@@ -3,7 +3,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import type { AdminContestProblem, Contest } from "@/types";
+import type { AdminContestProblem, Contest, LeaderboardUser } from "@/types";
 import { Badge } from "@/components/ui/badge";
 import {
     Table,
@@ -14,7 +14,7 @@ import {
     TableRow,
 } from "@/components/ui/table";
 import toast from "react-hot-toast";
-import { adminContestApi, useAdminApi } from "@/hooks/useApi";
+import { adminContestApi, leaderboardApi, useAdminApi } from "@/hooks/useApi";
 import { Navbar } from "@/components/layout/Navbar";
 import {
     format,
@@ -38,6 +38,8 @@ import {
     Hash,
 } from "lucide-react";
 import { LeaderboardCard } from "@/components/LeaderboardCard";
+import { LoadingPage } from "@/components/LoadingPage";
+import LoadingPageWithNavbar from "@/components/LoadingPageWithNavbar";
 
 export function AdminContestDetailPage() {
     const { contest_id } = useParams();
@@ -50,44 +52,27 @@ export function AdminContestDetailPage() {
 
     const { fetchContestById, deleteContestById } = useAdminApi();
     const { getContestProblemsForAdmin } = adminContestApi();
+    const { getContestLeaderboard } = leaderboardApi();
+    const [leaderboardData, setLeaderboardData] = useState<LeaderboardUser[]>(
+        []
+    );
 
-    const mockLeaderboardUsers = [
-        {
-            id: "1",
-            name: "Alex Johnson",
-            score: 300,
-            finishTime: "1:45:30",
-            rank: 1,
-        },
-        {
-            id: "2",
-            name: "Sarah Smith",
-            score: 275,
-            finishTime: "1:50:20",
-            rank: 2,
-        },
-        {
-            id: "3",
-            name: "Michael Brown",
-            score: 250,
-            finishTime: "2:00:15",
-            rank: 3,
-        },
-        {
-            id: "4",
-            name: "Emily Davis",
-            score: 225,
-            finishTime: "2:15:45",
-            rank: 4,
-        },
-        {
-            id: "5",
-            name: "David Wilson",
-            score: 200,
-            finishTime: "2:30:00",
-            rank: 5,
-        },
-    ];
+    const fetchContestLeaderboard = async (contestId: string) => {
+        try {
+            const data = await getContestLeaderboard(contestId, 5, 1);
+            const modelData = data?.data?.map((e) => ({
+                id: e.userId,
+                name: e.userName,
+                rank: e.rank,
+                finishTime: e.finishTime,
+                score: e.totalPoints,
+            }));
+            setLeaderboardData(modelData);
+        } catch (error) {
+            console.log(error);
+            toast.error("Failed to fetch contest leaderboard");
+        }
+    };
 
     const fetchContestProblems = async (contestId: string) => {
         try {
@@ -115,6 +100,7 @@ export function AdminContestDetailPage() {
         if (contest_id) {
             fetchContestProblems(contest_id);
             fetchContestDetails(contest_id);
+            fetchContestLeaderboard(contest_id);
         } else {
             toast.error("Contest id not found");
             navigate(-1);
@@ -211,7 +197,9 @@ export function AdminContestDetailPage() {
         }
     }, [contest]);
 
-    const handleDeleteContest = async (e: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
+    const handleDeleteContest = async (
+        e: React.MouseEvent<HTMLButtonElement, MouseEvent>
+    ) => {
         e.preventDefault();
 
         try {
@@ -258,6 +246,10 @@ export function AdminContestDetailPage() {
         );
     };
 
+    if(loading) {
+        return <LoadingPageWithNavbar />
+    }
+
     if (loading) {
         return (
             <div className="container mx-auto py-8">
@@ -280,7 +272,7 @@ export function AdminContestDetailPage() {
         );
     }
 
-    if (!contest) return <div>Loading...</div>;
+    if (!contest) return <LoadingPage />;
 
     return (
         <div className="min-h-screen bg-gradient-to-b from-slate-50 to-slate-100">
@@ -429,13 +421,13 @@ export function AdminContestDetailPage() {
 
                         <div className="space-y-4">
                             <LeaderboardCard
-                                leaderboardUsers={mockLeaderboardUsers}
+                                leaderboardUsers={leaderboardData}
                             />
                         </div>
 
                         <Button
                             onClick={() => navigate(`activities`)}
-                            className="w-full bg-gradient-to-r from-purple-600 to-pink-600"
+                            className="w-full bg-gradient-to-r from-purple-500 to-blue-500"
                         >
                             Monitor User's Activities
                         </Button>

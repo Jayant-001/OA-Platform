@@ -17,6 +17,7 @@ import { Contest, Problem } from "@/types";
 import toast from "react-hot-toast";
 import { useAdminApi } from "@/hooks/useApi";
 import { format, toZonedTime } from "date-fns-tz"; // Importing necessary date-fns-tz functions
+import { LoadingPage } from "@/components/LoadingPage";
 
 export function UpdateContestPage() {
     const { contest_id } = useParams();
@@ -26,10 +27,11 @@ export function UpdateContestPage() {
         updateContestProblems,
         updateContestById,
         updateContestUsers,
-        fetchUsers,
     } = useAdminApi();
 
     const navigate = useNavigate();
+    const [loadingContestDetails, setLoadingContestDetails] =
+        useState<boolean>(false);
     const [selectedProblems, setSelectedProblems] = useState<string[]>([]);
     const [selectedUsers, setSelectedUsers] = useState<string[]>([]);
     const [formData, setFormData] = useState<Contest>({
@@ -57,6 +59,7 @@ export function UpdateContestPage() {
     useEffect(() => {
         if (contest_id) {
             (async () => {
+                setLoadingContestDetails(true);
                 try {
                     const contest = await fetchContestById(contest_id);
                     if (!contest) {
@@ -105,6 +108,8 @@ export function UpdateContestPage() {
                     toast.error(
                         "Something went wrong in fetching contest data"
                     );
+                } finally {
+                    setLoadingContestDetails(false);
                 }
             })();
         }
@@ -196,8 +201,8 @@ export function UpdateContestPage() {
         }
     };
 
-    if (formData == null) {
-        return <h1>Loading</h1>;
+    if (loadingContestDetails || formData == null) {
+        return <LoadingPage />;
     }
 
     return (
@@ -357,19 +362,11 @@ export function UpdateContestPage() {
                                     <TabsTrigger value="problems">
                                         Select Problems
                                     </TabsTrigger>
-                                    <TabsTrigger value="users">
-                                        Select Users
-                                    </TabsTrigger>
                                 </TabsList>
-                                {selectedTab === "problems" ? (
-                                    <Button onClick={handleProblemsUpdate}>
-                                        Update Problems
-                                    </Button>
-                                ) : (
-                                    <Button onClick={handleUsersUpdate}>
-                                        Update Users
-                                    </Button>
-                                )}
+
+                                <Button onClick={handleProblemsUpdate}>
+                                    Update Problems
+                                </Button>
                             </div>
 
                             <TabsContent value="problems" className="space-y-4">
@@ -383,16 +380,6 @@ export function UpdateContestPage() {
                                     handleProblemPointsChange={
                                         handleProblemPointsChange
                                     }
-                                />
-                            </TabsContent>
-
-                            <TabsContent value="users" className="space-y-4">
-                                <DataTable
-                                    columns={userColumns}
-                                    data={users}
-                                    selectedRows={selectedUsers}
-                                    setSelectedRows={setSelectedUsers}
-                                    filters={userFilters}
                                 />
                             </TabsContent>
                         </Tabs>
