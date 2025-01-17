@@ -14,7 +14,7 @@ interface SocketContextType {
     sendActivity: (activity: IActivityLog) => void;
 }
 
-const SERVER_URL = `http://localhost:4242`; // TODO
+const SERVER_URL = import.meta.env.VITE_SERVER_BASE_URL || `http://localhost:4242`;
 const SocketContext = createContext<SocketContextType | undefined>(undefined);
 
 export const useSocket = (): SocketContextType => {

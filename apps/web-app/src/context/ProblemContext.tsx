@@ -39,8 +39,6 @@ export const ProblemProvider: React.FC<{ children: React.ReactNode }> = ({ child
 
     const fetchProblems = async (contestId: string) => {
         try {
-            console.log("Contest_Id Changes", contest_id);
-
             const problems = await getContestProblems(contestId);
             setProblems(problems);
             setLoading(false);

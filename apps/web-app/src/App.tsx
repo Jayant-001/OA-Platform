@@ -31,7 +31,7 @@ function App() {
         <BrowserRouter>
             <Toaster />
             <AuthProvider>
-                <>
+                <UserProvider>
                     <Routes>
                         {/* Public routes */}
                         <Route path={ROUTES.LOGIN} element={<LoginPage />} />
@@ -96,6 +96,12 @@ function App() {
                                 // </ProtectedRoute>
                             }
                         />
+
+                        <Route
+                        path={ROUTES.CONTEST.LEADERBOARD}
+                        element={
+                            <ContestLeaderboardPage />
+                        } />
 
                         <Route
                             path={ROUTES.CONTEST.SOLVE_PROBLEMS}
@@ -207,7 +213,7 @@ function App() {
                             }
                         />
                     </Routes>
-                </>
+                </UserProvider>
             </AuthProvider>
         </BrowserRouter>
     );

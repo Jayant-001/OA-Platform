@@ -9,7 +9,6 @@ import {
     problemColumns,
     problemFilters,
 } from "../admin/columns/problemColumns";
-import { userColumns, userFilters } from "../admin/columns/userColumns";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import TextEditor from "@/components/shared/TextEditor";
@@ -26,14 +25,12 @@ export function UpdateContestPage() {
         fetchContestById,
         updateContestProblems,
         updateContestById,
-        updateContestUsers,
     } = useAdminApi();
 
     const navigate = useNavigate();
     const [loadingContestDetails, setLoadingContestDetails] =
         useState<boolean>(false);
     const [selectedProblems, setSelectedProblems] = useState<string[]>([]);
-    const [selectedUsers, setSelectedUsers] = useState<string[]>([]);
     const [formData, setFormData] = useState<Contest>({
         id: "",
         title: "",
@@ -54,7 +51,6 @@ export function UpdateContestPage() {
     const [problemPoints, setProblemPoints] = useState<Record<string, number>>(
         {}
     );
-    const [users, setUsers] = useState<string[] | []>([]);
 
     useEffect(() => {
         if (contest_id) {
@@ -89,7 +85,6 @@ export function UpdateContestPage() {
                                 (problem) => problem.problem_id
                             ) || []
                         );
-                        setSelectedUsers(contest.users);
                     }
 
                     const problems = await fetchProblems();
@@ -153,11 +148,11 @@ export function UpdateContestPage() {
             });
             toast.success("Contest updated successfully");
         } catch (error) {
+            console.log(error);
             toast.error("Failed to update the contest");
         }
     };
 
-    const [selectedTab, setSelectedTab] = useState("problems");
 
     const handleProblemsUpdate = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -181,23 +176,8 @@ export function UpdateContestPage() {
             await updateContestProblems(formData.id, selectedProblemsPoints);
             toast.success("Problems updated successfully");
         } catch (error) {
+            console.log(error);
             toast.error("Failed to update problems");
-        }
-    };
-
-    const handleUsersUpdate = async (e: React.FormEvent) => {
-        e.preventDefault();
-
-        if (contest_id == null || formData == null) {
-            toast.error(`Can't find contest with id ${contest_id}`);
-            return;
-        }
-
-        try {
-            await updateContestUsers(formData.id, selectedUsers);
-            toast.success("Users updated successfully");
-        } catch (error) {
-            toast.error("Failed to update users");
         }
     };
 
@@ -355,7 +335,6 @@ export function UpdateContestPage() {
                         <Tabs
                             defaultValue="problems"
                             className="w-full"
-                            onValueChange={setSelectedTab}
                         >
                             <div className="flex justify-between">
                                 <TabsList>
