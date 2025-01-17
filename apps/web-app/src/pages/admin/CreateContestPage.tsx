@@ -8,6 +8,7 @@ import { Label } from "@/components/ui/label";
 import TextEditor from "@/components/shared/TextEditor";
 import toast from "react-hot-toast";
 import { adminContestApi } from "@/hooks/useApi";
+import { toZonedTime } from "date-fns-tz";
 
 
 export function CreateContestPage() {
@@ -48,10 +49,9 @@ export function CreateContestPage() {
     };
 
     const handleSubmit = async (e: React.FormEvent) => {
-        e.preventDefault();
-
+        const { start_time} = formData;
         try {
-            await createContest({...formData, description});
+            await createContest({ ...formData, start_time: new Date(start_time).toUTCString(), description});
             toast.success("Contest created successfully.");
             clearFormData();
         } catch (error) {
