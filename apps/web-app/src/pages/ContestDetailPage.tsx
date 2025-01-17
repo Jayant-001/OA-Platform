@@ -23,6 +23,8 @@ import {
     AlertCircle,
     Play,
 } from "lucide-react";
+import { LoadingPage } from "@/components/LoadingPage";
+import LoadingPageWithNavbar from "@/components/LoadingPageWithNavbar";
 
 export function ContestDetailPage() {
     const { contest_id } = useParams();
@@ -193,6 +195,10 @@ export function ContestDetailPage() {
             toast.error("Registration failed. Try again");
         }
     };
+
+    if(loading) {
+        return <LoadingPageWithNavbar />
+    }
 
     if (loading) {
         return (

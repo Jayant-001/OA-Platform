@@ -129,7 +129,7 @@ export function ContestLeaderboardPage() {
         try {
             setIsLoading(true);
             const leaderboard = await getContestLeaderboard(contestId);
-            setLeaderboardData(leaderboard);
+            setLeaderboardData(leaderboard.data);
         } catch (error) {
             console.log(error);
             toast.error("Failed to fetch leaderboard data");

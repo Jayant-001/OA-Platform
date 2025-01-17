@@ -259,8 +259,8 @@ export const adminContestApi = () => {
 };
 
 export const leaderboardApi = () => {
-    const getContestLeaderboard = async (contestId: string) => {
-        return await apiService.get(`/api/leaderboard/${contestId}`);
+    const getContestLeaderboard = async (contestId: string, pageSize?: number, page?: number) => {
+        return await apiService.get(`/api/leaderboard/${contestId}?pageSize=${pageSize}&page=${page}`);
     };
 
     const getUserSubmissionForLeaderboard = async (contestId: string, problemId: string, userId: string) => {

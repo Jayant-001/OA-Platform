@@ -27,7 +27,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const [user, setUser] = useState<User | null>(null);
     const navigate = useNavigate();
     const { fetchProfile, logout: logoutApi } = useCommonApi();
-    const location = useLocation();
+    const [loadingProfile, setLoadingProfile] = useState<boolean>(false);
 
     useEffect(() => {
         if(user) return;

@@ -32,6 +32,8 @@ import { UserActivityDetailsModal } from "@/components/UserActivityDetailsModal"
 import { useActivityApi } from "@/hooks/useApi";
 import toast from "react-hot-toast";
 import { useParams } from "react-router-dom";
+import { LoadingPage } from "@/components/LoadingPage";
+import LoadingPageWithNavbar from "@/components/LoadingPageWithNavbar";
 
 interface UserActivity {
     user_id: string;
@@ -121,7 +123,7 @@ export function ContestActivityPage() {
     }
 
     if(activityDetails == null) {
-        return <h1>Loading</h1>
+        return <LoadingPageWithNavbar />
     }
 
     const filteredActivities = filterAndSortActivities(activityDetails);

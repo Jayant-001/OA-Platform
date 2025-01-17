@@ -31,7 +31,7 @@ function App() {
         <BrowserRouter>
             <Toaster />
             <AuthProvider>
-                <UserProvider>
+                <>
                     <Routes>
                         {/* Public routes */}
                         <Route path={ROUTES.LOGIN} element={<LoginPage />} />
@@ -207,7 +207,7 @@ function App() {
                             }
                         />
                     </Routes>
-                </UserProvider>
+                </>
             </AuthProvider>
         </BrowserRouter>
     );
