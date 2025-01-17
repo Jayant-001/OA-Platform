@@ -51,6 +51,15 @@ export default {
                     5: "hsl(var(--chart-5))",
                 },
             },
+            keyframes: {
+                progressBar: {
+                    "0%": { transform: "translateX(-100%)" },
+                    "100%": { transform: "translateX(100%)" },
+                },
+            },
+            animation: {
+                progressBar: "progressBar 2s ease-in-out infinite",
+            },
         },
     },
     plugins: [

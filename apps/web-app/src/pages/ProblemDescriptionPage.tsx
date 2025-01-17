@@ -31,6 +31,7 @@ import RunConsole from "@/components/problems/RunConsole";
 import { useLongRunningTask } from "@/hooks/useRunCodePool";
 import ContestSubmissions from "@/components/contest/ContestSubmissions";
 import { useSubmissionPool } from "@/hooks/useSubmissionPool";
+import { LoadingPage } from "@/components/LoadingPage";
 
 export function ProblemDescriptionPage() {
     const { problem_id: problemId, contest_id } = useParams();
@@ -172,13 +173,12 @@ export function ProblemDescriptionPage() {
 
     const handleProblemClick = (id: string) => {
         if (id !== problemId) {
-            console.log("Problem ID Switched To:", id);
             navigate(`/contests/${contest_id}/problems/${id}/solve`);
             setIsSidebarOpen(false);
         }
     };
 
-    if (!problem) return <div>Loading...</div>;
+    if (!problem) return <LoadingPage />
 
     return (
         <div className="h-screen flex overflow-hidden">

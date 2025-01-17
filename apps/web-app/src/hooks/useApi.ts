@@ -251,7 +251,11 @@ export const adminContestApi = () => {
     const createContest = async (contestData: CreateContest) => {
         return await apiService.post("api/admins/contests", contestData);
     };
-    return { createContest };
+
+    const getContestProblemsForAdmin = async (contestId: string) => {
+        return await apiService.get(`/api/admins/contests/${contestId}/problems`)
+    }
+    return { createContest, getContestProblemsForAdmin };
 };
 
 export const leaderboardApi = () => {
@@ -259,7 +263,11 @@ export const leaderboardApi = () => {
         return await apiService.get(`/api/leaderboard/${contestId}`);
     };
 
-    return { getContestLeaderboard };
+    const getUserSubmissionForLeaderboard = async (contestId: string, problemId: string, userId: string) => {
+        return await apiService.get(`/api/leaderboard/contests/${contestId}/problems/${problemId}/users/${userId}/submissions`)
+    }
+
+    return { getContestLeaderboard, getUserSubmissionForLeaderboard };
 };
 
 export const useCommonApi = () => {

@@ -293,7 +293,7 @@ class ContestController {
         const problems = await this.contestService.getContestProblemsForAdmin(
             contestId
         );
-        res.json({ problems });
+        res.json(problems);
     }
 }
 

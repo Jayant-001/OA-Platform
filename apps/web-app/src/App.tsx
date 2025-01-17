@@ -24,6 +24,7 @@ import { Toaster } from "react-hot-toast";
 import ActivityMonitor from "./context/ActivityMonitor";
 import SocketProvider from "./context/SocketContext";
 import { ContestActivityPage } from "./pages/ContestActivityPage";
+import { AdminContestDetailPage } from "./pages/dashboard/AdminContestDetailPage";
 
 function App() {
     return (
@@ -126,7 +127,7 @@ function App() {
                             path={ROUTES.DASHBOARD.CONTEST}
                             element={
                                 // <ProtectedRoute requireAdmin>
-                                <ContestDetailPage />
+                                <AdminContestDetailPage />
                                 // </ProtectedRoute>
                             }
                         />

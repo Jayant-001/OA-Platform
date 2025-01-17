@@ -2,7 +2,6 @@ import { useSubmissionApi } from "@/hooks/useApi";
 import { Submission } from "@/types";
 import { useMemo, useState } from "react";
 import toast from "react-hot-toast";
-import { useParams } from "react-router-dom";
 import classNames from "classnames";
 import {
     Dialog,
@@ -22,7 +21,6 @@ type Props = {
 };
 
 const ContestSubmissions = ({ submissions }: Props) => {
-    const { problem_id, contest_id } = useParams();
     const { getSubmissionById } = useSubmissionApi();
     const [selectedSubmission, setSelectedSubmission] =
         useState<Submission | null>(null);
@@ -33,7 +31,8 @@ const ContestSubmissions = ({ submissions }: Props) => {
             wrong_answer: "text-red-500",
             time_limit_exceeded: "text-yellow-500",
             memory_limit_exceeded: "text-purple-500",
-            default: "text-gray-500",
+            runtime_error: "text-amber-600",
+            Unknown: "text-gray-500",
         }),
         []
     );
@@ -68,19 +67,23 @@ const ContestSubmissions = ({ submissions }: Props) => {
                                         ).toLocaleString()}
                                     </span>
                                     <div className="text-sm text-gray-500">
-                                        {submission.language}
+                                        {submission.language.replace(/\b\w/g, (char) => char.toUpperCase())}
                                     </div>
                                 </div>
                                 <span
                                     className={classNames(
                                         verdictClass[
-                                            submission.verdict || "default"
+                                            submission.verdict || "Unknown"
                                         ],
                                         "font-semibold"
                                     )}
                                 >
                                     {submission.verdict
-                                        ? submission.verdict.replace(/_/g, " ")
+                                        ? submission.verdict
+                                              .replace(/_/g, " ") // Replace underscores with spaces
+                                              .replace(/\b\w/g, (char) =>
+                                                  char.toUpperCase()
+                                              ) // Capitalize first letter of each word
                                         : "Executing..."}
                                 </span>
                             </div>
@@ -117,14 +120,14 @@ const ContestSubmissions = ({ submissions }: Props) => {
                                                 "font-semibold",
                                                 verdictClass[
                                                     selectedSubmission.verdict ||
-                                                        "default"
+                                                        "Unknown"
                                                 ]
                                             )}
                                         >
                                             {selectedSubmission.verdict?.replace(
                                                 /_/g,
                                                 " "
-                                            ) || "Processing"}
+                                            ).replace(/\b\w/g, char => char.toUpperCase()) || "Processing"}
                                         </p>
                                     </div>
                                     <div className="space-y-1">
@@ -132,7 +135,7 @@ const ContestSubmissions = ({ submissions }: Props) => {
                                             Language
                                         </label>
                                         <p className="font-semibold">
-                                            {selectedSubmission.language}
+                                            {selectedSubmission.language.replace(/\b\w/g, char => char.toUpperCase())}
                                         </p>
                                     </div>
                                     <div className="space-y-1">

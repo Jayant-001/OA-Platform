@@ -76,7 +76,7 @@ class ContestSubmissionController {
         const submissions = await this.contestSubmissionService.getUserSubmissionsForProblem(contestId, problemId, userId);
 
         if (!submissions || submissions.length === 0) {
-            return res.json([]);
+            return res.json({});
         }
 
         submissions.sort((a, b) => new Date(a.submitted_at).getTime() - new Date(b.submitted_at).getTime());
