@@ -30,6 +30,7 @@ export interface Contest {
     updated_at: string; // Timestamp when the contest was last updated (ISO string)
     is_registration_open: boolean;
     is_registered: boolean;
+    registered_users?: number;
 }
 
 export interface Problem {
@@ -56,6 +57,20 @@ export interface ContestProblems {
     title: string;
     points: number;
     status: string;
+}
+
+export interface AdminContestProblem {
+    id: string;
+    title: string;
+    points: number;
+    level: string;
+    tags: AdminContestProblemTag[]
+}
+
+export interface AdminContestProblemTag {
+    id: string;
+    name: string;
+    code: string
 }
 
 export interface Tag {
@@ -87,6 +102,7 @@ export interface Submission {
     memory_used: string | null;
     submitted_at: Date;
     status: string;
+    code: string;
 }
 
 export interface AddTestCase {

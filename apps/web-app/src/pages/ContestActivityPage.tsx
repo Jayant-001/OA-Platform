@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Navbar } from "@/components/layout/Navbar";
 import {
     Table,
@@ -28,16 +28,10 @@ import {
     ArrowUpDown,
     AlertCircle,
 } from "lucide-react";
-import {
-    Dialog,
-    DialogContent,
-    DialogHeader,
-    DialogTitle,
-    DialogBody,
-    DialogOverlay,
-} from "@/components/ui/dialog";
-import { format } from "date-fns";
 import { UserActivityDetailsModal } from "@/components/UserActivityDetailsModal";
+import { useActivityApi } from "@/hooks/useApi";
+import toast from "react-hot-toast";
+import { useParams } from "react-router-dom";
 
 interface UserActivity {
     user_id: string;
@@ -47,17 +41,10 @@ interface UserActivity {
     email: string;
 }
 
-interface ActivityLog {
-    id: string;
-    contest_id: string;
-    user_id: string;
-    activity: string;
-    times_tamp: string;
-}
-
-interface ActivityDetails {
-    totalOfflineInSeconds: number;
-    activities: ActivityLog[];
+export interface ActivityUserDetails {
+    userId: string;
+    name: string;
+    email: string;
 }
 
 export function ContestActivityPage() {
@@ -65,21 +52,42 @@ export function ContestActivityPage() {
     const [statusFilter, setStatusFilter] = useState("all");
     const [sortOrder, setSortOrder] = useState("default");
     const [currentPage, setCurrentPage] = useState(1);
-    const [selectedUser, setSelectedUser] = useState<UserActivity | null>(null);
+    const [selectedUser, setSelectedUser] = useState<ActivityUserDetails | null>(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
-    const [activityDetails, setActivityDetails] = useState<ActivityDetails | null>(null);
+    const [activityDetails, setActivityDetails] =
+        useState<UserActivity[] | null>(null);
     const usersPerPage = 20;
+    const { fetchContestActivities } = useActivityApi();
+    const {contest_id} = useParams();
 
     const formatTime = (seconds: number) => {
         if (seconds < 60) return `${seconds}s`;
         if (seconds < 3600) return `${Math.floor(seconds / 60)}m`;
-        return `${Math.floor(seconds / 3600)}h ${Math.floor((seconds % 3600) / 60)}m`;
+        return `${Math.floor(seconds / 3600)}h ${Math.floor(
+            (seconds % 3600) / 60
+        )}m`;
     };
+
+    const fetchActivities = async () => {
+        try {
+            const data = await fetchContestActivities(contest_id as string)
+            setActivityDetails(data);
+        } catch (error) {
+            toast.error('Failed to fetch contest activities')
+            console.log(error)
+        }
+    }
+
+    useEffect(() => {
+        fetchActivities();
+    }, []);
 
     const filterAndSortActivities = (activities: UserActivity[]) => {
         const filtered = activities.filter((activity) => {
             const matchesSearch =
-                activity.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                activity.name
+                    .toLowerCase()
+                    .includes(searchTerm.toLowerCase()) ||
                 activity.email.toLowerCase().includes(searchTerm.toLowerCase());
             const matchesStatus =
                 statusFilter === "all" ||
@@ -89,60 +97,34 @@ export function ContestActivityPage() {
 
         if (sortOrder === "time-asc") {
             filtered.sort(
-                (a, b) => a.totalOfflineTimeInSeconds - b.totalOfflineTimeInSeconds
+                (a, b) =>
+                    a.totalOfflineTimeInSeconds - b.totalOfflineTimeInSeconds
             );
         } else if (sortOrder === "time-desc") {
             filtered.sort(
-                (a, b) => b.totalOfflineTimeInSeconds - a.totalOfflineTimeInSeconds
+                (a, b) =>
+                    b.totalOfflineTimeInSeconds - a.totalOfflineTimeInSeconds
             );
         }
 
         return filtered;
     };
 
-    // Mock data - replace with your actual data
-    const mockActivities: UserActivity[] = [
-        {
-            user_id: "d7426557-82a7-470b-bb9a-68a99dc8daa8",
-            current_status: "went offline",
-            totalOfflineTimeInSeconds: 553,
-            name: "user 2",
-            email: "user2@gmail.com",
-        },
-        {
-            user_id: "eef1cbcc-8cb6-4efc-8715-9f1d3b79f9fb",
-            current_status: "went offline",
-            totalOfflineTimeInSeconds: 56,
-            name: "Tourist",
-            email: "tourist@example.com",
-        },
-    ];
-
     const handleRowClick = async (user: UserActivity) => {
-        setSelectedUser(user);
+        setSelectedUser({userId: user.user_id, email: user.email, name: user.name});
         setIsModalOpen(true);
-        // Mock API call - replace with actual API call
-        const mockDetails = {
-            totalOfflineInSeconds: 553,
-            activities: mockActivities // Your provided activities array
-        };
-        setActivityDetails(mockDetails);
     };
 
-    const formatDuration = (seconds: number) => {
-        if (seconds < 60) return `${seconds} seconds`;
-        if (seconds < 3600) return `${Math.floor(seconds / 60)} minutes`;
-        const hours = Math.floor(seconds / 3600);
-        const minutes = Math.floor((seconds % 3600) / 60);
-        return `${hours}h ${minutes}m`;
-    };
+    const onModalClose = () => {
+        setIsModalOpen(false)
+        setSelectedUser(null);
+    }
 
-    const getTimeBetween = (offlineTime: string, onlineTime: string) => {
-        const diff = new Date(onlineTime).getTime() - new Date(offlineTime).getTime();
-        return formatDuration(Math.floor(diff / 1000));
-    };
+    if(activityDetails == null) {
+        return <h1>Loading</h1>
+    }
 
-    const filteredActivities = filterAndSortActivities(mockActivities);
+    const filteredActivities = filterAndSortActivities(activityDetails);
     const indexOfLastUser = currentPage * usersPerPage;
     const indexOfFirstUser = indexOfLastUser - usersPerPage;
     const currentUsers = filteredActivities.slice(
@@ -160,20 +142,23 @@ export function ContestActivityPage() {
                         Activity Monitor
                     </h1>
                     <p className="text-slate-600 max-w-2xl mx-auto">
-                        Track participant activity and engagement during the contest
+                        Track participant activity and engagement during the
+                        contest
                     </p>
                 </div>
 
                 <Card className="backdrop-blur-sm bg-white/90 border-slate-200/60 shadow-lg mb-6">
                     <CardContent className="pt-6">
-                        <div className="grid gap-4 md:grid-cols-4">
+                        <div className="grid gap-4 md:grid-cols-3 lg:grid-cols-[2fr_1fr_1fr]">
                             <div className="relative">
                                 <Search className="absolute left-2 top-2.5 h-4 w-4 text-slate-500" />
                                 <Input
                                     placeholder="Search by name or email..."
                                     className="pl-8"
                                     value={searchTerm}
-                                    onChange={(e) => setSearchTerm(e.target.value)}
+                                    onChange={(e) =>
+                                        setSearchTerm(e.target.value)
+                                    }
                                 />
                             </div>
                             <Select
@@ -184,9 +169,15 @@ export function ContestActivityPage() {
                                     <SelectValue placeholder="Filter by status" />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    <SelectItem value="all">All Status</SelectItem>
-                                    <SelectItem value="online">Online</SelectItem>
-                                    <SelectItem value="offline">Offline</SelectItem>
+                                    <SelectItem value="all">
+                                        All Status
+                                    </SelectItem>
+                                    <SelectItem value="online">
+                                        Online
+                                    </SelectItem>
+                                    <SelectItem value="offline">
+                                        Offline
+                                    </SelectItem>
                                 </SelectContent>
                             </Select>
                             <Select
@@ -197,7 +188,9 @@ export function ContestActivityPage() {
                                     <SelectValue placeholder="Sort by time" />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    <SelectItem value="default">Default</SelectItem>
+                                    <SelectItem value="default">
+                                        Default
+                                    </SelectItem>
                                     <SelectItem value="time-asc">
                                         Time (Low to High)
                                     </SelectItem>
@@ -297,10 +290,10 @@ export function ContestActivityPage() {
                 </div>
             </main>
 
-            <UserActivityDetailsModal 
+            <UserActivityDetailsModal
                 isOpen={isModalOpen}
-                onClose={() => setIsModalOpen(false)}
-                userName={selectedUser?.name || ""}
+                onClose={onModalClose}
+                selectedUser={selectedUser || null}
             />
         </div>
     );
