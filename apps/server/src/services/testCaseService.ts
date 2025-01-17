@@ -4,7 +4,7 @@ import TestCaseRepository from "../repositories/testCaseRepository";
 class TestCaseService {
     private testCaseRepository = new TestCaseRepository();
 
-    async findAllByProblemId(problem_id: string):Promise<TestCase> {
+    async findAllByProblemId(problem_id: string):Promise<TestCase|null> {
         return await this.testCaseRepository.findOneByProblemId(problem_id);
     }
 }

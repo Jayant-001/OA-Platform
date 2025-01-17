@@ -6,6 +6,7 @@ import { CacheFactory } from "../services/redis-cache.service";
 import { CacheStrategy, SubmissionStatus } from "../types/cache.types";
 import TestCaseService from "../services/testCaseService";
 import { v4 as uuidv4 } from 'uuid';
+import { CustomException } from "../errors/CustomException";
 
 
 class ContestSubmissionController {
@@ -31,7 +32,12 @@ class ContestSubmissionController {
     }
 
     async createSubmission(req: Request, res: Response) {
-            const { contestId, problemId } = req.params;
+        const { contestId, problemId } = req.params;
+        const testCases = await this.testCaseService.findAllByProblemId(problemId);
+
+        if (testCases == null) {
+            throw new CustomException(422, 'Unprocessable_Code', "Code could not be processed, as no test cases were there");
+        }
             const submission = await this.contestSubmissionService.createSubmission(contestId, problemId, req.body, req.user?.id as string);
 
             await this.submissionCache.set(
@@ -39,7 +45,9 @@ class ContestSubmissionController {
                 { status: 'PENDING' }
             );
 
-            const testCases = await this.testCaseService.findAllByProblemId(problemId);
+          
+        
+
 
             const job = {
                 id: submission.id,
