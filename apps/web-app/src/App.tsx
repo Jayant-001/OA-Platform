@@ -32,187 +32,188 @@ function App() {
             <Toaster />
             <AuthProvider>
                 <UserProvider>
-                    <Routes>
-                        {/* Public routes */}
-                        <Route path={ROUTES.LOGIN} element={<LoginPage />} />
-                        <Route
-                            path={ROUTES.REGISTER}
-                            element={<RegisterPage />}
-                        />
-                        <Route
-                            path={ROUTES.ADMIN_LOGIN}
-                            element={<AdminLoginPage />}
-                        />
-                        <Route
-                            path={ROUTES.ADMIN_REGISTER}
-                            element={<AdminRegisterPage />}
-                        />
+                    <SocketProvider>
+                        <Routes>
+                            {/* Public routes */}
+                            <Route
+                                path={ROUTES.LOGIN}
+                                element={<LoginPage />}
+                            />
+                            <Route
+                                path={ROUTES.REGISTER}
+                                element={<RegisterPage />}
+                            />
+                            <Route
+                                path={ROUTES.ADMIN_LOGIN}
+                                element={<AdminLoginPage />}
+                            />
+                            <Route
+                                path={ROUTES.ADMIN_REGISTER}
+                                element={<AdminRegisterPage />}
+                            />
 
-                        <Route
-                            path="/test"
-                            element={
-                                <ProtectedRoute>
-                                    <SocketProvider>
-                                        <TestPage />
-                                    </SocketProvider>
-                                </ProtectedRoute>
-                            }
-                        />
-                        <Route
-                            path="/test2"
-                            element={
-                                <TestPage2 content={""} setContent={() => {}} />
-                            }
-                        />
+                            <Route
+                                path="/test"
+                                element={
+                                    <ProtectedRoute>
+                                            <TestPage />
+                                    </ProtectedRoute>
+                                }
+                            />
+                            <Route
+                                path="/test2"
+                                element={
+                                    <TestPage2
+                                        content={""}
+                                        setContent={() => {}}
+                                    />
+                                }
+                            />
 
-                        {/* Protected routes */}
-                        <Route
-                            path={ROUTES.HOME}
-                            element={
-                                // <ProtectedRoute>
-                                <HomePage />
-                                // </ProtectedRoute>
-                            }
-                        />
-                        <Route
-                            path={ROUTES.CONTEST.DETAIL}
-                            element={
-                                // <ProtectedRoute>
-                                <ContestDetailPage />
-                                // </ProtectedRoute>
-                            }
-                        />
-                        <Route
-                            path={ROUTES.CONTEST.PROBLEMS}
-                            element={
-                                // <ProtectedRoute>
-                                <SocketProvider>
+                            {/* Protected routes */}
+                            <Route
+                                path={ROUTES.HOME}
+                                element={
+                                    // <ProtectedRoute>
+                                    <HomePage />
+                                    // </ProtectedRoute>
+                                }
+                            />
+                            <Route
+                                path={ROUTES.CONTEST.DETAIL}
+                                element={
+                                    // <ProtectedRoute>
+                                    <ContestDetailPage />
+                                    // </ProtectedRoute>
+                                }
+                            />
+                            <Route
+                                path={ROUTES.CONTEST.PROBLEMS}
+                                element={
+                                    // <ProtectedRoute>
+                                        <ProblemProvider>
+                                            <ActivityMonitor>
+                                                <ContestProblemsPage />
+                                            </ActivityMonitor>
+                                        </ProblemProvider>
+                                    // </ProtectedRoute>
+                                }
+                            />
+
+                            <Route
+                                path={ROUTES.CONTEST.LEADERBOARD}
+                                element={<ContestLeaderboardPage />}
+                            />
+
+                            <Route
+                                path={ROUTES.CONTEST.SOLVE_PROBLEMS}
+                                element={
+                                    // <ProtectedRoute>
+                                        <ProblemProvider>
+                                            <ActivityMonitor>
+                                                <ProblemDescriptionPage />
+                                            </ActivityMonitor>
+                                        </ProblemProvider>
+                                    // </ProtectedRoute>
+                                }
+                            />
+
+                            {/*  ------------------------------- Dashboard routes ------------------------------------  */}
+
+                            <Route
+                                path={ROUTES.DASHBOARD.HOME}
+                                element={
+                                    // <ProtectedRoute requireAdmin>
+                                    <DashboardPage />
+                                    //  </ProtectedRoute>
+                                }
+                            />
+
+                            <Route
+                                path={ROUTES.DASHBOARD.CONTEST}
+                                element={
+                                    // <ProtectedRoute requireAdmin>
+                                    <AdminContestDetailPage />
+                                    // </ProtectedRoute>
+                                }
+                            />
+
+                            <Route
+                                path={ROUTES.DASHBOARD.ADD_CONTEST}
+                                element={
+                                    // <ProtectedRoute>
+                                    <CreateContestPage />
+                                    // </ProtectedRoute>
+                                }
+                            />
+
+                            <Route
+                                path={ROUTES.DASHBOARD.UPDATE_CONTEST}
+                                element={
+                                    // <ProtectedRoute>
+                                    <UpdateContestPage />
+                                    // </ProtectedRoute>
+                                }
+                            />
+
+                            <Route
+                                path="/problems/:id"
+                                element={
+                                    // <ProtectedRoute>
+
                                     <ProblemProvider>
-                                        <ActivityMonitor>
-                                            <ContestProblemsPage />
-                                        </ActivityMonitor>
+                                        <ProblemDescriptionPage />
                                     </ProblemProvider>
-                                </SocketProvider>
-                                // </ProtectedRoute>
-                            }
-                        />
 
-                        <Route
-                        path={ROUTES.CONTEST.LEADERBOARD}
-                        element={
-                            <ContestLeaderboardPage />
-                        } />
+                                    // </ProtectedRoute>
+                                }
+                            />
 
-                        <Route
-                            path={ROUTES.CONTEST.SOLVE_PROBLEMS}
-                            element={
-                                // <ProtectedRoute>
-                                <SocketProvider>
-                                    <ProblemProvider>
-                                        <ActivityMonitor>
-                                            <ProblemDescriptionPage />
-                                        </ActivityMonitor>
-                                    </ProblemProvider>
-                                </SocketProvider>
-                                // </ProtectedRoute>
-                            }
-                        />
+                            <Route
+                                path={ROUTES.DASHBOARD.LEADERBOARD_CONTEST}
+                                element={
+                                    // <ProtectedRoute>
+                                    <>
+                                        <ContestLeaderboardPage />
+                                    </>
+                                    // </ProtectedRoute>
+                                }
+                            />
 
-                        {/*  ------------------------------- Dashboard routes ------------------------------------  */}
+                            <Route
+                                path={ROUTES.DASHBOARD.CONTEST_ACTIVITIES}
+                                element={<ContestActivityPage />}
+                            />
 
-                        <Route
-                            path={ROUTES.DASHBOARD.HOME}
-                            element={
-                                // <ProtectedRoute requireAdmin>
-                                <DashboardPage />
-                                //  </ProtectedRoute>
-                            }
-                        />
+                            {/* Admin routes */}
+                            <Route
+                                path={ROUTES.DASHBOARD.ADD_PROBLEM}
+                                element={
+                                    // <ProtectedRoute requireAdmin>
+                                    <AddProblemPage />
+                                    // {/* </ProtectedRoute> */}
+                                }
+                            />
 
-                        <Route
-                            path={ROUTES.DASHBOARD.CONTEST}
-                            element={
-                                // <ProtectedRoute requireAdmin>
-                                <AdminContestDetailPage />
-                                // </ProtectedRoute>
-                            }
-                        />
-
-                        <Route
-                            path={ROUTES.DASHBOARD.ADD_CONTEST}
-                            element={
-                                // <ProtectedRoute>
-                                <CreateContestPage />
-                                // </ProtectedRoute>
-                            }
-                        />
-
-                        <Route
-                            path={ROUTES.DASHBOARD.UPDATE_CONTEST}
-                            element={
-                                // <ProtectedRoute>
-                                <UpdateContestPage />
-                                // </ProtectedRoute>
-                            }
-                        />
-
-                        <Route
-                            path="/problems/:id"
-                            element={
-                                // <ProtectedRoute>
-
-                                <ProblemProvider>
+                            <Route
+                                path={ROUTES.DASHBOARD.PROBLEM}
+                                element={
+                                    // <ProtectedRoute requireAdmin>
                                     <ProblemDescriptionPage />
-                                </ProblemProvider>
+                                    // {/* </ProtectedRoute> */}
+                                }
+                            />
 
-                                // </ProtectedRoute>
-                            }
-                        />
-
-                        <Route
-                            path={ROUTES.DASHBOARD.LEADERBOARD_CONTEST}
-                            element={
-                                // <ProtectedRoute>
-                                <>
-                                    <ContestLeaderboardPage />
-                                </>
-                                // </ProtectedRoute>
-                            }
-                        />
-
-                        <Route
-                            path={ROUTES.DASHBOARD.CONTEST_ACTIVITIES}
-                            element={<ContestActivityPage />}
-                        />
-
-                        {/* Admin routes */}
-                        <Route
-                            path={ROUTES.DASHBOARD.ADD_PROBLEM}
-                            element={
-                                // <ProtectedRoute requireAdmin>
-                                <AddProblemPage />
-                                // {/* </ProtectedRoute> */}
-                            }
-                        />
-
-                        <Route
-                            path={ROUTES.DASHBOARD.PROBLEM}
-                            element={
-                                // <ProtectedRoute requireAdmin>
-                                <ProblemDescriptionPage />
-                                // {/* </ProtectedRoute> */}
-                            }
-                        />
-
-                        <Route
-                            path={ROUTES.DASHBOARD.UPDATE_PROBLEM}
-                            element={
-                                // <ProtectedRoute requireAdmin>
-                                <AddProblemPage />
-                                // {/* </ProtectedRoute> */}
-                            }
-                        />
-                    </Routes>
+                            <Route
+                                path={ROUTES.DASHBOARD.UPDATE_PROBLEM}
+                                element={
+                                    // <ProtectedRoute requireAdmin>
+                                    <AddProblemPage />
+                                    // {/* </ProtectedRoute> */}
+                                }
+                            />
+                        </Routes>
+                    </SocketProvider>
                 </UserProvider>
             </AuthProvider>
         </BrowserRouter>
