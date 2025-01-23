@@ -115,7 +115,8 @@ export function UserActivityDetailsModal({ isOpen, onClose, selectedUser }: Prop
                                                 </span>
                                             </div>
                                             <span className="text-slate-600 font-mono">
-                                                {format(new Date(log.times_tamp), "MMM d, h:mm:ss a")}
+                                                {/* {format(new Date(log.times_tamp), "MMM d, h:mm:ss a")} */}
+                                                {new Date(log.times_tamp).toLocaleString()}
                                             </span>
                                         </div>
                                         {isOffline && nextLog && nextLog.activity === "came online" && (
