@@ -3,7 +3,7 @@ import apiService from '@/api/apiService';
 
 export const useAuth = () => {
     const { setUser, setToken } = useUser();
-
+    
     const login = async (email: string, password: string) => {
         const data = await apiService.post('/auth/users/login', { email, password }, { withCredentials: true });
         setToken(data.token);
@@ -44,6 +44,8 @@ export const useAuth = () => {
         setToken("");
         setUser(null);
     };
+
+  
 
     return { login, userRegister, logout, adminLogin, adminRegister };
 };

@@ -4,6 +4,7 @@ import { ContestSubmissions } from "../models/contestSubmissions";
 import { CustomException } from "../errors/CustomException";
 import { CacheFactory } from "./redis-cache.service";
 import { CacheStrategy } from "../types/cache.types";
+import { config } from "../config/config";
 
 class ContestSubmissionService {
     private contestSubmissionRepository = new ContestSubmissionRepository();
@@ -11,7 +12,7 @@ class ContestSubmissionService {
 
     // Cache for contest status (active/inactive) for users
     private contestStatusCache = CacheFactory.create<boolean>(
-        { host: "localhost", port: 6379 },
+       { host: config.redis.host, port: config.redis.port },
         "contest_status_cache:",
         {
             strategy: CacheStrategy.LRU,
@@ -22,7 +23,7 @@ class ContestSubmissionService {
 
     // Cache for user contest details
     private userContestCache = CacheFactory.create<any>(
-        { host: "localhost", port: 6379 },
+        { host: config.redis.host, port: config.redis.port },
         "user_contest_cache:",
         {
             strategy: CacheStrategy.LRU,

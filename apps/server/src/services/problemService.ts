@@ -5,12 +5,14 @@ import { ProblemSubmissions } from "../models/problemSubmissions";
 import { CacheFactory } from "./redis-cache.service";
 import { CacheStrategy } from "../types/cache.types";
 import { TestCase } from "../models/testCase";
+import { config } from "../config/config";
+import { PROBLEM_CACHE_NAMESPACE, CACHE_KEYS } from "../types/constants";
 
 class ProblemService {
     private problemRepository = new ProblemRepository();
     private problemCache = CacheFactory.create<Problem>(
-        { host: "localhost", port: 6379 },
-        "problem_cache:",
+        { host: config.redis.host, port: config.redis.port },
+        PROBLEM_CACHE_NAMESPACE.PROBLEM,
         {
             strategy: CacheStrategy.LRU,
             maxEntries: 1000,
@@ -18,8 +20,8 @@ class ProblemService {
         }
     );
     private problemListCache = CacheFactory.create<Problem[]>(
-        { host: "localhost", port: 6379 },
-        "problem_list_cache:",
+        { host: config.redis.host, port: config.redis.port },
+        PROBLEM_CACHE_NAMESPACE.PROBLEM_LIST,
         {
             strategy: CacheStrategy.LRU,
             maxEntries: 100,
@@ -28,7 +30,7 @@ class ProblemService {
     );
 
     async getAllProblems(): Promise<Problem[]> {
-        const cacheKey = "all_problems";
+        const cacheKey = CACHE_KEYS.ALL_PROBLEMS;
         const cachedProblems = await this.problemListCache.get(cacheKey);
 
         if (cachedProblems) {
@@ -41,7 +43,7 @@ class ProblemService {
     }
 
     async getProblemById(id: string): Promise<Problem | null> {
-        const cacheKey = `problem:${id}`;
+        const cacheKey = CACHE_KEYS.PROBLEM(id);
         const cachedProblem = await this.problemCache.get(cacheKey);
 
         if (cachedProblem) {
@@ -92,7 +94,7 @@ class ProblemService {
 
         // If an ID is provided, also clear that specific problem's cache
         if (id) {
-            await this.problemCache.delete(`problem:${id}`);
+            await this.problemCache.delete(CACHE_KEYS.PROBLEM(id));
         }
     }
 
