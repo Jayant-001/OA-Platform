@@ -7,15 +7,16 @@ import { CacheStrategy, SubmissionStatus } from "../types/cache.types";
 import TestCaseService from "../services/testCaseService";
 import { v4 as uuidv4 } from 'uuid';
 import { CustomException } from "../errors/CustomException";
-
+import { config } from "../config/config";
+import { SUBMISSION_STATUS, SUBMISSION_TYPE, CACHE_PREFIX, CACHE_NAMESPACE, VERDICT } from "../types/constants";
 
 class ContestSubmissionController {
     private testCaseService = new TestCaseService();
     private contestSubmissionService = new ContestSubmissionService();
     private inputQueueService = new InputQueueService();
     private submissionCache = CacheFactory.create<SubmissionStatus>(
-        { host: "localhost", port: 6379 },
-        "code-execution:",
+        { host: config.redis.host, port: config.redis.port },
+        CACHE_NAMESPACE,
         {
             strategy: CacheStrategy.TTL,
             maxEntries: 10000,
@@ -23,12 +24,12 @@ class ContestSubmissionController {
         }
     );
 
-    private getKeyPrefix(type: 'submit' | 'run' = 'submit'): string {
-        return type === 'run' ? 'run:' : 'submit:';
+    private getKeyPrefix(type: keyof typeof SUBMISSION_TYPE.SUBMIT | typeof SUBMISSION_TYPE.RUN = SUBMISSION_TYPE.SUBMIT): string {
+        return type === SUBMISSION_TYPE.RUN ? CACHE_PREFIX.RUN : CACHE_PREFIX.SUBMIT;
     }
 
     private getOutputKey(id: string): string {
-        return `output:${id}`;
+        return `${CACHE_PREFIX.OUTPUT}${id}`;
     }
 
     async createSubmission(req: Request, res: Response) {
@@ -41,8 +42,8 @@ class ContestSubmissionController {
             const submission = await this.contestSubmissionService.createSubmission(contestId, problemId, req.body, req.user?.id as string);
 
             await this.submissionCache.set(
-                this.getKeyPrefix('submit') + submission.id,
-                { status: 'PENDING' }
+                this.getKeyPrefix(SUBMISSION_TYPE.SUBMIT) + submission.id,
+                { status:  SUBMISSION_STATUS.PENDING }
             );
 
           
@@ -54,7 +55,7 @@ class ContestSubmissionController {
                 language: submission.language,
                 code: submission.code,
                 timeout: 5000,
-                submissionType: "submit",
+                submissionType: SUBMISSION_TYPE.SUBMIT,
                 testCases
             };
             await this.inputQueueService.addJob(job);
@@ -79,7 +80,7 @@ class ContestSubmissionController {
 
 
     async getLeaderboardSubmissions(req: Request, res: Response) {
-        const { contestId, problemId,userId } = req.params;
+        const { contestId, problemId, userId } = req.params;
 
         const submissions = await this.contestSubmissionService.getUserSubmissionsForProblem(contestId, problemId, userId);
 
@@ -89,7 +90,7 @@ class ContestSubmissionController {
 
         submissions.sort((a, b) => new Date(a.submitted_at).getTime() - new Date(b.submitted_at).getTime());
 
-        const firstAccepted = submissions.find(submission => submission.verdict === 'accepted');
+        const firstAccepted = submissions.find(submission => submission.verdict === VERDICT.ACCEPTED);
 
         let selectedSubmission;
 
@@ -120,8 +121,8 @@ class ContestSubmissionController {
             const submission_id = uuidv4();
 
             await this.submissionCache.set(
-                this.getKeyPrefix('run') + submission_id,
-                { status: 'PENDING' }
+                this.getKeyPrefix(SUBMISSION_TYPE.RUN) + submission_id,
+                { status: SUBMISSION_STATUS.PENDING }
             );
 
             const job = {
@@ -130,7 +131,7 @@ class ContestSubmissionController {
                 code: req.body.code,
                 input: req.body.input,
                 timeout: 5000,
-                submissionType: "run",
+                submissionType: SUBMISSION_TYPE.RUN,
             };
             await this.inputQueueService.addJob(job);
             res.status(201).json({
@@ -142,16 +143,16 @@ class ContestSubmissionController {
     async getRunCodeStatus(req: Request, res: Response) {
             const { submissionId } = req.params;
             const status = await this.submissionCache.get(
-                this.getKeyPrefix('run') + submissionId
+                this.getKeyPrefix(SUBMISSION_TYPE.RUN) + submissionId
             );
 
             if (!status) {
                 return res.status(404).json({ message: "Submission status not found" });
             }
 
-            if (status.status !== 'COMPLETED') {
+            if (status.status !== SUBMISSION_STATUS.COMPLETED) {
                 return res.json({
-                    status: 'PENDING',
+                    status: SUBMISSION_STATUS.PENDING,
                     output: null,
                     execution_time: null,
                     memory_used: null
@@ -163,10 +164,9 @@ class ContestSubmissionController {
                 this.getOutputKey(submissionId)
             );
             
-        console.log("Output: ", output);
 
             return res.json({
-                status: 'COMPLETED',
+                status: SUBMISSION_STATUS.COMPLETED,
                 result: output?.result || null,
                 execution_time: null,
                 memory_used: null,
@@ -179,17 +179,17 @@ class ContestSubmissionController {
     async getSubmitCodeStatus(req: Request, res: Response) {
             const { submissionId } = req.params;
             const status = await this.submissionCache.get(
-                this.getKeyPrefix('submit') + submissionId
+                this.getKeyPrefix(SUBMISSION_TYPE.SUBMIT) + submissionId
             );
 
             if (!status) {
                 return res.status(404).json({ message: "Submission status not found" });
             }
 
-            if (status.status !== 'COMPLETED') {
+            if (status.status !== SUBMISSION_STATUS.COMPLETED) {
                 return res.json({
                     id: submissionId,
-                    status: 'PENDING',
+                    status: SUBMISSION_STATUS.PENDING,
                     verdict: null,
                     submitted_at: null,
                     execution_time: null,
@@ -202,7 +202,7 @@ class ContestSubmissionController {
 
             return res.json({
                 id: submission?.id,
-                status: 'COMPLETED',
+                status: SUBMISSION_STATUS.COMPLETED,
                 verdict: submission?.verdict || null,
                 language: submission?.language,
                 submitted_at: submission?.submitted_at,

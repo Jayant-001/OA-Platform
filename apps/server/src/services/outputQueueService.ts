@@ -3,13 +3,15 @@ import { queueConfig } from '../config/queueConfig';
 import { CacheFactory } from './redis-cache.service';
 import { CacheStrategy, SubmissionStatus } from '../types/cache.types';
 import ContestSubmissionService from './contestSubmissionService';
+import { SUBMISSION_STATUS, SUBMISSION_TYPE, CACHE_PREFIX, CACHE_NAMESPACE } from "../types/constants";
+import { config } from '../config/config';
 
 class OutputQueueService {
     private outputQueue: Queue;
     private contestSubmissionService: ContestSubmissionService;
     private cache = CacheFactory.create<any>(
-        { host: "localhost", port: 6379 },
-        "code-execution:",
+        { host: config.redis.host, port: config.redis.port },
+        CACHE_NAMESPACE,
         {
             strategy: CacheStrategy.TTL,
             maxEntries: 10000,
@@ -17,12 +19,12 @@ class OutputQueueService {
         }
     );
 
-    private getStatusKey(id: string, type: 'run' | 'submit' = 'submit'): string {
-        return `${type}:${id}`;
+    private getStatusKey(id: string, type: keyof typeof SUBMISSION_TYPE.SUBMIT | typeof SUBMISSION_TYPE.RUN = SUBMISSION_TYPE.SUBMIT): string {
+        return `${String(type)}:${id}`;
     }
 
     private getOutputKey(id: string): string {
-        return `output:${id}`;
+        return `${CACHE_PREFIX.OUTPUT}${id}`;
     }
 
     constructor() {
@@ -57,7 +59,7 @@ class OutputQueueService {
                 await this.cache.set(
                     this.getStatusKey(jobId, submissionType),
                     {
-                        status: 'COMPLETED',
+                        status: SUBMISSION_STATUS.COMPLETED,
                     }
                 );
             });
@@ -75,13 +77,13 @@ class OutputQueueService {
         await this.cache.set(
             this.getStatusKey(jobId, submissionType),
             {
-                status: 'PROCESSING',
+                status: SUBMISSION_STATUS.PROCESSING,
             }
         );
 
        
 
-        if (submissionType === 'run') {
+        if (submissionType === SUBMISSION_TYPE.RUN) {
             await this.cache.set(
                 this.getOutputKey(jobId),
                 {
