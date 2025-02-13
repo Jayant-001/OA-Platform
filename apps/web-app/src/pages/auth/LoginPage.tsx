@@ -5,6 +5,9 @@ import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Link, useNavigate } from "react-router-dom";
 import { ROUTES } from "@/lib/routes";
+import { useAuthContext } from "@/context/AuthContext"; 
+
+
 
 export function LoginPage() {
     const [email, setEmail] = useState("");
@@ -12,11 +15,15 @@ export function LoginPage() {
     const { login } = useAuth();
     const navigate = useNavigate();
     const [error, setError] = useState("");
+    const { setProfile } = useAuthContext();
+   
+
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         try {
             await login(email, password);
+            await setProfile();
             navigate(ROUTES.HOME);
         } catch (error) {
             setError("Login failed. Please try again.");
@@ -78,3 +85,5 @@ export function LoginPage() {
         </div>
     );
 }
+
+
