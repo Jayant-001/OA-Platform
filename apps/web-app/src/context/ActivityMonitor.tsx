@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useState } from "react";
 import { IActivityLog } from "@/types/index";
 import { useAuthContext } from "./AuthContext";
-import { useParams } from "react-router-dom";
+import { useLocation, useParams } from "react-router-dom";
 import { useSocket } from "./SocketContext";
 import { toZonedTime } from "date-fns-tz";
 
@@ -56,9 +56,18 @@ const ActivityMonitor = ({ children }: Props) => {
     const {user} = useAuthContext();
     const { contest_id } = useParams();
     const {sendActivity} = useSocket();
+    const location = useLocation();
+    const isDashboard = location.pathname.includes('/dashboard');
+    const [isOnline, setIsOnline] = useState<boolean>(false);
 
     useEffect(() => {
+
+        console.log(user, isWindowFocused);
         if(!user) return;
+
+        
+
+
 
         const activity: IActivityLog = {
             activityType: isWindowFocused ? "came online" : "went offline",
@@ -75,7 +84,7 @@ const ActivityMonitor = ({ children }: Props) => {
         //     new Date(lastFocusChange).toLocaleString()
         // );
         
-    }, [isWindowFocused, lastFocusChange]);
+    }, [isWindowFocused, lastFocusChange, location]);
 
     return <>{children}</>;
 };
