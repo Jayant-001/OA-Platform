@@ -12,5 +12,5 @@ export const queueConfig = {
         port: 6379,
     },
     workers: parseInt(process.env.WORKERS || '1'),
-
+    redis_prod_url: process.env.REDIS_PROD_URL as string
 };

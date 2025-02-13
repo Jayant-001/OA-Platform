@@ -5,6 +5,7 @@ import { CacheStrategy, SubmissionStatus } from '../types/cache.types';
 import ContestSubmissionService from './contestSubmissionService';
 import { SUBMISSION_STATUS, SUBMISSION_TYPE, CACHE_PREFIX, CACHE_NAMESPACE } from "../types/constants";
 import { config } from '../config/config';
+import Redis from 'ioredis';
 
 class OutputQueueService {
     private outputQueue: Queue;
@@ -29,7 +30,7 @@ class OutputQueueService {
 
     constructor() {
         this.outputQueue = new Queue(queueConfig.queues.output, {
-            connection: queueConfig.redis,
+            connection: new Redis(config.redis_prod_url, { maxRetriesPerRequest: null }),
         });
         this.contestSubmissionService = new ContestSubmissionService();
     }
@@ -45,7 +46,7 @@ class OutputQueueService {
                     return result;
                 },
                 {
-                    connection: queueConfig.redis,
+                    connection: new Redis(config.redis_prod_url, { maxRetriesPerRequest: null }),
                     concurrency: 1,
                 }
             );
