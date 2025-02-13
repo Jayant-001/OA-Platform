@@ -2,8 +2,6 @@ import { ContestRepository } from '../repositories/contestRepository';
 import { ProblemRepository } from '../repositories/problemRepository';
 import { ContestSubmissionRepository } from '../repositories/contestSubmissionRepository';
 
-// ...existing code...
-
 class LeaderboardService {
 
     private contestRepository = new ContestRepository();
