@@ -2,12 +2,9 @@ import bcrypt from "bcrypt";
 import JwtService from "./jwtService";
 import { UserRepository } from "../repositories/userRepository";
 import { UserRequest } from "../models/user";
-import { Admin } from "../models/admin";
-import { AdminRepository } from "../repositories/adminRepository";
 
 class authService {
     private userRepository = new UserRepository();
-    private adminRepository = new AdminRepository();
     private jwtService = new JwtService();
 
     async register(user: Omit<UserRequest, "id">,role:string): Promise<void> {
@@ -26,9 +23,6 @@ class authService {
         });
     }
 
-
-    
-
     async login(email: string, password: string): Promise<string> {
         const user = await this.userRepository.findByEmail(email);
         if (!user || !(await bcrypt.compare(password, user.password))) {
@@ -41,8 +35,7 @@ class authService {
         });
         return token;
     }
-    
-  
+
 }
 
 export default authService;

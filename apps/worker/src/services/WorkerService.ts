@@ -2,6 +2,7 @@ import { Queue, Worker } from 'bullmq';
 import { ContainerPoolManager } from './ContainerPoolManager';
 import { config } from '../config';
 import { CodeExecutionJob, ExecutionResult } from '../types';
+import Redis from 'ioredis';
 
 export class WorkerService {
     private poolManager: ContainerPoolManager;
@@ -13,10 +14,10 @@ export class WorkerService {
         this.poolManager = new ContainerPoolManager();
         this.workers = [];
         this.inputQueue = new Queue(config.queues.input, {
-            connection: config.redis
+            connection: new Redis(config.redis_prod_url, {maxRetriesPerRequest: null})
         });
         this.outputQueue = new Queue(config.queues.output, {
-            connection: config.redis
+            connection: new Redis(config.redis_prod_url, {maxRetriesPerRequest: null})
         });
     }
 
@@ -42,7 +43,7 @@ export class WorkerService {
                     }
                     return result;
                 },
-                { connection: config.redis }
+                { connection: new Redis(config.redis_prod_url, {maxRetriesPerRequest: null}) }
             );
 
             worker.on('completed', async (job, result) => {

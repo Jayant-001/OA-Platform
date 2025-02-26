@@ -1,5 +1,6 @@
 import Redis, { RedisOptions } from 'ioredis';
 import { CacheAdapter, CacheStrategy, CacheOptions } from '../types/cache.types';
+import { config } from '../config/config';
 
 class RedisCacheService<T> implements CacheAdapter<T> {
   private redis: Redis;
@@ -12,7 +13,7 @@ class RedisCacheService<T> implements CacheAdapter<T> {
     prefix: string = 'app_cache:',
     options: CacheOptions = {}
   ) {
-    this.redis = new Redis(redisConfig);
+    this.redis = new Redis(config.redis_prod_url);
     this.prefix = prefix;
     this.maxEntries = options.maxEntries || 1000 // Default max entries
     this.ttl = options.ttl || 3600; // Default TTL for 1 hour

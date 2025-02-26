@@ -15,6 +15,7 @@ interface Config {
         host: string;
         port: number;
     };
+    redis_prod_url: string;
     queues: {
         input: string;
         output: string;
@@ -30,6 +31,7 @@ export const config: Config = {
         host: process.env.REDIS_HOST || 'localhost',
         port: parseInt(process.env.REDIS_PORT || '6379')
     },
+    redis_prod_url: process.env.REDIS_PROD_URL || '',
     queues: {
         input: 'code-execution',
         output: 'execution-result'
