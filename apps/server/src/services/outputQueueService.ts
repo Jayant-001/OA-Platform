@@ -1,5 +1,5 @@
-import { Queue, Worker } from 'bullmq';
-import { queueConfig } from '../config/queueConfig';
+import RabbitMQService from './rabbitmqService';
+import { rabbitmqConfig } from '../config/rabbitmqConfig';
 import { CacheFactory } from './redis-cache.service';
 import { CacheStrategy, SubmissionStatus } from '../types/cache.types';
 import ContestSubmissionService from './contestSubmissionService';
@@ -7,7 +7,6 @@ import { SUBMISSION_STATUS, SUBMISSION_TYPE, CACHE_PREFIX, CACHE_NAMESPACE } fro
 import { config } from '../config/config';
 
 class OutputQueueService {
-    private outputQueue: Queue;
     private contestSubmissionService: ContestSubmissionService;
     private cache = CacheFactory.create<any>(
         { host: config.redis.host, port: config.redis.port },
@@ -28,49 +27,51 @@ class OutputQueueService {
     }
 
     constructor() {
-        this.outputQueue = new Queue(queueConfig.queues.output, {
-            connection: queueConfig.redis,
-        });
         this.contestSubmissionService = new ContestSubmissionService();
     }
 
     async start(): Promise<void> {
-        console.log('Worker pools initialized');
+        try {
+            await RabbitMQService.initialize();
+            console.log('Output queue service initialized');
 
-        for (let i = 0; i < queueConfig.workers; i++) {
-            const worker = new Worker(
-                queueConfig.queues.output,
-                async (job) => {
-                    const result = await this.processJob(job.data);
+            // Consume messages from output queue
+            await RabbitMQService.consumeQueue(rabbitmqConfig.queues.output, async (data) => {
+                try {
+                    const result = await this.processJob(data);
+                    const { submissionType, jobId } = data;
+
+                    await this.cache.set(
+                        this.getStatusKey(jobId, submissionType),
+                        {
+                            status: SUBMISSION_STATUS.COMPLETED,
+                        }
+                    );
+
                     return result;
-                },
-                {
-                    connection: queueConfig.redis,
-                    concurrency: 1,
+                } catch (error) {
+                    console.error('Error processing output queue message:', error);
+                    const { submissionType, jobId } = data;
+
+                    await this.cache.set(
+                        this.getStatusKey(jobId, submissionType),
+                        {
+                            status: SUBMISSION_STATUS.ERROR,
+                            error: error instanceof Error ? error.message : String(error)
+                        }
+                    );
+                    throw error;
                 }
-            );
-
-            worker.on('completed', async (job, data) => {
-                const { submissionType, jobId } = data;
-
-                await this.cache.set(
-                    this.getStatusKey(jobId, submissionType),
-                    {
-                        status: SUBMISSION_STATUS.COMPLETED,
-                    }
-                );
             });
-
-            worker.on('failed', async (job, error) => {
-
-            });
+        } catch (error) {
+            console.error('Failed to start output queue service:', error);
+            throw error;
         }
     }
 
     private async processJob(data: any): Promise<any> {
         const { submissionType, jobId } = data;
 
-        // Update submission status
         await this.cache.set(
             this.getStatusKey(jobId, submissionType),
             {
@@ -78,44 +79,41 @@ class OutputQueueService {
             }
         );
 
-       
         if (submissionType === SUBMISSION_TYPE.RUN) {
-
             await this.cache.set(
                 this.getOutputKey(jobId),
                 {
                     result: data.result,
-                    error: data.error || null // Include error if available
+                    error: data.error || null
                 }
             );
         } else {
-            // Generate random verdict for now
-
             console.log("Result: ", data.result);
             console.log("Data: ", data);
-          
-            // Update cache with verdict
+
             await this.cache.set(
                 this.getStatusKey(jobId, submissionType),
                 {
                     result: data.result,
-                    error: data.error || null // Include error if available
+                    error: data.error || null
                 }
             );
 
-            // Update submission in database using jobId instead of id
-            await this.contestSubmissionService.updateSubmission(jobId, {  // <-- Change this to use jobId
+            await this.contestSubmissionService.updateSubmission(jobId, {
                 verdict: data.result,
                 execution_time: data.executionTime || 0,
                 memory_used: data.memoryUsed || 0
             });
         }
 
-
         return {
             success: true,
             ...data
         };
+    }
+
+    async shutdown(): Promise<void> {
+        await RabbitMQService.close();
     }
 }
 

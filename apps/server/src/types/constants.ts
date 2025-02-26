@@ -11,7 +11,9 @@ export const PAGINATION = {
 export const SUBMISSION_STATUS = {
     PENDING: 'PENDING',
     COMPLETED: 'COMPLETED',
-    PROCESSING: 'PROCESSING'
+    PROCESSING: 'PROCESSING',
+    ERROR: "ERROR"
+
 } as const; 
 
 export const SUBMISSION_TYPE = {
