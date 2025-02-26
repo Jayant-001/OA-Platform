@@ -8,6 +8,7 @@ import { config } from '../config/config';
 import Redis from 'ioredis';
 
 class OutputQueueService {
+
     private contestSubmissionService: ContestSubmissionService;
     private cache = CacheFactory.create<any>(
         { host: config.redis.host, port: config.redis.port },
@@ -28,9 +29,9 @@ class OutputQueueService {
     }
 
     constructor() {
-        this.outputQueue = new Queue(queueConfig.queues.output, {
-            connection: new Redis(config.redis_prod_url, { maxRetriesPerRequest: null }),
-        });
+        // this.outputQueue = new Queue(rabbitmqConfig.queues.output, {
+        //     connection: new Redis(config.redis_prod_url, { maxRetriesPerRequest: null }),
+        // });
         this.contestSubmissionService = new ContestSubmissionService();
     }
 
@@ -44,6 +45,7 @@ class OutputQueueService {
                 try {
                     const result = await this.processJob(data);
                     const { submissionType, jobId } = data;
+                    console.log(submissionType, jobId);
 
                     await this.cache.set(
                         this.getStatusKey(jobId, submissionType),
@@ -75,6 +77,7 @@ class OutputQueueService {
 
     private async processJob(data: any): Promise<any> {
         const { submissionType, jobId } = data;
+        console.log('Processing job:', data);
 
         await this.cache.set(
             this.getStatusKey(jobId, submissionType),

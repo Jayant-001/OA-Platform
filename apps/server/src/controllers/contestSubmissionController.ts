@@ -137,7 +137,9 @@ class ContestSubmissionController {
                 timeout: 5000,
                 submissionType: SUBMISSION_TYPE.RUN,
             };
-            await this.inputQueueService.addJob(job);
+      //  await this.inputQueueService.addJob(job);
+        await RabbitMQService.publishToQueue(rabbitmqConfig.queues.input, job);
+
             res.status(201).json({
                 submission_id
             });
