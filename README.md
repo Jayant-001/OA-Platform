@@ -112,5 +112,3 @@ A comprehensive platform for conducting coding assessments and competitions with
   - Build system
   - Task running
   - Cache optimization
-
-Would you like me to elaborate on any specific component or create detailed documentation for any feature?
