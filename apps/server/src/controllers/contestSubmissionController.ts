@@ -6,6 +6,8 @@ import { CacheFactory } from "../services/redis-cache.service";
 import { CacheStrategy, SubmissionStatus } from "../types/cache.types";
 import TestCaseService from "../services/testCaseService";
 import { v4 as uuidv4 } from 'uuid';
+import RabbitMQService from "../services/rabbitmqService";
+import { rabbitmqConfig } from "../config/rabbitmqConfig";
 import { CustomException } from "../errors/CustomException";
 import { config } from "../config/config";
 import { SUBMISSION_STATUS, SUBMISSION_TYPE, CACHE_PREFIX, CACHE_NAMESPACE, VERDICT } from "../types/constants";
@@ -58,7 +60,9 @@ class ContestSubmissionController {
                 submissionType: SUBMISSION_TYPE.SUBMIT,
                 testCases
             };
-            await this.inputQueueService.addJob(job);
+        //  await this.inputQueueService.addJob(job);
+            await RabbitMQService.publishToQueue(rabbitmqConfig.queues.input, job);
+
 
             const {contest_id, problem_id, user_id, code, updated_at, score, ...data} = submission;
             res.status(201).json(data);
@@ -133,7 +137,9 @@ class ContestSubmissionController {
                 timeout: 5000,
                 submissionType: SUBMISSION_TYPE.RUN,
             };
-            await this.inputQueueService.addJob(job);
+      //  await this.inputQueueService.addJob(job);
+        await RabbitMQService.publishToQueue(rabbitmqConfig.queues.input, job);
+
             res.status(201).json({
                 submission_id
             });
